@@ -1,4 +1,6 @@
 export type ResourceType = "news" | "agenda" | "gallery" | "major";
+export type RoleType = "super_admin" | "content_editor" | "ppdb_officer" | "agenda_manager";
+export type AgendaCategory = "akademik" | "ujian" | "kegiatan" | "industri" | "pengumuman";
 
 export interface CMSItem {
   id: string;
@@ -15,6 +17,7 @@ export interface CMSItem {
   badge: string | null;
   skills: string[];
   careers: string[];
+  category: AgendaCategory | null;
   created_at: string;
   updated_at: string;
 }
@@ -34,6 +37,12 @@ export interface AdminUser {
   id: string;
   email: string;
   name: string;
+  role: RoleType;
+}
+
+export interface AdminAccount extends AdminUser {
+  is_active: boolean;
+  created_at: string;
 }
 
 export interface MessageResponse { message: string }

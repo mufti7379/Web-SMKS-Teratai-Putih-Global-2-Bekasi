@@ -11,18 +11,24 @@ import os
 db = MongoClient(mongo_url)[os.environ["DB_NAME"]]
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-admin_email = "admin@terataiputih2.sch.id"
-db.admins.update_one(
-    {"email": admin_email},
-    {"$setOnInsert": {"id": str(uuid4()), "email": admin_email, "name": "Admin Sekolah", "password_hash": pwd_context.hash("<redacted>")}},
-    upsert=True,
-)
+accounts = [
+    ("admin@terataiputih2.sch.id", "Admin Sekolah", "<redacted>", "super_admin"),
+    ("editor@terataiputih2.sch.id", "Editor Konten", "<redacted>", "content_editor"),
+    ("ppdb@terataiputih2.sch.id", "Petugas PPDB", "<redacted>", "ppdb_officer"),
+    ("agenda@terataiputih2.sch.id", "Pengelola Agenda", "<redacted>", "agenda_manager"),
+]
+for email, name, password, role in accounts:
+    db.admins.update_one(
+        {"email": email},
+        {"$set": {"name": name, "role": role, "is_active": True}, "$setOnInsert": {"id": str(uuid4()), "email": email, "password_hash": pwd_context.hash(password), "created_at": datetime.now(timezone.utc)}},
+        upsert=True,
+    )
 
 now = datetime.now(timezone.utc)
 items = [
-    {"resource": "agenda", "title": "Ujian ASAT Genap TA 2025/2026", "description": "Ujian akhir semester berbasis CBT untuk seluruh siswa.", "date": "2026-06-08", "end_date": "2026-06-12", "time": "08:00", "link": "https://ujiango.smk-terataiputih2.sch.id/", "is_published": True},
-    {"resource": "agenda", "title": "Pameran Karya Kreatif DKV & Expo RPL", "description": "Pameran karya dan inovasi siswa terbuka untuk keluarga sekolah.", "date": "2026-06-20", "time": "09:00", "is_published": True},
-    {"resource": "agenda", "title": "Job Fair & Campus Hiring", "description": "Temukan peluang kerja dan magang bersama mitra industri.", "date": "2026-07-15", "time": "08:30", "is_published": True},
+    {"resource": "agenda", "title": "Ujian ASAT Genap TA 2025/2026", "description": "Ujian akhir semester berbasis CBT untuk seluruh siswa.", "date": "2026-06-08", "end_date": "2026-06-12", "time": "08:00", "link": "https://ujiango.smk-terataiputih2.sch.id/", "category": "ujian", "is_published": True},
+    {"resource": "agenda", "title": "Pameran Karya Kreatif DKV & Expo RPL", "description": "Pameran karya dan inovasi siswa terbuka untuk keluarga sekolah.", "date": "2026-06-20", "time": "09:00", "category": "kegiatan", "is_published": True},
+    {"resource": "agenda", "title": "Job Fair & Campus Hiring", "description": "Temukan peluang kerja dan magang bersama mitra industri.", "date": "2026-07-15", "time": "08:30", "category": "industri", "is_published": True},
     {"resource": "news", "title": "PPDB Tahun Ajaran 2026/2027 Dibuka", "description": "Pendaftaran peserta didik baru telah dibuka dengan kesempatan beasiswa prestasi.", "date": "2026-01-15", "is_published": True},
     {"resource": "gallery", "title": "Praktik DKV", "description": "Karya Siswa", "image_url": "https://images.unsplash.com/photo-1572044162444-ad60f128bdea?auto=format&fit=crop&w=900&q=85", "is_published": True},
     {"resource": "gallery", "title": "Belajar RPL", "description": "Kegiatan Lab", "image_url": "https://images.unsplash.com/photo-1556636530-6b7482d80e3d?auto=format&fit=crop&w=900&q=85", "is_published": True},
@@ -34,7 +40,11 @@ items = [
     {"resource": "major", "code": "AKL", "title": "Akuntansi Keuangan Lembaga", "badge": "Financial Accounting", "description": "Membangun presisi laporan keuangan, pajak, dan audit berbasis software.", "image_url": "https://images.unsplash.com/photo-1625111381887-458fce74a923?auto=format&fit=crop&w=900&q=85", "skills": ["MYOB & Accurate", "Perpajakan PPH & PPN", "Financial Auditing", "Banking Finance"], "careers": ["Junior Accountant", "Tax Consultant Staff", "Auditor Assistant", "Banking Officer"], "is_published": True},
 ]
 for raw in items:
-    raw.update({"id": str(uuid4()), "date": raw.get("date"), "end_date": raw.get("end_date"), "time": raw.get("time"), "image_url": raw.get("image_url"), "link": raw.get("link"), "code": raw.get("code"), "badge": raw.get("badge"), "skills": raw.get("skills", []), "careers": raw.get("careers", []), "created_at": now, "updated_at": now})
+    raw.update({"id": str(uuid4()), "date": raw.get("date"), "end_date": raw.get("end_date"), "time": raw.get("time"), "image_url": raw.get("image_url"), "link": raw.get("link"), "code": raw.get("code"), "badge": raw.get("badge"), "skills": raw.get("skills", []), "careers": raw.get("careers", []), "category": raw.get("category"), "created_at": now, "updated_at": now})
     db.cms_items.update_one({"resource": raw["resource"], "title": raw["title"]}, {"$setOnInsert": raw}, upsert=True)
+
+db.cms_items.update_one({"resource": "agenda", "title": "Ujian ASAT Genap TA 2025/2026"}, {"$set": {"category": "ujian"}})
+db.cms_items.update_one({"resource": "agenda", "title": "Pameran Karya Kreatif DKV & Expo RPL"}, {"$set": {"category": "kegiatan"}})
+db.cms_items.update_one({"resource": "agenda", "title": "Job Fair & Campus Hiring"}, {"$set": {"category": "industri"}})
 
 print("Seed CMS dan admin selesai")

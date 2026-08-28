@@ -4,9 +4,9 @@
 Single-page Indonesian school profile website based on the public information from smk-terataiputih2.sch.id. It presents the school identity, programs, facilities, agenda, gallery, PPDB call-to-action, contact information, and profile video.
 
 ## Data model
-- `cms_items`: news, agenda, gallery, and major records with title, description, date/time, image, link, publish state, and major-specific skills/careers.
+- `cms_items`: news, agenda, gallery, and major records; agendas include one of five color-coded categories (academic, exam, activity, industry, announcement).
 - `leads`: PPDB and contact submissions with name, phone, selected major/question, timestamp, and follow-up status.
-- `admins` and `admin_sessions`: administrator identity and hashed httpOnly-cookie sessions.
+- `admins` and `admin_sessions`: administrator identity, role, active state, hashed password, and httpOnly-cookie sessions.
 
 ## Key flows
 - Visitors navigate the sticky header to Profil, Jurusan, Fasilitas, Agenda, Galeri, and Kontak sections.
@@ -16,10 +16,12 @@ Single-page Indonesian school profile website based on the public information fr
 - Visitors submit a contact inquiry that is persisted and visible in the admin dashboard.
 - Visitors browse an interactive monthly calendar, inspect event detail, and open a Google Calendar reminder link.
 - Administrators sign in at `/admin`, manage news, agenda, gallery, and major CRUD, and update lead follow-up statuses.
+- Super Admins manage staff accounts; PPDB staff can filter and export leads to an Excel workbook containing data and summary sheets.
 
 ## Auth and roles
 - Public visitors can read published CMS content and submit PPDB/contact leads.
 - Administrators authenticate with email/password; the backend creates a seven-day httpOnly session cookie.
+- Roles: Super Admin (everything), Content Editor (news/gallery/majors), PPDB Officer (leads/export), Agenda Manager (agenda only).
 - Admin credentials are recorded in `memory/test_credentials.md`.
 
 ## Integrations

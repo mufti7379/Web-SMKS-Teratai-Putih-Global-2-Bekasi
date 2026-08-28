@@ -6,6 +6,8 @@ from pydantic import BaseModel, Field
 
 
 ResourceType = Literal["news", "agenda", "gallery", "major"]
+RoleType = Literal["super_admin", "content_editor", "ppdb_officer", "agenda_manager"]
+AgendaCategory = Literal["akademik", "ujian", "kegiatan", "industri", "pengumuman"]
 
 
 class CMSItemBase(BaseModel):
@@ -22,6 +24,7 @@ class CMSItemBase(BaseModel):
     badge: str | None = None
     skills: list[str] = Field(default_factory=list)
     careers: list[str] = Field(default_factory=list)
+    category: AgendaCategory | None = None
 
 
 class CMSItemCreate(CMSItemBase):
@@ -41,6 +44,7 @@ class CMSItemUpdate(BaseModel):
     badge: str | None = None
     skills: list[str] | None = None
     careers: list[str] | None = None
+    category: AgendaCategory | None = None
 
 
 class CMSItem(CMSItemBase):
@@ -76,6 +80,30 @@ class AdminUser(BaseModel):
     id: str
     email: str
     name: str
+    role: RoleType
+
+
+class AdminAccountCreate(BaseModel):
+    email: str
+    name: str = Field(min_length=2, max_length=120)
+    password: str = Field(min_length=8, max_length=128)
+    role: RoleType
+
+
+class AdminAccountUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=2, max_length=120)
+    password: str | None = Field(default=None, min_length=8, max_length=128)
+    role: RoleType | None = None
+    is_active: bool | None = None
+
+
+class AdminAccount(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid4()))
+    email: str
+    name: str
+    role: RoleType
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class MessageResponse(BaseModel):
