@@ -97,6 +97,30 @@ class LeadNote(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
+class WhatsAppActionCreate(BaseModel):
+    template: Literal["greeting", "documents", "visit", "final_follow_up"]
+
+
+class WhatsAppActionResponse(BaseModel):
+    id: str
+    lead_id: str
+    template: str
+    message: str
+    url: str
+    actor_name: str
+    created_at: datetime
+
+
+class TimelineEvent(BaseModel):
+    id: str
+    event_type: Literal["created", "assignment", "status", "note", "whatsapp"]
+    title: str
+    description: str
+    actor_name: str
+    created_at: datetime
+    metadata: dict = Field(default_factory=dict)
+
+
 class AdminLogin(BaseModel):
     email: str
     password: str

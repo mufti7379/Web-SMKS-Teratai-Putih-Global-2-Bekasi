@@ -24,6 +24,8 @@ Single-page Indonesian school profile website based on the public information fr
 - Super Admins and PPDB Officers view 30/90/365-day PPDB analytics by major, source, status, and week.
 - Repeated normalized WhatsApp numbers remain separate but are cross-linked and marked as duplicates; new leads receive 24h warning and 48h critical SLA states.
 - Officers add shared follow-up notes; Super Admins preview and simulate the Monday 07.00 WIB weekly leadership report.
+- Lead timeline merges creation, assignment, status, notes, and WhatsApp actions into one newest-first history.
+- Officers open one of four prefilled WhatsApp templates from a lead card; every click is recorded in timeline and audit history.
 
 ## Auth and roles
 - Public visitors can read published CMS content and submit PPDB/contact leads.

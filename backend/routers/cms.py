@@ -3,6 +3,8 @@ import io
 import os
 import secrets
 from datetime import datetime, timedelta, timezone
+from urllib.parse import quote
+from uuid import uuid4
 
 from fastapi import APIRouter, Cookie, HTTPException, Request, Response
 from fastapi.responses import StreamingResponse
@@ -27,6 +29,9 @@ from models.cms import (
     LeadCreate,
     LeadNote,
     LeadNoteCreate,
+    TimelineEvent,
+    WhatsAppActionCreate,
+    WhatsAppActionResponse,
     LeadUpdate,
     MessageResponse,
     PPDBAnalytics,
@@ -390,6 +395,51 @@ async def add_lead_note(lead_id: str, payload: LeadNoteCreate, school_admin_sess
     await db.lead_notes.insert_one(note.model_dump())
     await write_audit(admin, "lead_note_added", "lead", lead_id, f"Menambahkan catatan untuk {lead['name']}")
     return note
+
+
+@router.get("/admin/leads/{lead_id}/timeline", response_model=list[TimelineEvent])
+async def lead_timeline(lead_id: str, school_admin_session: str | None = Cookie(default=None)):
+    admin = await require_admin(school_admin_session)
+    ensure_leads_permission(admin)
+    lead = await db.leads.find_one({"id": lead_id})
+    if not lead:
+        raise HTTPException(status_code=404, detail="Data tidak ditemukan")
+    if admin["role"] == "ppdb_officer" and lead.get("assigned_to_id") not in {None, admin["id"]}:
+        raise HTTPException(status_code=403, detail="Lead ini ditugaskan kepada petugas lain")
+    events = [TimelineEvent(id=f"created-{lead_id}", event_type="created", title="Lead dibuat", description=f"Pendaftar masuk dari {lead.get('source', 'website')}", actor_name="Sistem", created_at=normalize_datetime(lead["created_at"]), metadata={"source": lead.get("source", "website")})]
+    audits = await db.audit_logs.find({"entity_id": lead_id, "action": {"$in": ["lead_assigned", "lead_status_updated"]}}, {"_id": 0}).to_list(500)
+    for item in audits:
+        events.append(TimelineEvent(id=item["id"], event_type="assignment" if item["action"] == "lead_assigned" else "status", title="Penugasan petugas" if item["action"] == "lead_assigned" else "Status diperbarui", description=item["summary"], actor_name=item["actor_name"], created_at=normalize_datetime(item["created_at"]), metadata=item.get("details", {})))
+    notes = await db.lead_notes.find({"lead_id": lead_id}, {"_id": 0}).to_list(500)
+    for item in notes:
+        events.append(TimelineEvent(id=item["id"], event_type="note", title="Catatan petugas", description=item["text"], actor_name=item["author_name"], created_at=normalize_datetime(item["created_at"]), metadata={"next_action_date": item.get("next_action_date")}))
+    communications = await db.communication_events.find({"lead_id": lead_id}, {"_id": 0}).to_list(500)
+    for item in communications:
+        events.append(TimelineEvent(id=item["id"], event_type="whatsapp", title="Pesan WhatsApp dibuka", description=item["message"], actor_name=item["actor_name"], created_at=normalize_datetime(item["created_at"]), metadata={"template": item["template"]}))
+    return sorted(events, key=lambda item: item.created_at, reverse=True)
+
+
+@router.post("/admin/leads/{lead_id}/whatsapp", response_model=WhatsAppActionResponse, status_code=201)
+async def open_whatsapp_action(lead_id: str, payload: WhatsAppActionCreate, school_admin_session: str | None = Cookie(default=None)):
+    admin = await require_admin(school_admin_session)
+    ensure_leads_permission(admin)
+    lead = await db.leads.find_one({"id": lead_id})
+    if not lead:
+        raise HTTPException(status_code=404, detail="Data tidak ditemukan")
+    if admin["role"] == "ppdb_officer" and lead.get("assigned_to_id") not in {None, admin["id"]}:
+        raise HTTPException(status_code=403, detail="Lead ini ditugaskan kepada petugas lain")
+    templates = {
+        "greeting": f"Halo {lead['name']}, kami dari PPDB SMK Teratai Putih Global 2 Bekasi. Terima kasih sudah mendaftar. Apakah ada informasi yang dapat kami bantu?",
+        "documents": f"Halo {lead['name']}, kami mengingatkan kelengkapan berkas PPDB SMK Teratai Putih Global 2 Bekasi. Mohon konfirmasi jika berkas sudah siap.",
+        "visit": f"Halo {lead['name']}, kami mengundang Anda untuk mengatur jadwal kunjungan ke SMK Teratai Putih Global 2 Bekasi. Silakan balas dengan waktu yang paling sesuai.",
+        "final_follow_up": f"Halo {lead['name']}, kami menindaklanjuti kembali minat pendaftaran Anda di SMK Teratai Putih Global 2 Bekasi. Apakah proses pendaftaran ingin dilanjutkan?",
+    }
+    message = templates[payload.template]
+    phone = lead.get("normalized_phone") or "".join(character for character in lead["phone"] if character.isdigit())
+    event = {"id": str(uuid4()), "lead_id": lead_id, "template": payload.template, "message": message, "url": f"https://wa.me/{phone}?text={quote(message)}", "actor_id": admin["id"], "actor_name": admin["name"], "created_at": utc_now()}
+    await db.communication_events.insert_one(event)
+    await write_audit(admin, "whatsapp_opened", "lead", lead_id, f"Membuka pesan WhatsApp {payload.template} untuk {lead['name']}", {"template": payload.template})
+    return WhatsAppActionResponse(**event)
 
 
 @router.get("/admin/reports", response_model=ReportOverview)

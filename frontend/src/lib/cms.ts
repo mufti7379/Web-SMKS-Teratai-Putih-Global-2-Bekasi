@@ -52,6 +52,26 @@ export interface LeadNote {
   created_at: string;
 }
 
+export interface TimelineEvent {
+  id: string;
+  event_type: "created" | "assignment" | "status" | "note" | "whatsapp";
+  title: string;
+  description: string;
+  actor_name: string;
+  created_at: string;
+  metadata: Record<string, unknown>;
+}
+
+export interface WhatsAppActionResponse {
+  id: string;
+  lead_id: string;
+  template: string;
+  message: string;
+  url: string;
+  actor_name: string;
+  created_at: string;
+}
+
 export interface AdminUser {
   id: string;
   email: string;
