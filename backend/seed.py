@@ -47,6 +47,15 @@ db.cms_items.update_one({"resource": "agenda", "title": "Ujian ASAT Genap TA 202
 db.cms_items.update_one({"resource": "agenda", "title": "Pameran Karya Kreatif DKV & Expo RPL"}, {"$set": {"category": "kegiatan"}})
 db.cms_items.update_one({"resource": "agenda", "title": "Job Fair & Campus Hiring"}, {"$set": {"category": "industri"}})
 db.leads.update_many({"source": {"$exists": False}}, {"$set": {"source": "website", "assigned_to_id": None, "assigned_to_name": None}})
+template_defaults = [
+    ("greeting", "Salam awal", "Halo {nama}, kami dari {sekolah}. Terima kasih sudah mendaftar pada jurusan {jurusan}. Saya {petugas}, apakah ada informasi yang dapat kami bantu?"),
+    ("documents", "Pengingat berkas", "Halo {nama}, kami mengingatkan kelengkapan berkas PPDB {sekolah} untuk jurusan {jurusan}. Mohon konfirmasi jika berkas sudah siap."),
+    ("visit", "Jadwal kunjungan", "Halo {nama}, kami mengundang Anda untuk mengatur jadwal kunjungan ke {sekolah}. Silakan balas dengan waktu yang paling sesuai."),
+    ("final_follow_up", "Tindak lanjut terakhir", "Halo {nama}, kami menindaklanjuti kembali minat pendaftaran jurusan {jurusan} di {sekolah}. Apakah proses pendaftaran ingin dilanjutkan?"),
+]
+for order, (key, label, content) in enumerate(template_defaults):
+    db.whatsapp_templates.update_one({"key": key}, {"$setOnInsert": {"key": key, "label": label, "content": content, "is_active": True, "order": order, "updated_by": "Sistem", "updated_at": datetime.now(timezone.utc)}}, upsert=True)
+db.leads.update_many({"last_contact_at": {"$exists": False}}, [{"$set": {"last_contact_type": "Lead dibuat", "last_contact_at": "$created_at", "last_contact_by": "Sistem", "next_action_date": None}}])
 for lead in db.leads.find({}, {"id": 1, "phone": 1, "normalized_phone": 1}):
     if not lead.get("normalized_phone"):
         digits = "".join(character for character in lead.get("phone", "") if character.isdigit())

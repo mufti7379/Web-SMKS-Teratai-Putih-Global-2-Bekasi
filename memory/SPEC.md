@@ -26,6 +26,8 @@ Single-page Indonesian school profile website based on the public information fr
 - Officers add shared follow-up notes; Super Admins preview and simulate the Monday 07.00 WIB weekly leadership report.
 - Lead timeline merges creation, assignment, status, notes, and WhatsApp actions into one newest-first history.
 - Officers open one of four prefilled WhatsApp templates from a lead card; every click is recorded in timeline and audit history.
+- Super Admins edit, enable/disable, and reset four WhatsApp templates using `{nama}`, `{jurusan}`, `{petugas}`, and `{sekolah}` variables.
+- Timeline supports multi-type filters and 7/30/90-day or custom date ranges; lead cards surface the latest contact actor, time, status, and next action.
 
 ## Auth and roles
 - Public visitors can read published CMS content and submit PPDB/contact leads.

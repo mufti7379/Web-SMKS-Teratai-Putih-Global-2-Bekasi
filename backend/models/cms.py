@@ -74,6 +74,10 @@ class Lead(LeadCreate):
     duplicate_count: int = 0
     sla_level: Literal["ok", "warning", "critical"] = "ok"
     age_hours: int = 0
+    last_contact_type: str = "Lead dibuat"
+    last_contact_at: datetime | None = None
+    last_contact_by: str = "Sistem"
+    next_action_date: str | None = None
 
 
 class LeadUpdate(BaseModel):
@@ -109,6 +113,20 @@ class WhatsAppActionResponse(BaseModel):
     url: str
     actor_name: str
     created_at: datetime
+
+
+class WhatsAppTemplate(BaseModel):
+    key: Literal["greeting", "documents", "visit", "final_follow_up"]
+    label: str
+    content: str = Field(min_length=10, max_length=2000)
+    is_active: bool = True
+    updated_by: str = "Sistem"
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class WhatsAppTemplateUpdate(BaseModel):
+    content: str | None = Field(default=None, min_length=10, max_length=2000)
+    is_active: bool | None = None
 
 
 class TimelineEvent(BaseModel):

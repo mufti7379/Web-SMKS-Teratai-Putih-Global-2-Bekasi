@@ -1,6 +1,7 @@
 import hashlib
 import io
 import os
+import re
 import secrets
 from datetime import datetime, timedelta, timezone
 from urllib.parse import quote
@@ -32,6 +33,8 @@ from models.cms import (
     TimelineEvent,
     WhatsAppActionCreate,
     WhatsAppActionResponse,
+    WhatsAppTemplate,
+    WhatsAppTemplateUpdate,
     LeadUpdate,
     MessageResponse,
     PPDBAnalytics,
@@ -73,6 +76,8 @@ def serialize_lead(document: dict) -> Lead:
     document["age_hours"] = age_hours
     document["duplicate_count"] = len(document.get("duplicate_ids", []))
     document["sla_level"] = "critical" if document.get("status") == "new" and age_hours >= 48 else "warning" if document.get("status") == "new" and age_hours >= 24 else "ok"
+    if document.get("last_contact_at"):
+        document["last_contact_at"] = normalize_datetime(document["last_contact_at"])
     return Lead(**document)
 
 
@@ -243,6 +248,7 @@ async def create_lead(payload: LeadCreate):
     previous = await db.leads.find({"normalized_phone": normalized_phone}, {"id": 1, "_id": 0}).to_list(100)
     previous_ids = [item["id"] for item in previous]
     lead = Lead(**payload.model_dump(), normalized_phone=normalized_phone, duplicate_ids=previous_ids)
+    lead.last_contact_at = lead.created_at
     await db.leads.insert_one(lead.model_dump())
     if previous_ids:
         await db.leads.update_many({"id": {"$in": previous_ids}}, {"$addToSet": {"duplicate_ids": lead.id}})
@@ -355,8 +361,10 @@ async def update_lead(lead_id: str, payload: LeadUpdate, school_admin_session: s
     if not document:
         raise HTTPException(status_code=404, detail="Data tidak ditemukan")
     if "assigned_to_id" in changes:
+        await db.leads.update_one({"id": lead_id}, {"$set": {"last_contact_type": "Penugasan petugas", "last_contact_at": utc_now(), "last_contact_by": admin["name"]}})
         await write_audit(admin, "lead_assigned", "lead", lead_id, f"Menugaskan lead {existing['name']} kepada {changes.get('assigned_to_name') or 'belum ditugaskan'}", {"assigned_to_id": changes.get("assigned_to_id")})
     if "status" in changes:
+        await db.leads.update_one({"id": lead_id}, {"$set": {"last_contact_type": "Perubahan status", "last_contact_at": utc_now(), "last_contact_by": admin["name"]}})
         await write_audit(admin, "lead_status_updated", "lead", lead_id, f"Mengubah status lead {existing['name']} menjadi {changes['status']}", {"before": existing.get("status"), "after": changes["status"]})
     return serialize_lead(document)
 
@@ -393,12 +401,13 @@ async def add_lead_note(lead_id: str, payload: LeadNoteCreate, school_admin_sess
         raise HTTPException(status_code=403, detail="Lead ini ditugaskan kepada petugas lain")
     note = LeadNote(lead_id=lead_id, author_id=admin["id"], author_name=admin["name"], **payload.model_dump())
     await db.lead_notes.insert_one(note.model_dump())
+    await db.leads.update_one({"id": lead_id}, {"$set": {"last_contact_type": "Catatan petugas", "last_contact_at": utc_now(), "last_contact_by": admin["name"], "next_action_date": payload.next_action_date}})
     await write_audit(admin, "lead_note_added", "lead", lead_id, f"Menambahkan catatan untuk {lead['name']}")
     return note
 
 
 @router.get("/admin/leads/{lead_id}/timeline", response_model=list[TimelineEvent])
-async def lead_timeline(lead_id: str, school_admin_session: str | None = Cookie(default=None)):
+async def lead_timeline(lead_id: str, types: str | None = None, days: int | None = None, start_date: str | None = None, end_date: str | None = None, school_admin_session: str | None = Cookie(default=None)):
     admin = await require_admin(school_admin_session)
     ensure_leads_permission(admin)
     lead = await db.leads.find_one({"id": lead_id})
@@ -416,6 +425,20 @@ async def lead_timeline(lead_id: str, school_admin_session: str | None = Cookie(
     communications = await db.communication_events.find({"lead_id": lead_id}, {"_id": 0}).to_list(500)
     for item in communications:
         events.append(TimelineEvent(id=item["id"], event_type="whatsapp", title="Pesan WhatsApp dibuka", description=item["message"], actor_name=item["actor_name"], created_at=normalize_datetime(item["created_at"]), metadata={"template": item["template"]}))
+    if types:
+        allowed_types = set(types.split(","))
+        events = [event for event in events if event.event_type in allowed_types]
+    if days is not None:
+        if days not in {7, 30, 90}:
+            raise HTTPException(status_code=422, detail="Periode harus 7, 30, atau 90 hari")
+        threshold = utc_now() - timedelta(days=days)
+        events = [event for event in events if event.created_at >= threshold]
+    if start_date or end_date:
+        date_filter = build_lead_query(None, None, start_date, end_date).get("created_at", {})
+        if "$gte" in date_filter:
+            events = [event for event in events if event.created_at >= date_filter["$gte"]]
+        if "$lt" in date_filter:
+            events = [event for event in events if event.created_at < date_filter["$lt"]]
     return sorted(events, key=lambda item: item.created_at, reverse=True)
 
 
@@ -428,18 +451,64 @@ async def open_whatsapp_action(lead_id: str, payload: WhatsAppActionCreate, scho
         raise HTTPException(status_code=404, detail="Data tidak ditemukan")
     if admin["role"] == "ppdb_officer" and lead.get("assigned_to_id") not in {None, admin["id"]}:
         raise HTTPException(status_code=403, detail="Lead ini ditugaskan kepada petugas lain")
-    templates = {
-        "greeting": f"Halo {lead['name']}, kami dari PPDB SMK Teratai Putih Global 2 Bekasi. Terima kasih sudah mendaftar. Apakah ada informasi yang dapat kami bantu?",
-        "documents": f"Halo {lead['name']}, kami mengingatkan kelengkapan berkas PPDB SMK Teratai Putih Global 2 Bekasi. Mohon konfirmasi jika berkas sudah siap.",
-        "visit": f"Halo {lead['name']}, kami mengundang Anda untuk mengatur jadwal kunjungan ke SMK Teratai Putih Global 2 Bekasi. Silakan balas dengan waktu yang paling sesuai.",
-        "final_follow_up": f"Halo {lead['name']}, kami menindaklanjuti kembali minat pendaftaran Anda di SMK Teratai Putih Global 2 Bekasi. Apakah proses pendaftaran ingin dilanjutkan?",
-    }
-    message = templates[payload.template]
+    template = await db.whatsapp_templates.find_one({"key": payload.template, "is_active": True}, {"_id": 0})
+    if not template:
+        raise HTTPException(status_code=422, detail="Template WhatsApp tidak aktif")
+    variables = {"{nama}": lead["name"], "{jurusan}": lead.get("major") or "program pilihan", "{petugas}": admin["name"], "{sekolah}": "SMK Teratai Putih Global 2 Bekasi"}
+    message = template["content"]
+    for variable, value in variables.items():
+        message = message.replace(variable, value)
     phone = lead.get("normalized_phone") or "".join(character for character in lead["phone"] if character.isdigit())
     event = {"id": str(uuid4()), "lead_id": lead_id, "template": payload.template, "message": message, "url": f"https://wa.me/{phone}?text={quote(message)}", "actor_id": admin["id"], "actor_name": admin["name"], "created_at": utc_now()}
     await db.communication_events.insert_one(event)
+    await db.leads.update_one({"id": lead_id}, {"$set": {"last_contact_type": f"WhatsApp · {template['label']}", "last_contact_at": utc_now(), "last_contact_by": admin["name"]}})
     await write_audit(admin, "whatsapp_opened", "lead", lead_id, f"Membuka pesan WhatsApp {payload.template} untuk {lead['name']}", {"template": payload.template})
     return WhatsAppActionResponse(**event)
+
+
+@router.get("/admin/whatsapp-templates", response_model=list[WhatsAppTemplate])
+async def list_whatsapp_templates(school_admin_session: str | None = Cookie(default=None)):
+    admin = await require_admin(school_admin_session)
+    ensure_leads_permission(admin)
+    documents = await db.whatsapp_templates.find({}, {"_id": 0}).sort("order", 1).to_list(20)
+    for document in documents:
+        document["updated_at"] = normalize_datetime(document["updated_at"])
+    return [WhatsAppTemplate(**document) for document in documents]
+
+
+@router.patch("/admin/whatsapp-templates/{template_key}", response_model=WhatsAppTemplate)
+async def update_whatsapp_template(template_key: str, payload: WhatsAppTemplateUpdate, school_admin_session: str | None = Cookie(default=None)):
+    admin = await require_admin(school_admin_session)
+    ensure_super_admin(admin)
+    changes = payload.model_dump(exclude_unset=True)
+    if payload.content is not None:
+        variables = set(re.findall(r"\{[^{}]+\}", payload.content))
+        unsupported = variables - {"{nama}", "{jurusan}", "{petugas}", "{sekolah}"}
+        if unsupported:
+            raise HTTPException(status_code=422, detail=f"Variabel tidak didukung: {', '.join(sorted(unsupported))}")
+    changes.update({"updated_by": admin["name"], "updated_at": utc_now()})
+    document = await db.whatsapp_templates.find_one_and_update({"key": template_key}, {"$set": changes}, return_document=True, projection={"_id": 0})
+    if not document:
+        raise HTTPException(status_code=404, detail="Template tidak ditemukan")
+    await write_audit(admin, "whatsapp_template_updated", "admin", template_key, f"Mengubah template WhatsApp {document['label']}")
+    return WhatsAppTemplate(**document)
+
+
+@router.post("/admin/whatsapp-templates/{template_key}/reset", response_model=WhatsAppTemplate)
+async def reset_whatsapp_template(template_key: str, school_admin_session: str | None = Cookie(default=None)):
+    admin = await require_admin(school_admin_session)
+    ensure_super_admin(admin)
+    defaults = {
+        "greeting": "Halo {nama}, kami dari {sekolah}. Terima kasih sudah mendaftar pada jurusan {jurusan}. Saya {petugas}, apakah ada informasi yang dapat kami bantu?",
+        "documents": "Halo {nama}, kami mengingatkan kelengkapan berkas PPDB {sekolah} untuk jurusan {jurusan}. Mohon konfirmasi jika berkas sudah siap.",
+        "visit": "Halo {nama}, kami mengundang Anda untuk mengatur jadwal kunjungan ke {sekolah}. Silakan balas dengan waktu yang paling sesuai.",
+        "final_follow_up": "Halo {nama}, kami menindaklanjuti kembali minat pendaftaran jurusan {jurusan} di {sekolah}. Apakah proses pendaftaran ingin dilanjutkan?",
+    }
+    if template_key not in defaults:
+        raise HTTPException(status_code=404, detail="Template tidak ditemukan")
+    document = await db.whatsapp_templates.find_one_and_update({"key": template_key}, {"$set": {"content": defaults[template_key], "is_active": True, "updated_by": admin["name"], "updated_at": utc_now()}}, return_document=True, projection={"_id": 0})
+    await write_audit(admin, "whatsapp_template_reset", "admin", template_key, f"Memulihkan template WhatsApp {template_key}")
+    return WhatsAppTemplate(**document)
 
 
 @router.get("/admin/reports", response_model=ReportOverview)

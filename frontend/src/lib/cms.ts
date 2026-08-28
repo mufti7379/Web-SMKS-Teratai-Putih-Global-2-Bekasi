@@ -39,6 +39,10 @@ export interface Lead {
   duplicate_count: number;
   sla_level: "ok" | "warning" | "critical";
   age_hours: number;
+  last_contact_type: string;
+  last_contact_at: string | null;
+  last_contact_by: string;
+  next_action_date: string | null;
   created_at: string;
 }
 
@@ -70,6 +74,15 @@ export interface WhatsAppActionResponse {
   url: string;
   actor_name: string;
   created_at: string;
+}
+
+export interface WhatsAppTemplate {
+  key: "greeting" | "documents" | "visit" | "final_follow_up";
+  label: string;
+  content: string;
+  is_active: boolean;
+  updated_by: string;
+  updated_at: string;
 }
 
 export interface AdminUser {
