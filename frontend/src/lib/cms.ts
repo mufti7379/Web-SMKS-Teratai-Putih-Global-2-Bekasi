@@ -1,6 +1,7 @@
 export type ResourceType = "news" | "agenda" | "gallery" | "major";
 export type RoleType = "super_admin" | "content_editor" | "ppdb_officer" | "agenda_manager";
 export type AgendaCategory = "akademik" | "ujian" | "kegiatan" | "industri" | "pengumuman";
+export type LeadSource = "website" | "whatsapp" | "instagram" | "walk_in" | "referral";
 
 export interface CMSItem {
   id: string;
@@ -30,6 +31,9 @@ export interface Lead {
   major: string | null;
   question: string | null;
   status: "new" | "follow_up" | "done";
+  source: LeadSource;
+  assigned_to_id: string | null;
+  assigned_to_name: string | null;
   created_at: string;
 }
 
@@ -46,6 +50,33 @@ export interface AdminAccount extends AdminUser {
 }
 
 export interface MessageResponse { message: string }
+
+export interface AuditLog {
+  id: string;
+  actor_id: string;
+  actor_name: string;
+  actor_email: string;
+  actor_role: RoleType;
+  action: string;
+  entity_type: "content" | "admin" | "lead";
+  entity_id: string;
+  summary: string;
+  details: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface AnalyticsSlice { label: string; value: number }
+export interface AnalyticsPoint { label: string; count: number }
+export interface PPDBAnalytics {
+  period_days: 30 | 90 | 365;
+  total: number;
+  new_count: number;
+  follow_up_count: number;
+  done_count: number;
+  by_major: AnalyticsSlice[];
+  by_source: AnalyticsSlice[];
+  weekly: AnalyticsPoint[];
+}
 
 export const resourceLabels: Record<ResourceType, string> = {
   news: "Berita",

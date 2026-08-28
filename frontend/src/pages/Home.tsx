@@ -98,7 +98,7 @@ export default function Home() {
   const selectedMajor = displayMajors.find((major) => major.code === selectedMajorCode) ?? displayMajors[0];
   const displayGallery = galleryContent.data?.length ? galleryContent.data.map((item, index) => ({ title: item.title, category: item.description || "Kegiatan Sekolah", image: item.image_url ?? imageUrls.hero, size: index === 0 ? "large" : index === 1 ? "tall" : index === 4 ? "wide" : "small" })) : fallbackGalleryItems;
   const MajorIcon = selectedMajor.icon;
-  const createLead = useMutation({ mutationFn: (payload: { kind: "ppdb" | "contact"; name: string; phone: string; major?: string; question?: string }) => apiPost<Lead>("/leads", payload), onSuccess: (_lead, variables) => { if (variables.kind === "ppdb") setIsPpdbOpen(false); toast.success(variables.kind === "ppdb" ? "Terima kasih! Data PPDB tersimpan dan tim kami akan menghubungi Anda." : "Pertanyaan tersimpan. Tim sekolah akan segera menindaklanjuti."); }, onError: () => toast.error("Data belum tersimpan. Silakan coba kembali.") });
+  const createLead = useMutation({ mutationFn: (payload: { kind: "ppdb" | "contact"; name: string; phone: string; major?: string; question?: string; source: "website" }) => apiPost<Lead>("/leads", payload), onSuccess: (_lead, variables) => { if (variables.kind === "ppdb") setIsPpdbOpen(false); toast.success(variables.kind === "ppdb" ? "Terima kasih! Data PPDB tersimpan dan tim kami akan menghubungi Anda." : "Pertanyaan tersimpan. Tim sekolah akan segera menindaklanjuti."); }, onError: () => toast.error("Data belum tersimpan. Silakan coba kembali.") });
 
   const scrollTo = (href: string) => {
     document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
@@ -108,13 +108,13 @@ export default function Home() {
   const submitPpdb = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    createLead.mutate({ kind: "ppdb", name: String(data.get("student")), phone: String(data.get("whatsapp")), major: String(data.get("major")) });
+    createLead.mutate({ kind: "ppdb", name: String(data.get("student")), phone: String(data.get("whatsapp")), major: String(data.get("major")), source: "website" });
   };
 
   const submitContact = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    createLead.mutate({ kind: "contact", name: String(data.get("name")), phone: String(data.get("phone")), question: String(data.get("question")) });
+    createLead.mutate({ kind: "contact", name: String(data.get("name")), phone: String(data.get("phone")), question: String(data.get("question")), source: "website" });
     event.currentTarget.reset();
   };
 

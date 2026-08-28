@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 ResourceType = Literal["news", "agenda", "gallery", "major"]
 RoleType = Literal["super_admin", "content_editor", "ppdb_officer", "agenda_manager"]
 AgendaCategory = Literal["akademik", "ujian", "kegiatan", "industri", "pengumuman"]
+LeadSource = Literal["website", "whatsapp", "instagram", "walk_in", "referral"]
 
 
 class CMSItemBase(BaseModel):
@@ -59,16 +60,21 @@ class LeadCreate(BaseModel):
     phone: str = Field(min_length=8, max_length=24)
     major: str | None = None
     question: str | None = Field(default=None, max_length=1500)
+    source: LeadSource = "website"
 
 
 class Lead(LeadCreate):
     id: str = Field(default_factory=lambda: str(uuid4()))
     status: Literal["new", "follow_up", "done"] = "new"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    assigned_to_id: str | None = None
+    assigned_to_name: str | None = None
 
 
-class LeadStatusUpdate(BaseModel):
-    status: Literal["new", "follow_up", "done"]
+class LeadUpdate(BaseModel):
+    status: Literal["new", "follow_up", "done"] | None = None
+    source: LeadSource | None = None
+    assigned_to_id: str | None = None
 
 
 class AdminLogin(BaseModel):
@@ -104,6 +110,41 @@ class AdminAccount(BaseModel):
     role: RoleType
     is_active: bool = True
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class AuditLog(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid4()))
+    actor_id: str
+    actor_name: str
+    actor_email: str
+    actor_role: RoleType
+    action: str
+    entity_type: Literal["content", "admin", "lead"]
+    entity_id: str
+    summary: str
+    details: dict = Field(default_factory=dict)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class AnalyticsSlice(BaseModel):
+    label: str
+    value: int
+
+
+class AnalyticsPoint(BaseModel):
+    label: str
+    count: int
+
+
+class PPDBAnalytics(BaseModel):
+    period_days: Literal[30, 90, 365]
+    total: int
+    new_count: int
+    follow_up_count: int
+    done_count: int
+    by_major: list[AnalyticsSlice]
+    by_source: list[AnalyticsSlice]
+    weekly: list[AnalyticsPoint]
 
 
 class MessageResponse(BaseModel):

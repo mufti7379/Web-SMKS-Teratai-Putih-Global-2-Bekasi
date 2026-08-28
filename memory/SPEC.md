@@ -5,7 +5,8 @@ Single-page Indonesian school profile website based on the public information fr
 
 ## Data model
 - `cms_items`: news, agenda, gallery, and major records; agendas include one of five color-coded categories (academic, exam, activity, industry, announcement).
-- `leads`: PPDB and contact submissions with name, phone, selected major/question, timestamp, and follow-up status.
+- `leads`: PPDB/contact submissions with source, assignee, status, timestamps, contact details, major, and question.
+- `audit_logs`: immutable activity entries for content, staff-account, assignment, and lead-status changes.
 - `admins` and `admin_sessions`: administrator identity, role, active state, hashed password, and httpOnly-cookie sessions.
 
 ## Key flows
@@ -17,6 +18,8 @@ Single-page Indonesian school profile website based on the public information fr
 - Visitors browse an interactive monthly calendar, inspect event detail, and open a Google Calendar reminder link.
 - Administrators sign in at `/admin`, manage news, agenda, gallery, and major CRUD, and update lead follow-up statuses.
 - Super Admins manage staff accounts; PPDB staff can filter and export leads to an Excel workbook containing data and summary sheets.
+- Super Admins assign leads to active PPDB Officers, inspect filtered activity history, and export branded Full/Compact/Contact workbooks.
+- Super Admins and PPDB Officers view 30/90/365-day PPDB analytics by major, source, status, and week.
 
 ## Auth and roles
 - Public visitors can read published CMS content and submit PPDB/contact leads.

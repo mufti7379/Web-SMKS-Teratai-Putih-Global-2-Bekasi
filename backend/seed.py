@@ -46,5 +46,6 @@ for raw in items:
 db.cms_items.update_one({"resource": "agenda", "title": "Ujian ASAT Genap TA 2025/2026"}, {"$set": {"category": "ujian"}})
 db.cms_items.update_one({"resource": "agenda", "title": "Pameran Karya Kreatif DKV & Expo RPL"}, {"$set": {"category": "kegiatan"}})
 db.cms_items.update_one({"resource": "agenda", "title": "Job Fair & Campus Hiring"}, {"$set": {"category": "industri"}})
+db.leads.update_many({"source": {"$exists": False}}, {"$set": {"source": "website", "assigned_to_id": None, "assigned_to_name": None}})
 
 print("Seed CMS dan admin selesai")

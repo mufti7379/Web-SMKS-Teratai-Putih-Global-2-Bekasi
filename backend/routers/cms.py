@@ -16,13 +16,17 @@ from models.cms import (
     AdminAccountCreate,
     AdminAccountUpdate,
     AdminUser,
+    AuditLog,
+    AnalyticsPoint,
+    AnalyticsSlice,
     CMSItem,
     CMSItemCreate,
     CMSItemUpdate,
     Lead,
     LeadCreate,
-    LeadStatusUpdate,
+    LeadUpdate,
     MessageResponse,
+    PPDBAnalytics,
     ResourceType,
 )
 
@@ -78,12 +82,14 @@ def ensure_super_admin(admin: dict) -> None:
         raise HTTPException(status_code=403, detail="Hanya Super Admin yang dapat mengelola akun")
 
 
-def build_lead_query(kind: str | None, status: str | None, start_date: str | None, end_date: str | None) -> dict:
+def build_lead_query(kind: str | None, status: str | None, start_date: str | None, end_date: str | None, source: str | None = None) -> dict:
     query: dict = {}
     if kind:
         query["kind"] = kind
     if status:
         query["status"] = status
+    if source:
+        query["source"] = source
     if start_date or end_date:
         date_query: dict = {}
         try:
@@ -95,6 +101,26 @@ def build_lead_query(kind: str | None, status: str | None, start_date: str | Non
             raise HTTPException(status_code=422, detail="Format tanggal harus YYYY-MM-DD") from exc
         query["created_at"] = date_query
     return query
+
+
+async def write_audit(admin: dict, action: str, entity_type: str, entity_id: str, summary: str, details: dict | None = None) -> None:
+    log = AuditLog(
+        actor_id=admin["id"],
+        actor_name=admin["name"],
+        actor_email=admin["email"],
+        actor_role=admin["role"],
+        action=action,
+        entity_type=entity_type,
+        entity_id=entity_id,
+        summary=summary,
+        details=details or {},
+    )
+    await db.audit_logs.insert_one(log.model_dump())
+
+
+def serialize_audit(document: dict) -> AuditLog:
+    document["created_at"] = normalize_datetime(document["created_at"])
+    return AuditLog(**document)
 
 
 async def require_admin(session_token: str | None) -> dict:
@@ -161,6 +187,7 @@ async def create_content(payload: CMSItemCreate, school_admin_session: str | Non
     ensure_content_permission(admin, payload.resource)
     item = CMSItem(**payload.model_dump())
     await db.cms_items.insert_one(item.model_dump())
+    await write_audit(admin, "content_created", "content", item.id, f"Membuat {payload.resource}: {payload.title}", {"resource": payload.resource})
     return item
 
 
@@ -176,6 +203,7 @@ async def update_content(item_id: str, payload: CMSItemUpdate, school_admin_sess
     document = await db.cms_items.find_one_and_update({"id": item_id}, {"$set": changes}, return_document=True, projection={"_id": 0})
     if not document:
         raise HTTPException(status_code=404, detail="Konten tidak ditemukan")
+    await write_audit(admin, "content_updated", "content", item_id, f"Mengubah {existing['resource']}: {existing['title']}", {"fields": list(changes.keys())})
     return serialize_item(document)
 
 
@@ -189,6 +217,7 @@ async def delete_content(item_id: str, school_admin_session: str | None = Cookie
     result = await db.cms_items.delete_one({"id": item_id})
     if not result.deleted_count:
         raise HTTPException(status_code=404, detail="Konten tidak ditemukan")
+    await write_audit(admin, "content_deleted", "content", item_id, f"Menghapus {existing['resource']}: {existing['title']}")
     return MessageResponse(message="Konten dihapus")
 
 
@@ -200,31 +229,60 @@ async def create_lead(payload: LeadCreate):
 
 
 @router.get("/admin/leads", response_model=list[Lead])
-async def list_leads(kind: str | None = None, status: str | None = None, start_date: str | None = None, end_date: str | None = None, school_admin_session: str | None = Cookie(default=None)):
+async def list_leads(kind: str | None = None, status: str | None = None, start_date: str | None = None, end_date: str | None = None, source: str | None = None, scope: str = "all", school_admin_session: str | None = Cookie(default=None)):
     admin = await require_admin(school_admin_session)
     ensure_leads_permission(admin)
-    documents = await db.leads.find(build_lead_query(kind, status, start_date, end_date), {"_id": 0}).sort("created_at", -1).to_list(1000)
+    query = build_lead_query(kind, status, start_date, end_date, source)
+    if admin["role"] == "ppdb_officer":
+        if scope == "mine":
+            query["assigned_to_id"] = admin["id"]
+        elif scope == "unassigned":
+            query["assigned_to_id"] = None
+        else:
+            query["$or"] = [{"assigned_to_id": admin["id"]}, {"assigned_to_id": None}]
+    elif scope == "mine":
+        query["assigned_to_id"] = admin["id"]
+    elif scope == "unassigned":
+        query["assigned_to_id"] = None
+    documents = await db.leads.find(query, {"_id": 0}).sort("created_at", -1).to_list(1000)
     return [serialize_lead(document) for document in documents]
 
 
 @router.get("/admin/leads/export.xlsx")
-async def export_leads(kind: str | None = None, status: str | None = None, start_date: str | None = None, end_date: str | None = None, school_admin_session: str | None = Cookie(default=None)):
+async def export_leads(kind: str | None = None, status: str | None = None, start_date: str | None = None, end_date: str | None = None, source: str | None = None, template: str = "full", school_admin_session: str | None = Cookie(default=None)):
     admin = await require_admin(school_admin_session)
     ensure_leads_permission(admin)
-    documents = await db.leads.find(build_lead_query(kind, status, start_date, end_date), {"_id": 0}).sort("created_at", -1).to_list(10000)
+    if template not in {"full", "compact", "contacts"}:
+        raise HTTPException(status_code=422, detail="Template ekspor tidak valid")
+    documents = await db.leads.find(build_lead_query(kind, status, start_date, end_date, source), {"_id": 0}).sort("created_at", -1).to_list(10000)
     leads = [serialize_lead(document) for document in documents]
     workbook = Workbook()
     sheet = workbook.active
     sheet.title = "Data Leads"
-    headers = ["ID", "Jenis", "Nama", "WhatsApp", "Jurusan", "Pertanyaan", "Status", "Waktu Masuk"]
+    sheet.merge_cells("A1:J1")
+    sheet["A1"] = "SMK TERATAI PUTIH GLOBAL 2 BEKASI"
+    sheet["A1"].font = Font(size=16, bold=True, color="FFFFFF")
+    sheet["A1"].fill = PatternFill("solid", fgColor="0A3358")
+    sheet.merge_cells("A2:J2")
+    sheet["A2"] = "Jl. Rajawali V Perumnas 1, Kayuringin Jaya, Bekasi Selatan · reportterput2@gmail.com"
+    sheet.merge_cells("A3:J3")
+    sheet["A3"] = f"Template: {template.title()} · Dicetak {utc_now().strftime('%d-%m-%Y %H:%M UTC')}"
+    column_sets = {
+        "full": ["ID", "Jenis", "Nama", "WhatsApp", "Jurusan", "Pertanyaan", "Sumber", "Petugas", "Status", "Waktu Masuk"],
+        "compact": ["Nama", "WhatsApp", "Jurusan", "Sumber", "Status", "Petugas"],
+        "contacts": ["Nama", "WhatsApp", "Jenis", "Jurusan"],
+    }
+    headers = column_sets[template]
     sheet.append(headers)
     header_fill = PatternFill("solid", fgColor="0F4C81")
-    for cell in sheet[1]:
+    header_row = 4
+    for cell in sheet[header_row]:
         cell.fill = header_fill
         cell.font = Font(color="FFFFFF", bold=True)
     for lead in leads:
-        sheet.append([lead.id, lead.kind, lead.name, lead.phone, lead.major or "", lead.question or "", lead.status, lead.created_at.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")])
-    widths = [38, 12, 24, 18, 18, 45, 16, 22]
+        full_row = {"ID": lead.id, "Jenis": lead.kind, "Nama": lead.name, "WhatsApp": lead.phone, "Jurusan": lead.major or "", "Pertanyaan": lead.question or "", "Sumber": lead.source, "Petugas": lead.assigned_to_name or "Belum ditugaskan", "Status": lead.status, "Waktu Masuk": lead.created_at.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")}
+        sheet.append([full_row[header] for header in headers])
+    widths = [38, 14, 25, 18, 20, 45, 16, 24, 16, 22][:len(headers)]
     for index, width in enumerate(widths, 1):
         sheet.column_dimensions[chr(64 + index)].width = width
     summary = workbook.create_sheet("Ringkasan")
@@ -237,6 +295,8 @@ async def export_leads(kind: str | None = None, status: str | None = None, start
     summary.append(["Selesai", sum(lead.status == "done" for lead in leads)])
     summary.append(["Filter jenis", kind or "Semua"])
     summary.append(["Filter status", status or "Semua"])
+    summary.append(["Filter sumber", source or "Semua"])
+    summary.append(["Template", template.title()])
     summary.append(["Rentang tanggal", f"{start_date or '-'} s/d {end_date or '-'}"])
     for cell in summary[1]:
         cell.fill = header_fill
@@ -251,13 +311,85 @@ async def export_leads(kind: str | None = None, status: str | None = None, start
 
 
 @router.patch("/admin/leads/{lead_id}", response_model=Lead)
-async def update_lead(lead_id: str, payload: LeadStatusUpdate, school_admin_session: str | None = Cookie(default=None)):
+async def update_lead(lead_id: str, payload: LeadUpdate, school_admin_session: str | None = Cookie(default=None)):
     admin = await require_admin(school_admin_session)
     ensure_leads_permission(admin)
-    document = await db.leads.find_one_and_update({"id": lead_id}, {"$set": {"status": payload.status}}, return_document=True, projection={"_id": 0})
+    existing = await db.leads.find_one({"id": lead_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Data tidak ditemukan")
+    changes = payload.model_dump(exclude_unset=True)
+    if "assigned_to_id" in changes:
+        ensure_super_admin(admin)
+        assignee_id = changes["assigned_to_id"]
+        if assignee_id:
+            assignee = await db.admins.find_one({"id": assignee_id, "role": "ppdb_officer", "is_active": True})
+            if not assignee:
+                raise HTTPException(status_code=422, detail="Petugas PPDB aktif tidak ditemukan")
+            changes["assigned_to_name"] = assignee["name"]
+        else:
+            changes["assigned_to_name"] = None
+    if admin["role"] == "ppdb_officer" and existing.get("assigned_to_id") not in {None, admin["id"]}:
+        raise HTTPException(status_code=403, detail="Lead ini ditugaskan kepada petugas lain")
+    document = await db.leads.find_one_and_update({"id": lead_id}, {"$set": changes}, return_document=True, projection={"_id": 0})
     if not document:
         raise HTTPException(status_code=404, detail="Data tidak ditemukan")
+    if "assigned_to_id" in changes:
+        await write_audit(admin, "lead_assigned", "lead", lead_id, f"Menugaskan lead {existing['name']} kepada {changes.get('assigned_to_name') or 'belum ditugaskan'}", {"assigned_to_id": changes.get("assigned_to_id")})
+    if "status" in changes:
+        await write_audit(admin, "lead_status_updated", "lead", lead_id, f"Mengubah status lead {existing['name']} menjadi {changes['status']}", {"before": existing.get("status"), "after": changes["status"]})
     return serialize_lead(document)
+
+
+@router.get("/admin/assignees", response_model=list[AdminUser])
+async def list_assignees(school_admin_session: str | None = Cookie(default=None)):
+    admin = await require_admin(school_admin_session)
+    ensure_leads_permission(admin)
+    documents = await db.admins.find({"role": "ppdb_officer", "is_active": True}, {"_id": 0}).sort("name", 1).to_list(100)
+    return [AdminUser(id=item["id"], email=item["email"], name=item["name"], role=item["role"]) for item in documents]
+
+
+@router.get("/admin/audit", response_model=list[AuditLog])
+async def list_audit(actor_id: str | None = None, action: str | None = None, start_date: str | None = None, end_date: str | None = None, school_admin_session: str | None = Cookie(default=None)):
+    admin = await require_admin(school_admin_session)
+    ensure_super_admin(admin)
+    query: dict = {}
+    if actor_id:
+        query["actor_id"] = actor_id
+    if action:
+        query["action"] = action
+    if start_date or end_date:
+        query["created_at"] = build_lead_query(None, None, start_date, end_date).get("created_at", {})
+    documents = await db.audit_logs.find(query, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    return [serialize_audit(document) for document in documents]
+
+
+@router.get("/admin/analytics", response_model=PPDBAnalytics)
+async def ppdb_analytics(days: int = 30, school_admin_session: str | None = Cookie(default=None)):
+    admin = await require_admin(school_admin_session)
+    ensure_leads_permission(admin)
+    if days not in {30, 90, 365}:
+        raise HTTPException(status_code=422, detail="Periode harus 30, 90, atau 365 hari")
+    start = utc_now() - timedelta(days=days)
+    documents = await db.leads.find({"kind": "ppdb", "created_at": {"$gte": start}}, {"_id": 0}).to_list(10000)
+    leads = [serialize_lead(document) for document in documents]
+    major_counts: dict[str, int] = {}
+    source_counts = {key: 0 for key in ["website", "whatsapp", "instagram", "walk_in", "referral"]}
+    week_counts: dict[str, int] = {}
+    for lead in leads:
+        major_counts[lead.major or "Belum memilih"] = major_counts.get(lead.major or "Belum memilih", 0) + 1
+        source_counts[lead.source] = source_counts.get(lead.source, 0) + 1
+        week_start = (lead.created_at - timedelta(days=lead.created_at.weekday())).date().isoformat()
+        week_counts[week_start] = week_counts.get(week_start, 0) + 1
+    return PPDBAnalytics(
+        period_days=days,
+        total=len(leads),
+        new_count=sum(lead.status == "new" for lead in leads),
+        follow_up_count=sum(lead.status == "follow_up" for lead in leads),
+        done_count=sum(lead.status == "done" for lead in leads),
+        by_major=[AnalyticsSlice(label=label, value=value) for label, value in sorted(major_counts.items(), key=lambda item: item[1], reverse=True)],
+        by_source=[AnalyticsSlice(label=label, value=value) for label, value in source_counts.items()],
+        weekly=[AnalyticsPoint(label=label, count=value) for label, value in sorted(week_counts.items())],
+    )
 
 
 @router.get("/admin/users", response_model=list[AdminAccount])
@@ -279,6 +411,7 @@ async def create_admin(payload: AdminAccountCreate, school_admin_session: str | 
     document = account.model_dump()
     document["password_hash"] = pwd_context.hash(payload.password)
     await db.admins.insert_one(document)
+    await write_audit(admin, "admin_created", "admin", account.id, f"Membuat akun {account.name} sebagai {account.role}", {"email": account.email, "role": account.role})
     return account
 
 
@@ -292,6 +425,7 @@ async def update_admin(admin_id: str, payload: AdminAccountUpdate, school_admin_
     document = await db.admins.find_one_and_update({"id": admin_id}, {"$set": changes}, return_document=True, projection={"_id": 0, "password_hash": 0})
     if not document:
         raise HTTPException(status_code=404, detail="Akun staf tidak ditemukan")
+    await write_audit(admin, "admin_updated", "admin", admin_id, f"Mengubah akun {document['name']}", {"fields": list(changes.keys())})
     return serialize_admin(document)
 
 
@@ -301,8 +435,10 @@ async def delete_admin(admin_id: str, school_admin_session: str | None = Cookie(
     ensure_super_admin(admin)
     if admin["id"] == admin_id:
         raise HTTPException(status_code=400, detail="Super Admin tidak dapat menghapus akun sendiri")
+    existing = await db.admins.find_one({"id": admin_id})
     result = await db.admins.delete_one({"id": admin_id})
     if not result.deleted_count:
         raise HTTPException(status_code=404, detail="Akun staf tidak ditemukan")
     await db.admin_sessions.delete_many({"admin_id": admin_id})
+    await write_audit(admin, "admin_deleted", "admin", admin_id, f"Menghapus akun {existing['name'] if existing else admin_id}")
     return MessageResponse(message="Akun staf dihapus")
