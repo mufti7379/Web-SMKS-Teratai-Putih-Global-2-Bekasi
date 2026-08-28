@@ -69,12 +69,32 @@ class Lead(LeadCreate):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     assigned_to_id: str | None = None
     assigned_to_name: str | None = None
+    normalized_phone: str = ""
+    duplicate_ids: list[str] = Field(default_factory=list)
+    duplicate_count: int = 0
+    sla_level: Literal["ok", "warning", "critical"] = "ok"
+    age_hours: int = 0
 
 
 class LeadUpdate(BaseModel):
     status: Literal["new", "follow_up", "done"] | None = None
     source: LeadSource | None = None
     assigned_to_id: str | None = None
+
+
+class LeadNoteCreate(BaseModel):
+    text: str = Field(min_length=2, max_length=2000)
+    next_action_date: str | None = None
+
+
+class LeadNote(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid4()))
+    lead_id: str
+    author_id: str
+    author_name: str
+    text: str
+    next_action_date: str | None = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class AdminLogin(BaseModel):
@@ -145,6 +165,36 @@ class PPDBAnalytics(BaseModel):
     by_major: list[AnalyticsSlice]
     by_source: list[AnalyticsSlice]
     weekly: list[AnalyticsPoint]
+
+
+class WeeklyReportSummary(BaseModel):
+    total: int
+    overdue: int
+    duplicates: int
+    top_major: str
+    busiest_officer: str
+
+
+class ReportRun(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid4()))
+    recipient: str
+    sender: str
+    delivery_mode: Literal["simulated", "live"]
+    status: Literal["simulated", "sent", "failed"]
+    trigger: Literal["manual", "scheduled"]
+    summary: WeeklyReportSummary
+    schedule_key: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class ReportOverview(BaseModel):
+    recipient: str
+    sender: str
+    delivery_mode: Literal["simulated", "live"]
+    schedule: str
+    next_run: datetime
+    preview: WeeklyReportSummary
+    runs: list[ReportRun]
 
 
 class MessageResponse(BaseModel):

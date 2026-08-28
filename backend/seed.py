@@ -47,5 +47,10 @@ db.cms_items.update_one({"resource": "agenda", "title": "Ujian ASAT Genap TA 202
 db.cms_items.update_one({"resource": "agenda", "title": "Pameran Karya Kreatif DKV & Expo RPL"}, {"$set": {"category": "kegiatan"}})
 db.cms_items.update_one({"resource": "agenda", "title": "Job Fair & Campus Hiring"}, {"$set": {"category": "industri"}})
 db.leads.update_many({"source": {"$exists": False}}, {"$set": {"source": "website", "assigned_to_id": None, "assigned_to_name": None}})
+for lead in db.leads.find({}, {"id": 1, "phone": 1, "normalized_phone": 1}):
+    if not lead.get("normalized_phone"):
+        digits = "".join(character for character in lead.get("phone", "") if character.isdigit())
+        normalized = f"62{digits[1:]}" if digits.startswith("0") else digits
+        db.leads.update_one({"id": lead["id"]}, {"$set": {"normalized_phone": normalized, "duplicate_ids": []}})
 
 print("Seed CMS dan admin selesai")

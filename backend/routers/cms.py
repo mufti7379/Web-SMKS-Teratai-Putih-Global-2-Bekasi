@@ -1,5 +1,6 @@
 import hashlib
 import io
+import os
 import secrets
 from datetime import datetime, timedelta, timezone
 
@@ -24,11 +25,16 @@ from models.cms import (
     CMSItemUpdate,
     Lead,
     LeadCreate,
+    LeadNote,
+    LeadNoteCreate,
     LeadUpdate,
     MessageResponse,
     PPDBAnalytics,
+    ReportOverview,
+    ReportRun,
     ResourceType,
 )
+from lib.reports import build_weekly_summary, create_report_run, next_report_time
 
 
 router = APIRouter()
@@ -58,6 +64,10 @@ def serialize_item(document: dict) -> CMSItem:
 
 def serialize_lead(document: dict) -> Lead:
     document["created_at"] = normalize_datetime(document["created_at"])
+    age_hours = max(0, int((utc_now() - document["created_at"]).total_seconds() // 3600))
+    document["age_hours"] = age_hours
+    document["duplicate_count"] = len(document.get("duplicate_ids", []))
+    document["sla_level"] = "critical" if document.get("status") == "new" and age_hours >= 48 else "warning" if document.get("status") == "new" and age_hours >= 24 else "ok"
     return Lead(**document)
 
 
@@ -223,8 +233,14 @@ async def delete_content(item_id: str, school_admin_session: str | None = Cookie
 
 @router.post("/leads", response_model=Lead, status_code=201)
 async def create_lead(payload: LeadCreate):
-    lead = Lead(**payload.model_dump())
+    digits = "".join(character for character in payload.phone if character.isdigit())
+    normalized_phone = f"62{digits[1:]}" if digits.startswith("0") else digits
+    previous = await db.leads.find({"normalized_phone": normalized_phone}, {"id": 1, "_id": 0}).to_list(100)
+    previous_ids = [item["id"] for item in previous]
+    lead = Lead(**payload.model_dump(), normalized_phone=normalized_phone, duplicate_ids=previous_ids)
     await db.leads.insert_one(lead.model_dump())
+    if previous_ids:
+        await db.leads.update_many({"id": {"$in": previous_ids}}, {"$addToSet": {"duplicate_ids": lead.id}})
     return lead
 
 
@@ -338,6 +354,70 @@ async def update_lead(lead_id: str, payload: LeadUpdate, school_admin_session: s
     if "status" in changes:
         await write_audit(admin, "lead_status_updated", "lead", lead_id, f"Mengubah status lead {existing['name']} menjadi {changes['status']}", {"before": existing.get("status"), "after": changes["status"]})
     return serialize_lead(document)
+
+
+@router.get("/admin/leads/{lead_id}/duplicates", response_model=list[Lead])
+async def lead_duplicates(lead_id: str, school_admin_session: str | None = Cookie(default=None)):
+    admin = await require_admin(school_admin_session)
+    ensure_leads_permission(admin)
+    lead = await db.leads.find_one({"id": lead_id})
+    if not lead:
+        raise HTTPException(status_code=404, detail="Data tidak ditemukan")
+    documents = await db.leads.find({"normalized_phone": lead.get("normalized_phone")}, {"_id": 0}).sort("created_at", 1).to_list(100)
+    return [serialize_lead(document) for document in documents]
+
+
+@router.get("/admin/leads/{lead_id}/notes", response_model=list[LeadNote])
+async def list_lead_notes(lead_id: str, school_admin_session: str | None = Cookie(default=None)):
+    admin = await require_admin(school_admin_session)
+    ensure_leads_permission(admin)
+    documents = await db.lead_notes.find({"lead_id": lead_id}, {"_id": 0}).sort("created_at", -1).to_list(500)
+    for document in documents:
+        document["created_at"] = normalize_datetime(document["created_at"])
+    return [LeadNote(**document) for document in documents]
+
+
+@router.post("/admin/leads/{lead_id}/notes", response_model=LeadNote, status_code=201)
+async def add_lead_note(lead_id: str, payload: LeadNoteCreate, school_admin_session: str | None = Cookie(default=None)):
+    admin = await require_admin(school_admin_session)
+    ensure_leads_permission(admin)
+    lead = await db.leads.find_one({"id": lead_id})
+    if not lead:
+        raise HTTPException(status_code=404, detail="Data tidak ditemukan")
+    if admin["role"] == "ppdb_officer" and lead.get("assigned_to_id") not in {None, admin["id"]}:
+        raise HTTPException(status_code=403, detail="Lead ini ditugaskan kepada petugas lain")
+    note = LeadNote(lead_id=lead_id, author_id=admin["id"], author_name=admin["name"], **payload.model_dump())
+    await db.lead_notes.insert_one(note.model_dump())
+    await write_audit(admin, "lead_note_added", "lead", lead_id, f"Menambahkan catatan untuk {lead['name']}")
+    return note
+
+
+@router.get("/admin/reports", response_model=ReportOverview)
+async def report_overview(school_admin_session: str | None = Cookie(default=None)):
+    admin = await require_admin(school_admin_session)
+    ensure_super_admin(admin)
+    summary = await build_weekly_summary()
+    documents = await db.report_runs.find({}, {"_id": 0}).sort("created_at", -1).to_list(20)
+    for document in documents:
+        document["created_at"] = normalize_datetime(document["created_at"])
+    return ReportOverview(
+        recipient=os.environ.get("REPORT_RECIPIENT", "pimpinan@example.com"),
+        sender=os.environ.get("REPORT_SENDER", "onboarding@resend.dev"),
+        delivery_mode="simulated",
+        schedule="Setiap Senin, 07.00 WIB",
+        next_run=next_report_time().astimezone(timezone.utc),
+        preview=summary,
+        runs=[ReportRun(**document) for document in documents],
+    )
+
+
+@router.post("/admin/reports/run", response_model=ReportRun, status_code=201)
+async def run_report_simulation(school_admin_session: str | None = Cookie(default=None)):
+    admin = await require_admin(school_admin_session)
+    ensure_super_admin(admin)
+    document = await create_report_run("manual")
+    await write_audit(admin, "report_simulated", "admin", admin["id"], "Menjalankan simulasi laporan mingguan PPDB")
+    return ReportRun(**document)
 
 
 @router.get("/admin/assignees", response_model=list[AdminUser])

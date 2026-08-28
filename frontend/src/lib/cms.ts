@@ -34,6 +34,21 @@ export interface Lead {
   source: LeadSource;
   assigned_to_id: string | null;
   assigned_to_name: string | null;
+  normalized_phone: string;
+  duplicate_ids: string[];
+  duplicate_count: number;
+  sla_level: "ok" | "warning" | "critical";
+  age_hours: number;
+  created_at: string;
+}
+
+export interface LeadNote {
+  id: string;
+  lead_id: string;
+  author_id: string;
+  author_name: string;
+  text: string;
+  next_action_date: string | null;
   created_at: string;
 }
 
@@ -76,6 +91,36 @@ export interface PPDBAnalytics {
   by_major: AnalyticsSlice[];
   by_source: AnalyticsSlice[];
   weekly: AnalyticsPoint[];
+}
+
+export interface WeeklyReportSummary {
+  total: number;
+  overdue: number;
+  duplicates: number;
+  top_major: string;
+  busiest_officer: string;
+}
+
+export interface ReportRun {
+  id: string;
+  recipient: string;
+  sender: string;
+  delivery_mode: "simulated" | "live";
+  status: "simulated" | "sent" | "failed";
+  trigger: "manual" | "scheduled";
+  summary: WeeklyReportSummary;
+  schedule_key: string;
+  created_at: string;
+}
+
+export interface ReportOverview {
+  recipient: string;
+  sender: string;
+  delivery_mode: "simulated" | "live";
+  schedule: string;
+  next_run: string;
+  preview: WeeklyReportSummary;
+  runs: ReportRun[];
 }
 
 export const resourceLabels: Record<ResourceType, string> = {

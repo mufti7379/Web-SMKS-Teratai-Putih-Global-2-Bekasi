@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from typing import List
 import uuid
 from datetime import datetime
+import asyncio
 from routers.cms import router as cms_router
 
 
@@ -17,13 +18,18 @@ load_dotenv(ROOT_DIR / '.env')
 
 # MongoDB connection
 from lib.db import client, db
+from lib.reports import report_scheduler
 
 
 # Startup runs before the yield, shutdown after it. Add your own setup/teardown here.
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    yield
-    client.close()
+    report_task = asyncio.create_task(report_scheduler())
+    try:
+        yield
+    finally:
+        report_task.cancel()
+        client.close()
 
 
 # Create the main app without a prefix

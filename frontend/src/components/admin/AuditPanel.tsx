@@ -4,7 +4,7 @@ import { Activity, FilePenLine, ShieldCheck, UserCog } from "lucide-react";
 import { apiGet } from "@/lib/api";
 import type { AdminAccount, AuditLog } from "@/lib/cms";
 
-const actionLabels: Record<string, string> = { content_created: "Konten dibuat", content_updated: "Konten diubah", content_deleted: "Konten dihapus", admin_created: "Akun dibuat", admin_updated: "Akun diubah", admin_deleted: "Akun dihapus", lead_assigned: "Lead ditugaskan", lead_status_updated: "Status lead diubah" };
+const actionLabels: Record<string, string> = { content_created: "Konten dibuat", content_updated: "Konten diubah", content_deleted: "Konten dihapus", admin_created: "Akun dibuat", admin_updated: "Akun diubah", admin_deleted: "Akun dihapus", lead_assigned: "Lead ditugaskan", lead_status_updated: "Status lead diubah", lead_note_added: "Catatan ditambahkan", report_simulated: "Laporan disimulasikan" };
 
 export function AuditPanel() {
   const [filters, setFilters] = useState({ actor_id: "", action: "", start_date: "", end_date: "" });
