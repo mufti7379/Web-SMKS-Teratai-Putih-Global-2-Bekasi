@@ -61,11 +61,20 @@ async def create_report_run(trigger: str) -> dict:
     return document
 
 
+async def run_scheduled_report_if_due() -> dict | None:
+    """Create the weekly 'scheduled' report run if it's Monday and this week's run hasn't happened yet."""
+    now = jakarta_now()
+    if now.weekday() != 0:
+        return None
+    key = f"{now.isocalendar().year}-W{now.isocalendar().week:02d}-scheduled"
+    if await db.report_runs.find_one({"schedule_key": key}):
+        return None
+    return await create_report_run("scheduled")
+
+
 async def report_scheduler() -> None:
     while True:
         now = jakarta_now()
         if now.weekday() == 0 and now.hour == 7 and now.minute < 2:
-            key = f"{now.isocalendar().year}-W{now.isocalendar().week:02d}-scheduled"
-            if not await db.report_runs.find_one({"schedule_key": key}):
-                await create_report_run("scheduled")
+            await run_scheduled_report_if_due()
         await asyncio.sleep(60)

@@ -12,12 +12,16 @@ db = MongoClient(mongo_url)[os.environ["DB_NAME"]]
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 accounts = [
-    ("admin@terataiputih2.sch.id", "Admin Sekolah", "<redacted>", "super_admin"),
-    ("editor@terataiputih2.sch.id", "Editor Konten", "<redacted>", "content_editor"),
-    ("ppdb@terataiputih2.sch.id", "Petugas PPDB", "<redacted>", "ppdb_officer"),
-    ("agenda@terataiputih2.sch.id", "Pengelola Agenda", "<redacted>", "agenda_manager"),
+    ("admin@terataiputih2.sch.id", "Admin Sekolah", "SEED_ADMIN_PASSWORD", "<redacted>", "super_admin"),
+    ("editor@terataiputih2.sch.id", "Editor Konten", "SEED_EDITOR_PASSWORD", "<redacted>", "content_editor"),
+    ("ppdb@terataiputih2.sch.id", "Petugas PPDB", "SEED_PPDB_PASSWORD", "<redacted>", "ppdb_officer"),
+    ("agenda@terataiputih2.sch.id", "Pengelola Agenda", "SEED_AGENDA_PASSWORD", "<redacted>", "agenda_manager"),
 ]
-for email, name, password, role in accounts:
+for email, name, env_var, default_password, role in accounts:
+    password = os.environ.get(env_var)
+    if not password:
+        password = default_password
+        print(f"PERINGATAN: {env_var} tidak diset, memakai password default untuk {email}. Ganti password ini segera setelah login pertama.")
     db.admins.update_one(
         {"email": email},
         {"$set": {"name": name, "role": role, "is_active": True}, "$setOnInsert": {"id": str(uuid4()), "email": email, "password_hash": pwd_context.hash(password), "created_at": datetime.now(timezone.utc)}},

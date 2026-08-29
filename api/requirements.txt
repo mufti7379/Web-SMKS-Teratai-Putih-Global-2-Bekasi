@@ -1,0 +1,13 @@
+# Minimal runtime deps for the Vercel Python function — mirrors what backend/*.py
+# actually imports (see backend/requirements.txt for the full local dev/test toolchain,
+# which includes packages this deployed function never uses).
+fastapi==0.141.1
+motor==3.7.1
+pymongo==4.17.0
+pydantic>=2.6.4
+passlib>=1.7.4
+# passlib 1.7.4 needs bcrypt<4.1
+bcrypt==4.0.1
+openpyxl==3.1.5
+python-dotenv>=1.0.1
+tzdata>=2024.2

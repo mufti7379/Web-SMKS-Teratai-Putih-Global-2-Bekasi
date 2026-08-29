@@ -24,11 +24,14 @@ from lib.reports import report_scheduler
 # Startup runs before the yield, shutdown after it. Add your own setup/teardown here.
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    report_task = asyncio.create_task(report_scheduler())
+    # Serverless (e.g. Vercel) has no long-lived process to host this loop — the weekly
+    # report there runs via /api/cron/weekly-report on an external scheduler instead.
+    report_task = None if os.environ.get("VERCEL") else asyncio.create_task(report_scheduler())
     try:
         yield
     finally:
-        report_task.cancel()
+        if report_task:
+            report_task.cancel()
         client.close()
 
 
@@ -67,10 +70,12 @@ async def get_status_checks():
 
 api_router.include_router(cms_router)
 
+_cors_origins = [origin.strip() for origin in os.environ.get('CORS_ORIGINS', '').split(',') if origin.strip()]
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=_cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )

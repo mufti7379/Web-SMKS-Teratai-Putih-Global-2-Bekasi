@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 from urllib.parse import quote
 from uuid import uuid4
 
-from fastapi import APIRouter, Cookie, HTTPException, Request, Response
+from fastapi import APIRouter, Cookie, Header, HTTPException, Request, Response
 from fastapi.responses import StreamingResponse
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
@@ -42,7 +42,7 @@ from models.cms import (
     ReportRun,
     ResourceType,
 )
-from lib.reports import build_weekly_summary, create_report_run, next_report_time
+from lib.reports import build_weekly_summary, create_report_run, run_scheduled_report_if_due, next_report_time
 
 
 router = APIRouter()
@@ -276,12 +276,24 @@ async def list_leads(kind: str | None = None, status: str | None = None, start_d
 
 
 @router.get("/admin/leads/export.xlsx")
-async def export_leads(kind: str | None = None, status: str | None = None, start_date: str | None = None, end_date: str | None = None, source: str | None = None, template: str = "full", school_admin_session: str | None = Cookie(default=None)):
+async def export_leads(kind: str | None = None, status: str | None = None, start_date: str | None = None, end_date: str | None = None, source: str | None = None, scope: str = "all", template: str = "full", school_admin_session: str | None = Cookie(default=None)):
     admin = await require_admin(school_admin_session)
     ensure_leads_permission(admin)
     if template not in {"full", "compact", "contacts"}:
         raise HTTPException(status_code=422, detail="Template ekspor tidak valid")
-    documents = await db.leads.find(build_lead_query(kind, status, start_date, end_date, source), {"_id": 0}).sort("created_at", -1).to_list(10000)
+    query = build_lead_query(kind, status, start_date, end_date, source)
+    if admin["role"] == "ppdb_officer":
+        if scope == "mine":
+            query["assigned_to_id"] = admin["id"]
+        elif scope == "unassigned":
+            query["assigned_to_id"] = None
+        else:
+            query["$or"] = [{"assigned_to_id": admin["id"]}, {"assigned_to_id": None}]
+    elif scope == "mine":
+        query["assigned_to_id"] = admin["id"]
+    elif scope == "unassigned":
+        query["assigned_to_id"] = None
+    documents = await db.leads.find(query, {"_id": 0}).sort("created_at", -1).to_list(10000)
     leads = [serialize_lead(document) for document in documents]
     workbook = Workbook()
     sheet = workbook.active
@@ -537,6 +549,19 @@ async def run_report_simulation(school_admin_session: str | None = Cookie(defaul
     document = await create_report_run("manual")
     await write_audit(admin, "report_simulated", "admin", admin["id"], "Menjalankan simulasi laporan mingguan PPDB")
     return ReportRun(**document)
+
+
+@router.post("/cron/weekly-report")
+async def trigger_weekly_report(authorization: str | None = Header(default=None)):
+    """Entry point for an external scheduler (e.g. Vercel Cron) since serverless deployments
+    can't run the in-process report_scheduler background loop. Idempotent per ISO week."""
+    cron_secret = os.environ.get("CRON_SECRET")
+    if not cron_secret or authorization != f"Bearer {cron_secret}":
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    document = await run_scheduled_report_if_due()
+    if document is None:
+        return {"triggered": False}
+    return {"triggered": True, "run_id": document["id"]}
 
 
 @router.get("/admin/assignees", response_model=list[AdminUser])
