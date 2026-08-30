@@ -185,8 +185,8 @@ export default function Home() {
               <div className="absolute -bottom-6 -right-3 hidden items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl sm:flex"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600"><GraduationCap size={21} /></span><span><strong className="block font-heading text-xl text-[#0a3358]">5</strong><small className="text-[10px] font-bold text-slate-500">PROGRAM KEAHLIAN</small></span></div>
             </motion.div>
           </div>
-          <div className="mx-auto grid max-w-7xl grid-cols-2 border-t border-white/10 px-5 sm:grid-cols-4 lg:px-8" data-testid="hero-metrics">
-            {[['94%', 'Serapan kerja & wirausaha'], ['5', 'Program keahlian unggulan'], ['120+', 'Mitra industri'], ['100%', 'Lulusan bersertifikasi']].map(([value, label]) => <div key={label} className="border-r border-white/10 px-4 py-6 first:pl-0 last:border-0 sm:py-8"><strong className="block font-heading text-2xl font-extrabold text-amber-300 sm:text-3xl">{value}</strong><span className="mt-1 block max-w-[130px] text-[10px] font-medium leading-relaxed text-slate-300 sm:text-xs">{label}</span></div>)}
+          <div className="mx-auto grid max-w-7xl grid-cols-3 border-t border-white/10 px-5 lg:px-8" data-testid="hero-metrics">
+            {[['94%', 'Serapan kerja & wirausaha'], ['5', 'Program keahlian unggulan'], ['7+', 'Mitra industri']].map(([value, label]) => <div key={label} className="border-r border-white/10 px-4 py-6 first:pl-0 last:border-0 sm:py-8"><strong className="block font-heading text-2xl font-extrabold text-amber-300 sm:text-3xl">{value}</strong><span className="mt-1 block max-w-[130px] text-[10px] font-medium leading-relaxed text-slate-300 sm:text-xs">{label}</span></div>)}
           </div>
         </section>
 
