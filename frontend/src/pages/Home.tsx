@@ -100,8 +100,8 @@ export default function Home() {
   const [selectedMajorCode, setSelectedMajorCode] = useState("RPL");
   const [isPpdbOpen, setIsPpdbOpen] = useState(false);
   const [isVideoOpen, setIsVideoOpen] = useState(false);
-  const [bannerDismissed, setBannerDismissed] = useState(() => { try { return sessionStorage.getItem("spmb-banner-dismissed") === "1"; } catch { return false; } });
-  const dismissSpmbBanner = () => { setBannerDismissed(true); try { sessionStorage.setItem("spmb-banner-dismissed", "1"); } catch { /* private browsing: ignore */ } };
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+  const dismissSpmbBanner = () => setBannerDismissed(true);
   const bannerContent = useQuery({ queryKey: ["public-content", "banner"], queryFn: () => apiGet<CMSItem[]>("/content/banner"), retry: false });
   const activeBanner = bannerContent.data?.[0] ?? null;
   const showSpmbBanner = !bannerDismissed && Boolean(activeBanner);
