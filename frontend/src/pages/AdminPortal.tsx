@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Download, Edit3, Eye, EyeOff, LayoutDashboard, LogOut, Menu, MessageSquareText, Plus, Save, ShieldCheck, Trash2, UserCog, Users, X } from "lucide-react";
@@ -35,6 +35,16 @@ export default function AdminPortal() {
   const [contentForm, setContentForm] = useState<ContentForm>(blankContent("news"));
   const [editingUser, setEditingUser] = useState<AdminAccount | "new" | null>(null);
   const [filters, setFilters] = useState<LeadFilters>({ kind: "", status: "", start_date: "", end_date: "" });
+  useEffect(() => {
+    if (!editingContent && !editingUser) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      if (editingContent) setEditingContent(null);
+      if (editingUser) setEditingUser(null);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [editingContent, editingUser]);
 
   const session = useQuery({ queryKey: ["admin-session"], queryFn: () => apiGet<AdminUser>("/auth/me"), retry: false });
   const allowedSections = session.data ? roleSections[session.data.role] : [];

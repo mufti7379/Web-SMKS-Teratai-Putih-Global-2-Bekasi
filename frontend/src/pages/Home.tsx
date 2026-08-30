@@ -118,11 +118,19 @@ export default function Home() {
   const activeBanner = bannerContent.data?.[0] ?? null;
   const showSpmbBanner = !bannerDismissed && Boolean(activeBanner);
   useEffect(() => {
-    if (!showSpmbBanner) return;
-    const handleKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") dismissSpmbBanner(); };
+    const anyModalOpen = showSpmbBanner || isPpdbOpen || isVideoOpen || Boolean(galleryVideo) || Boolean(facilityLightbox);
+    if (!anyModalOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      if (showSpmbBanner) dismissSpmbBanner();
+      if (isPpdbOpen) setIsPpdbOpen(false);
+      if (isVideoOpen) setIsVideoOpen(false);
+      if (galleryVideo) setGalleryVideo(null);
+      if (facilityLightbox) setFacilityLightbox(null);
+    };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [showSpmbBanner]);
+  }, [showSpmbBanner, isPpdbOpen, isVideoOpen, galleryVideo, facilityLightbox]);
   const heroContent = useQuery({ queryKey: ["public-content", "hero"], queryFn: () => apiGet<CMSItem[]>("/content/hero"), retry: false });
   const facilityContent = useQuery({ queryKey: ["public-content", "facility"], queryFn: () => apiGet<CMSItem[]>("/content/facility"), retry: false });
   const majorContent = useQuery({ queryKey: ["public-content", "major"], queryFn: () => apiGet<CMSItem[]>("/content/major"), retry: false });

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, CircleDot, Clock3, MessageCircle, NotebookPen, Send, UserCheck, X } from "lucide-react";
 import { toast } from "sonner";
@@ -20,6 +20,13 @@ export function LeadTimelinePanel() {
   const leads = useQuery({ queryKey: ["timeline-leads"], queryFn: () => apiGet<Lead[]>("/admin/leads?scope=all") });
   const timeline = useQuery({ queryKey: ["lead-timeline", selected?.id], queryFn: () => apiGet<TimelineEvent[]>(`/admin/leads/${selected?.id}/timeline`), enabled: Boolean(selected) });
   const whatsapp = useMutation({ mutationFn: ({ leadId, template }: { leadId: string; template: string }) => apiPost<WhatsAppActionResponse>(`/admin/leads/${leadId}/whatsapp`, { template }), onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ["lead-timeline"] }); await queryClient.invalidateQueries({ queryKey: ["audit-log"] }); toast.success("WhatsApp dibuka dan dicatat di timeline"); }, onError: () => toast.error("Pesan WhatsApp tidak dapat dibuka") });
+
+  useEffect(() => {
+    if (!selected) return;
+    const handleKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") setSelected(null); };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selected]);
 
   const openWhatsApp = (template: string) => {
     if (!selected) return;
