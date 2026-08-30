@@ -7,7 +7,7 @@ import type { Lead, TimelineEvent, WhatsAppActionResponse } from "@/lib/cms";
 
 const templates = [
   { value: "greeting", label: "Salam awal", description: "Sapa pendaftar dan tawarkan bantuan." },
-  { value: "documents", label: "Pengingat berkas", description: "Ingatkan kelengkapan dokumen PPDB." },
+  { value: "documents", label: "Pengingat berkas", description: "Ingatkan kelengkapan dokumen SPMB." },
   { value: "visit", label: "Jadwal kunjungan", description: "Ajak menentukan waktu kunjungan sekolah." },
   { value: "final_follow_up", label: "Tindak lanjut terakhir", description: "Konfirmasi keputusan melanjutkan pendaftaran." },
 ] as const;

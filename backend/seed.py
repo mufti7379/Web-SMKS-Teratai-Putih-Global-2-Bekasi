@@ -14,7 +14,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 accounts = [
     ("admin@terataiputih2.sch.id", "Admin Sekolah", "SEED_ADMIN_PASSWORD", "<redacted>", "super_admin"),
     ("editor@terataiputih2.sch.id", "Editor Konten", "SEED_EDITOR_PASSWORD", "<redacted>", "content_editor"),
-    ("ppdb@terataiputih2.sch.id", "Petugas PPDB", "SEED_PPDB_PASSWORD", "<redacted>", "ppdb_officer"),
+    ("ppdb@terataiputih2.sch.id", "Petugas SPMB", "SEED_PPDB_PASSWORD", "<redacted>", "ppdb_officer"),
     ("agenda@terataiputih2.sch.id", "Pengelola Agenda", "SEED_AGENDA_PASSWORD", "<redacted>", "agenda_manager"),
 ]
 for email, name, env_var, default_password, role in accounts:
@@ -33,7 +33,7 @@ items = [
     {"resource": "agenda", "title": "Ujian ASAT Genap TA 2025/2026", "description": "Ujian akhir semester berbasis CBT untuk seluruh siswa.", "date": "2026-06-08", "end_date": "2026-06-12", "time": "08:00", "link": "https://ujiango.smk-terataiputih2.sch.id/", "category": "ujian", "is_published": True},
     {"resource": "agenda", "title": "Pameran Karya Kreatif DKV & Expo RPL", "description": "Pameran karya dan inovasi siswa terbuka untuk keluarga sekolah.", "date": "2026-06-20", "time": "09:00", "category": "kegiatan", "is_published": True},
     {"resource": "agenda", "title": "Job Fair & Campus Hiring", "description": "Temukan peluang kerja dan magang bersama mitra industri.", "date": "2026-07-15", "time": "08:30", "category": "industri", "is_published": True},
-    {"resource": "news", "title": "PPDB Tahun Ajaran 2026/2027 Dibuka", "description": "Pendaftaran peserta didik baru telah dibuka dengan kesempatan beasiswa prestasi.", "date": "2026-01-15", "is_published": True},
+    {"resource": "news", "title": "SPMB Tahun Ajaran 2026/2027 Dibuka", "description": "Pendaftaran peserta didik baru telah dibuka dengan kesempatan beasiswa prestasi.", "date": "2026-01-15", "is_published": True},
     {"resource": "gallery", "title": "Praktik DKV", "description": "Karya Siswa", "image_url": "https://images.unsplash.com/photo-1572044162444-ad60f128bdea?auto=format&fit=crop&w=900&q=85", "is_published": True},
     {"resource": "gallery", "title": "Belajar RPL", "description": "Kegiatan Lab", "image_url": "https://images.unsplash.com/photo-1556636530-6b7482d80e3d?auto=format&fit=crop&w=900&q=85", "is_published": True},
     {"resource": "gallery", "title": "Masjid Yayasan", "description": "Pembinaan Karakter", "image_url": "https://www.smk-terataiputih2.sch.id/img-promosi/gallery/Wh40.jpeg", "is_published": True},
@@ -53,7 +53,7 @@ db.cms_items.update_one({"resource": "agenda", "title": "Job Fair & Campus Hirin
 db.leads.update_many({"source": {"$exists": False}}, {"$set": {"source": "website", "assigned_to_id": None, "assigned_to_name": None}})
 template_defaults = [
     ("greeting", "Salam awal", "Halo {nama}, kami dari {sekolah}. Terima kasih sudah mendaftar pada jurusan {jurusan}. Saya {petugas}, apakah ada informasi yang dapat kami bantu?"),
-    ("documents", "Pengingat berkas", "Halo {nama}, kami mengingatkan kelengkapan berkas PPDB {sekolah} untuk jurusan {jurusan}. Mohon konfirmasi jika berkas sudah siap."),
+    ("documents", "Pengingat berkas", "Halo {nama}, kami mengingatkan kelengkapan berkas SPMB {sekolah} untuk jurusan {jurusan}. Mohon konfirmasi jika berkas sudah siap."),
     ("visit", "Jadwal kunjungan", "Halo {nama}, kami mengundang Anda untuk mengatur jadwal kunjungan ke {sekolah}. Silakan balas dengan waktu yang paling sesuai."),
     ("final_follow_up", "Tindak lanjut terakhir", "Halo {nama}, kami menindaklanjuti kembali minat pendaftaran jurusan {jurusan} di {sekolah}. Apakah proses pendaftaran ingin dilanjutkan?"),
 ]

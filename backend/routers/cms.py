@@ -333,7 +333,7 @@ async def export_leads(kind: str | None = None, status: str | None = None, start
     summary = workbook.create_sheet("Ringkasan")
     summary.append(["Ringkasan Ekspor Leads", "Jumlah"])
     summary.append(["Total data", len(leads)])
-    summary.append(["Pendaftar PPDB", sum(lead.kind == "ppdb" for lead in leads)])
+    summary.append(["Pendaftar SPMB", sum(lead.kind == "ppdb" for lead in leads)])
     summary.append(["Pertanyaan kontak", sum(lead.kind == "contact" for lead in leads)])
     summary.append(["Status baru", sum(lead.status == "new" for lead in leads)])
     summary.append(["Tindak lanjut", sum(lead.status == "follow_up" for lead in leads)])
@@ -369,7 +369,7 @@ async def update_lead(lead_id: str, payload: LeadUpdate, school_admin_session: s
         if assignee_id:
             assignee = await db.admins.find_one({"id": assignee_id, "role": "ppdb_officer", "is_active": True})
             if not assignee:
-                raise HTTPException(status_code=422, detail="Petugas PPDB aktif tidak ditemukan")
+                raise HTTPException(status_code=422, detail="Petugas SPMB aktif tidak ditemukan")
             changes["assigned_to_name"] = assignee["name"]
         else:
             changes["assigned_to_name"] = None
@@ -518,7 +518,7 @@ async def reset_whatsapp_template(template_key: str, school_admin_session: str |
     ensure_super_admin(admin)
     defaults = {
         "greeting": "Halo {nama}, kami dari {sekolah}. Terima kasih sudah mendaftar pada jurusan {jurusan}. Saya {petugas}, apakah ada informasi yang dapat kami bantu?",
-        "documents": "Halo {nama}, kami mengingatkan kelengkapan berkas PPDB {sekolah} untuk jurusan {jurusan}. Mohon konfirmasi jika berkas sudah siap.",
+        "documents": "Halo {nama}, kami mengingatkan kelengkapan berkas SPMB {sekolah} untuk jurusan {jurusan}. Mohon konfirmasi jika berkas sudah siap.",
         "visit": "Halo {nama}, kami mengundang Anda untuk mengatur jadwal kunjungan ke {sekolah}. Silakan balas dengan waktu yang paling sesuai.",
         "final_follow_up": "Halo {nama}, kami menindaklanjuti kembali minat pendaftaran jurusan {jurusan} di {sekolah}. Apakah proses pendaftaran ingin dilanjutkan?",
     }
@@ -553,7 +553,7 @@ async def run_report_simulation(school_admin_session: str | None = Cookie(defaul
     admin = await require_admin(school_admin_session)
     ensure_super_admin(admin)
     document = await create_report_run("manual")
-    await write_audit(admin, "report_simulated", "admin", admin["id"], "Menjalankan simulasi laporan mingguan PPDB")
+    await write_audit(admin, "report_simulated", "admin", admin["id"], "Menjalankan simulasi laporan mingguan SPMB")
     return ReportRun(**document)
 
 
