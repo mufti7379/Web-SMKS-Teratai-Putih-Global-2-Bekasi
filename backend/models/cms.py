@@ -5,7 +5,7 @@ from uuid import uuid4
 from pydantic import BaseModel, Field
 
 
-ResourceType = Literal["news", "agenda", "gallery", "major", "hero", "facility"]
+ResourceType = Literal["news", "agenda", "gallery", "major", "hero", "facility", "banner"]
 RoleType = Literal["super_admin", "content_editor", "ppdb_officer", "agenda_manager"]
 AgendaCategory = Literal["akademik", "ujian", "kegiatan", "industri", "pengumuman"]
 LeadSource = Literal["website", "whatsapp", "instagram", "walk_in", "referral"]
