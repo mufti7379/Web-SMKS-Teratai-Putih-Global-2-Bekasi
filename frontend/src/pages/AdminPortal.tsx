@@ -23,7 +23,7 @@ type LeadFilters = { kind: string; status: string; start_date: string; end_date:
 
 const roleLabels: Record<RoleType, string> = { super_admin: "Super Admin", content_editor: "Editor Konten", ppdb_officer: "Petugas SPMB", agenda_manager: "Pengelola Agenda" };
 const categoryLabels: Record<AgendaCategory, string> = { akademik: "Akademik", ujian: "Ujian", kegiatan: "Kegiatan", industri: "Industri", pengumuman: "Pengumuman" };
-const roleSections: Record<RoleType, AdminSection[]> = { super_admin: ["analytics", "leads", "templates", "reports", "news", "agenda", "gallery", "major", "users", "audit"], content_editor: ["news", "gallery", "major"], ppdb_officer: ["analytics", "leads"], agenda_manager: ["agenda"] };
+const roleSections: Record<RoleType, AdminSection[]> = { super_admin: ["analytics", "leads", "templates", "reports", "news", "agenda", "gallery", "major", "hero", "facility", "users", "audit"], content_editor: ["news", "gallery", "major", "hero", "facility"], ppdb_officer: ["analytics", "leads"], agenda_manager: ["agenda"] };
 const blankContent = (resource: ResourceType): ContentForm => ({ resource, title: "", description: "", date: "", end_date: "", time: "", image_url: "", link: "", is_published: true, code: "", badge: "", skills: "", careers: "", category: "akademik" });
 const queryString = (values: Record<string, string>) => { const params = new URLSearchParams(); Object.entries(values).forEach(([key, value]) => value && params.set(key, value)); return params.toString(); };
 
@@ -39,7 +39,7 @@ export default function AdminPortal() {
   const session = useQuery({ queryKey: ["admin-session"], queryFn: () => apiGet<AdminUser>("/auth/me"), retry: false });
   const allowedSections = session.data ? roleSections[session.data.role] : [];
   const activeSection = allowedSections.includes(section) ? section : allowedSections[0] ?? "leads";
-  const resource = (["news", "agenda", "gallery", "major"] as string[]).includes(activeSection) ? activeSection as ResourceType : null;
+  const resource = (["news", "agenda", "gallery", "major", "hero", "facility"] as string[]).includes(activeSection) ? activeSection as ResourceType : null;
   const filterQuery = queryString(filters);
   const content = useQuery({ queryKey: ["admin-content", resource], queryFn: () => apiGet<CMSItem[]>(`/admin/content/${resource}`), enabled: Boolean(session.data && resource) });
   const leads = useQuery({ queryKey: ["admin-leads", filters], queryFn: () => apiGet<Lead[]>(`/admin/leads${filterQuery ? `?${filterQuery}` : ""}`), enabled: Boolean(session.data && activeSection === "leads") });

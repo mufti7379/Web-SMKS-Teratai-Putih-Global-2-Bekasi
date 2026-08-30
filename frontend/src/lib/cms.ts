@@ -1,4 +1,4 @@
-export type ResourceType = "news" | "agenda" | "gallery" | "major";
+export type ResourceType = "news" | "agenda" | "gallery" | "major" | "hero" | "facility";
 export type RoleType = "super_admin" | "content_editor" | "ppdb_officer" | "agenda_manager";
 export type AgendaCategory = "akademik" | "ujian" | "kegiatan" | "industri" | "pengumuman";
 export type LeadSource = "website" | "whatsapp" | "instagram" | "walk_in" | "referral";
@@ -161,4 +161,6 @@ export const resourceLabels: Record<ResourceType, string> = {
   agenda: "Agenda",
   gallery: "Galeri",
   major: "Jurusan",
+  hero: "Gambar Hero",
+  facility: "Fasilitas Belajar",
 };
