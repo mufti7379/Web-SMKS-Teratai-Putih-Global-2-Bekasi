@@ -1,0 +1,25 @@
+[project]
+name = "terataiputih2-backend"
+version = "0.1.0"
+requires-python = ">=3.12"
+# Vercel builds this backend service with `uv`, and when both pyproject.toml and
+# requirements.txt exist with no lockfile, Vercel installs from pyproject.toml only —
+# so this list (not requirements.txt) is what actually ships to Vercel. Keep it in sync
+# with backend/requirements-runtime.txt; requirements.txt itself stays untouched for the
+# pod/Railway, which include the full dev/test toolchain and a private-index package
+# (emergentintegrations) that Vercel could never fetch anyway.
+dependencies = [
+    "fastapi==0.141.1",
+    "uvicorn==0.52.1",
+    "motor==3.7.1",
+    "pymongo==4.17.0",
+    "pydantic>=2.6.4",
+    "passlib>=1.7.4",
+    "bcrypt==4.0.1",
+    "openpyxl==3.1.5",
+    "python-dotenv>=1.0.1",
+    "tzdata>=2024.2",
+]
+
+[tool.vercel]
+entrypoint = "server:app"

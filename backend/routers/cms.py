@@ -168,7 +168,13 @@ async def login(payload: AdminLogin, request: Request, response: Response):
         "expires_at": utc_now() + timedelta(days=7),
     })
     is_secure = request.headers.get("x-forwarded-proto", request.url.scheme) == "https"
-    response.set_cookie(SESSION_COOKIE, token, httponly=True, secure=is_secure, samesite="lax", max_age=604800, path="/")
+    # "none" is for split-domain deploys (e.g. Vercel frontend calling Railway backend
+    # directly instead of through a same-origin proxy rewrite) — browsers reject
+    # SameSite=None without Secure, so force secure whenever that's configured.
+    samesite = os.environ.get("COOKIE_SAMESITE", "lax").lower()
+    if samesite == "none":
+        is_secure = True
+    response.set_cookie(SESSION_COOKIE, token, httponly=True, secure=is_secure, samesite=samesite, max_age=604800, path="/")
     return AdminUser(id=admin["id"], email=admin["email"], name=admin["name"], role=admin.get("role", "super_admin"))
 
 
@@ -183,7 +189,7 @@ async def logout(response: Response, school_admin_session: str | None = Cookie(d
     if school_admin_session:
         token_hash = hashlib.sha256(school_admin_session.encode()).hexdigest()
         await db.admin_sessions.delete_one({"token_hash": token_hash})
-    response.delete_cookie(SESSION_COOKIE, path="/")
+    response.delete_cookie(SESSION_COOKIE, path="/", samesite=os.environ.get("COOKIE_SAMESITE", "lax").lower())
     return MessageResponse(message="Berhasil keluar")
 
 
@@ -552,9 +558,12 @@ async def run_report_simulation(school_admin_session: str | None = Cookie(defaul
 
 
 @router.post("/cron/weekly-report")
+@router.get("/cron/weekly-report")
 async def trigger_weekly_report(authorization: str | None = Header(default=None)):
     """Entry point for an external scheduler (e.g. Vercel Cron) since serverless deployments
-    can't run the in-process report_scheduler background loop. Idempotent per ISO week."""
+    can't run the in-process report_scheduler background loop. Idempotent per ISO week.
+    Registered as both GET and POST: Vercel Cron always invokes with GET, but the endpoint
+    also accepts POST for manual/other-scheduler triggers."""
     cron_secret = os.environ.get("CRON_SECRET")
     if not cron_secret or authorization != f"Bearer {cron_secret}":
         raise HTTPException(status_code=401, detail="Unauthorized")

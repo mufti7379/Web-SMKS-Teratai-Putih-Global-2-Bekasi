@@ -1,0 +1,15 @@
+# Minimal runtime deps for deploying the FastAPI server (e.g. on Railway) — mirrors what
+# backend/*.py actually imports. See requirements.txt for the full local dev/test
+# toolchain, which includes packages (pandas, boto3, pytest, etc.) this server never uses
+# and a private-index package (emergentintegrations) that public deploy hosts can't fetch.
+fastapi==0.141.1
+uvicorn==0.52.1
+motor==3.7.1
+pymongo==4.17.0
+pydantic>=2.6.4
+passlib>=1.7.4
+# passlib 1.7.4 needs bcrypt<4.1
+bcrypt==4.0.1
+openpyxl==3.1.5
+python-dotenv>=1.0.1
+tzdata>=2024.2

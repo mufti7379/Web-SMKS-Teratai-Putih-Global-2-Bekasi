@@ -2,10 +2,7 @@
   "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/dist",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index" },
+    { "source": "/api/(.*)", "destination": "https://REPLACE-WITH-YOUR-BACKEND-PROJECT.vercel.app/api/$1" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
-  ],
-  "crons": [
-    { "path": "/api/cron/weekly-report", "schedule": "0 0 * * *" }
   ]
 }
