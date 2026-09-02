@@ -43,10 +43,10 @@ interface AcademicCalendarProps {
 
 export function AcademicCalendar({ events, news }: AcademicCalendarProps) {
   const displayEvents = events.length ? events.filter((item) => item.date) : fallbackEvents;
-  const firstDate = parseDate(displayEvents[0]?.date ?? "2026-06-01");
+  const today = new Date();
   const [manualMonth, setManualMonth] = useState<Date | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(displayEvents[0]?.date ?? null);
-  const activeMonth = manualMonth ?? new Date(firstDate.getFullYear(), firstDate.getMonth(), 1);
+  const activeMonth = manualMonth ?? new Date(today.getFullYear(), today.getMonth(), 1);
   const selectedEvent = displayEvents.find((item) => selectedDate && item.date && item.date <= selectedDate && (item.end_date ?? item.date) >= selectedDate) ?? displayEvents[0];
 
   const calendarDays = useMemo(() => {
