@@ -44,10 +44,13 @@ interface AcademicCalendarProps {
 export function AcademicCalendar({ events, news }: AcademicCalendarProps) {
   const displayEvents = events.length ? events.filter((item) => item.date) : fallbackEvents;
   const today = new Date();
+  const todayKey = dateKey(today);
+  const sortedEvents = [...displayEvents].sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""));
+  const nearestEvent = sortedEvents.find((item) => (item.end_date ?? item.date ?? "") >= todayKey) ?? sortedEvents[sortedEvents.length - 1];
   const [manualMonth, setManualMonth] = useState<Date | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string | null>(displayEvents[0]?.date ?? null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(nearestEvent?.date ?? null);
   const activeMonth = manualMonth ?? new Date(today.getFullYear(), today.getMonth(), 1);
-  const selectedEvent = displayEvents.find((item) => selectedDate && item.date && item.date <= selectedDate && (item.end_date ?? item.date) >= selectedDate) ?? displayEvents[0];
+  const selectedEvent = displayEvents.find((item) => selectedDate && item.date && item.date <= selectedDate && (item.end_date ?? item.date) >= selectedDate) ?? nearestEvent;
 
   const calendarDays = useMemo(() => {
     const year = activeMonth.getFullYear();
