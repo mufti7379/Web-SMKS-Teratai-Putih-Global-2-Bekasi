@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Baseline — Tennis Club &amp; Academy</title>
+<meta name="description" content="Baseline is a members' tennis club and academy where focused coaching meets championship courts." />
+<meta name="theme-color" content="#0f2f63" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --background:#ffffff; --foreground:#0a0a0a;
+  --brand:#2563c9; --brand-deep:#0f2f63; --brand-light:#5790e6;
+  --accent-teal:#0b6e97; --surface:#f4f4f4; --surface-card:#ffffff;
+  --ink:#0a0a0a; --ink-soft:#717784; --ghost:#d7dae1; --hairline:#e6e8ec;
+  --on-brand:#ffffff;
+  --radius-card:1.5rem; --radius-card-lg:2rem; --radius-pill:62.5rem; --radius-xl:0.75rem;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased}
+@media (max-width:1920px){html{font-size:0.833333vw}}
+@media (max-width:1440px){html{font-size:1.111111vw}}
+@media (max-width:1024px){html{font-size:1.5625vw}}
+@media (max-width:640px){html{font-size:4.444444vw}}
+body{min-height:100vh;background:var(--background);color:var(--foreground);font-family:"Onest",system-ui,sans-serif;overflow-x:clip}
+img{display:block;max-width:100%}
+button{cursor:pointer;font:inherit;color:inherit;background:none;border:none}
+a{color:inherit;text-decoration:none}
+ul{list-style:none}
+address{font-style:normal}
+:focus-visible{outline:2px solid var(--brand-light);outline-offset:2px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+main{width:100%;overflow-x:clip;padding:0.5rem}
+@media (min-width:640px){main{padding:0.75rem}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition-duration:0.01ms!important}}
+
+/* ---------- reveal primitives ---------- */
+.clip{display:inline-block;overflow:hidden;vertical-align:top}
+.clip.line-clip{display:block}
+.reveal-inner{display:inline-block;will-change:transform,opacity}
+.clip.line-clip .reveal-inner{display:block}
+
+/* ---------- layout helpers ---------- */
+.eyebrow{display:inline-flex;align-items:center;gap:0.5rem;font-size:0.75rem;font-weight:500;text-transform:uppercase;letter-spacing:0.22em}
+.eyebrow::before{content:"";width:0.375rem;height:0.375rem;border-radius:var(--radius-pill);flex:none}
+.eyebrow.dark{color:var(--ink-soft)}
+.eyebrow.dark::before{background:var(--brand)}
+.eyebrow.light{color:rgba(255,255,255,.7)}
+.eyebrow.light::before{background:var(--brand-light)}
+
+.pill-btn{display:inline-flex;align-items:center;gap:0.5rem;border-radius:var(--radius-pill);padding:0.875rem 1.75rem;font-size:0.875rem;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;transition:background-color .25s ease,color .25s ease}
+.pill-btn svg{width:1rem;height:1rem;flex:none}
+.pill-btn.light{background:#fff;color:var(--brand-deep)}
+.pill-btn.light:hover{background:var(--brand-light);color:#fff}
+.pill-btn.solid{background:var(--ink);color:#fff}
+.pill-btn.solid:hover{background:var(--brand-deep)}
+.pill-btn.outline{border:1px solid currentColor;color:var(--ink);background:transparent}
+.pill-btn.outline:hover{background:var(--ink);color:#fff}
+.pill-btn .arrow-icon{transition:none}
+
+.arrow-btn{width:3rem;height:3rem;border-radius:var(--radius-pill);display:grid;place-items:center;border:1px solid var(--hairline);transition:background-color .25s ease,border-color .25s ease,color .25s ease}
+@media (min-width:640px){.arrow-btn{width:3.5rem;height:3.5rem}}
+.arrow-btn.outline{background:transparent;color:var(--ink)}
+.arrow-btn.outline:hover{border-color:var(--ink)}
+.arrow-btn.solid{background:var(--ink);border-color:var(--ink);color:#fff}
+.arrow-btn.solid:hover{background:var(--brand-deep);border-color:var(--brand-deep)}
+.arrow-btn svg{width:1.25rem;height:1.25rem}
+.arrow-btn.prev svg{transform:scaleX(-1)}
+
+.dots{display:flex;align-items:center;gap:0.5rem}
+.dots button{padding:0.375rem}
+.dots span{display:block;height:0.375rem;border-radius:var(--radius-pill);width:0.375rem;transition:width .3s ease,background-color .3s ease}
+.dots.dark span{background:var(--ghost)}
+.dots.dark button[aria-current="true"] span{width:1.25rem;background:var(--ink)}
+.dots.light span{background:rgba(255,255,255,.4)}
+.dots.light button[aria-current="true"] span{width:1.25rem;background:#fff}
+
+.stacked-lines{display:block}
+.stacked-lines .clip.line-clip{padding-bottom:0.14em}
+
+/* ---------- header ---------- */
+.site-header{position:relative;z-index:10;display:flex;align-items:center;padding:1.5rem 1.5rem 0;font-size:0.75rem;color:#fff}
+@media (min-width:640px){.site-header{padding:2rem 2.5rem 0}}
+.nav-left{flex:1;display:none;gap:2rem}
+@media (min-width:1024px){.nav-left{display:flex}}
+.nav-left a{color:rgba(255,255,255,.9);transition:color .2s ease}
+.nav-left a:hover{color:#fff}
+.brand-center{flex:1;display:flex;justify-content:flex-start}
+@media (min-width:1024px){.brand-center{justify-content:center}}
+.brand{display:inline-flex;align-items:center;gap:0.5rem;font-size:1rem;font-weight:500;text-transform:uppercase;letter-spacing:0.2em}
+.brand-mark{width:1.25rem;height:1.25rem;flex:none}
+.header-right{flex:1;display:flex;justify-content:flex-end;align-items:center;gap:1rem}
+@media (min-width:640px){.header-right{gap:1.25rem}}
+.book-visit-text{display:none;text-transform:uppercase;letter-spacing:0.06em;font-size:0.75rem}
+@media (min-width:640px){.book-visit-text{display:inline}}
+.book-visit-text:hover{text-decoration:underline}
+.burger{width:2.5rem;height:2.5rem;border-radius:var(--radius-pill);display:grid;place-items:center;background:rgba(255,255,255,.15);backdrop-filter:blur(6px);transition:background-color .2s ease}
+.burger:hover{background:rgba(255,255,255,.25)}
+.burger-bars{display:flex;flex-direction:column;gap:5px}
+.burger-bars span{display:block;width:1rem;height:1px;background:#fff}
+
+/* ---------- hero ---------- */
+#hero{position:relative;isolation:isolate;overflow:hidden;border-radius:var(--radius-card-lg);background:var(--brand-deep);color:#fff;display:flex;flex-direction:column;height:calc(100svh - 1rem);min-height:36rem}
+@media (min-width:640px){#hero{height:calc(100svh - 1.5rem)}}
+.hero-bg{position:absolute;inset:0;z-index:-10}
+.hero-bg-inner{position:absolute;left:0;right:0;top:-16%;height:132%;width:100%}
+.hero-bg-inner img{width:100%;height:100%;object-fit:cover}
+.hero-gradient{position:absolute;inset:0;background:linear-gradient(to bottom, rgba(15,47,99,.65), rgba(15,47,99,.35), rgba(15,47,99,.75))}
+.hero-title-block{padding:1rem 1.5rem 0}
+@media (min-width:640px){.hero-title-block{padding-left:2.5rem;padding-right:2.5rem}}
+#hero-title{font-size:12.5vw;font-weight:500;text-transform:uppercase;line-height:.85;letter-spacing:-0.02em;white-space:nowrap}
+.hero-bottom{margin-top:auto;padding:0 1.5rem 2rem;display:flex;flex-direction:column;gap:1.5rem}
+@media (min-width:640px){.hero-bottom{padding:0 2.5rem 2.5rem;flex-direction:row;justify-content:space-between;align-items:flex-end}}
+.hero-tagline{font-size:2.4rem;font-weight:500;text-transform:uppercase;line-height:.95;letter-spacing:-0.01em;color:rgba(255,255,255,.85)}
+.hero-right-cluster{display:flex;align-items:flex-end;gap:1rem}
+.collection-slider{display:none;width:16rem;flex-direction:column;gap:0.75rem}
+@media (min-width:768px){.collection-slider{display:flex}}
+.glass-card{display:flex;gap:0.75rem;border-radius:var(--radius-card);border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.1);padding:0.75rem;box-shadow:0 1rem 2rem rgba(15,47,99,.2);backdrop-filter:blur(10px)}
+.collection-card{position:relative}
+.collection-card-inner{display:flex;gap:0.75rem;width:100%}
+.collection-img{width:3.5rem;height:3.5rem;border-radius:var(--radius-xl);overflow:hidden;flex:none}
+.collection-img img{width:100%;height:100%;object-fit:cover}
+.collection-copy{display:flex;flex-direction:column;justify-content:center;gap:0.15rem;min-width:0}
+.collection-brand{font-size:0.7rem;font-weight:500;text-transform:uppercase;letter-spacing:0.06em}
+.collection-title{font-size:0.7rem;text-transform:uppercase;opacity:.8}
+.collection-cta{font-size:0.65rem;text-decoration:underline;opacity:.9}
+.membership-card{width:100%;max-width:20rem;display:flex;align-items:stretch;gap:0.75rem}
+@media (min-width:640px){.membership-card{max-width:15rem}}
+.membership-left{display:flex;flex-direction:column;justify-content:space-between}
+.membership-value{font-size:1.875rem;font-weight:500;line-height:1}
+.membership-dots{display:flex}
+.membership-dots span{width:1.25rem;height:1.25rem;border-radius:var(--radius-pill);border:1px solid rgba(15,47,99,.4);margin-left:-0.5rem}
+.membership-dots span:first-child{margin-left:0}
+.membership-caption{font-size:0.65rem;opacity:.8}
+.membership-img{width:4rem;aspect-ratio:3/4;border-radius:var(--radius-xl);overflow:hidden;flex:none}
+.membership-img img{width:100%;height:100%;object-fit:cover}
+
+/* ---------- trust ---------- */
+#trust{position:relative;isolation:isolate;overflow:hidden;background:var(--background);padding:4rem 1.5rem}
+@media (min-width:640px){#trust{padding:5rem 2.5rem}}
+.trust-badges-row{position:relative;z-index:20;display:flex;flex-direction:column;gap:1.5rem}
+@media (min-width:640px){.trust-badges-row{flex-direction:row;justify-content:space-between}}
+.percent-badge{width:7rem;height:7rem;border-radius:var(--radius-pill);background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:0.25rem}
+@media (min-width:640px){.percent-badge{width:8rem;height:8rem}}
+.percent-badge strong{font-size:1.5rem;font-weight:500}
+.percent-badge span{font-size:0.6rem;color:var(--ink-soft);max-width:7em}
+.badge-card{max-width:28rem;display:flex;gap:1rem;border-radius:var(--radius-card);background:var(--surface);padding:1.25rem}
+@media (min-width:640px){.badge-card{gap:1.25rem;padding:1.5rem}}
+.badge-chip{border-radius:var(--radius-xl);background:var(--background);padding:0.5rem 1rem;font-size:1.25rem;font-weight:500;flex:none;height:fit-content}
+.badge-card-body h3{font-size:1.125rem;font-weight:500}
+.badge-card-body p{font-size:0.75rem;color:var(--ink-soft);line-height:1.6;margin-top:0.25rem}
+.ghost-heading{position:relative;z-index:0;pointer-events:none;user-select:none;max-width:88rem;margin:3rem auto 0;font-size:8.2vw;font-weight:500;text-transform:uppercase;line-height:1.02;letter-spacing:-0.02em}
+.ghost-row{display:flex;justify-content:space-between}
+.ghost-word{color:var(--ghost)}
+.ghost-word.ink{color:var(--ink)}
+.coach-card{position:relative;z-index:10;margin:2rem auto 0;width:13rem;transform:rotate(6deg)}
+@media (min-width:640px){.coach-card{width:16rem;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(6deg);margin:0}}
+.coach-figure{position:relative;aspect-ratio:3/4;border-radius:var(--radius-card);background:var(--brand);overflow:hidden}
+.coach-figure img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.coach-caption{position:absolute;left:0.75rem;right:0.75rem;bottom:0.75rem;border-radius:var(--radius-xl);background:rgba(15,47,99,.4);color:#fff;backdrop-filter:blur(6px);padding:0.5rem 0.75rem}
+.coach-caption strong{display:block;font-size:0.875rem;font-weight:500}
+.coach-caption span{font-size:0.65rem;opacity:.8}
+.trust-controls{position:relative;z-index:20;margin-top:3rem;display:flex;align-items:center;justify-content:space-between}
+@media (min-width:640px){.trust-controls{margin-top:6rem}}
+
+/* ---------- programs ---------- */
+#programs{background:var(--surface);padding:6rem 1.5rem}
+@media (min-width:640px){#programs{padding-left:2.5rem;padding-right:2.5rem}}
+.programs-list{margin-top:3.5rem}
+.program-row-link{display:block;border-top:1px solid var(--hairline)}
+.program-row-link:last-child{border-bottom:1px solid var(--hairline)}
+.program-row{display:flex;align-items:center;gap:1.5rem;padding:1.75rem 0}
+.program-index{width:2.5rem;font-size:0.875rem;font-weight:500;color:var(--ink-soft);flex:none}
+.program-copy{flex:1;min-width:0}
+.program-copy h3{font-size:1.875rem;font-weight:500;letter-spacing:-0.01em}
+@media (max-width:639px){.program-copy h3{font-size:1.5rem}}
+.program-copy p{font-size:0.875rem;color:var(--ink-soft);margin-top:0.25rem}
+.program-arrow-wrap{width:2.75rem;height:2.75rem;border-radius:var(--radius-pill);border:1px solid var(--hairline);display:grid;place-items:center;flex:none;overflow:hidden}
+.program-arrow-wrap svg{width:1.1rem;height:1.1rem}
+
+/* ---------- facilities ---------- */
+#facilities{background:var(--background);border-radius:var(--radius-card-lg);margin-top:-2.5rem;position:relative;padding:4rem 1.5rem 5rem}
+@media (min-width:640px){#facilities{padding-left:2.5rem;padding-right:2.5rem}}
+.facilities-grid{display:grid;grid-template-columns:1fr;align-items:end;gap:2.5rem}
+@media (min-width:768px){.facilities-grid{grid-template-columns:1fr 1fr}}
+.facilities-intro{max-width:24rem}
+.facilities-icon{width:4rem;height:4rem;border-radius:var(--radius-card);overflow:hidden}
+.facilities-icon img{width:100%;height:100%;object-fit:cover}
+#facilities-title{font-size:3rem;font-weight:500;line-height:.95;letter-spacing:-0.02em;margin-top:1.5rem}
+.facilities-intro > p{font-size:0.875rem;color:var(--ink-soft);max-width:20rem;margin-top:1.5rem}
+.court-cards{display:flex;align-items:flex-end;gap:1.25rem}
+.court-tile{flex:1;position:relative;aspect-ratio:3/4;border-radius:var(--radius-card);overflow:hidden;background:var(--surface)}
+.court-tile.staggered{margin-bottom:2rem}
+.court-tile img{width:100%;height:100%;object-fit:cover;transform:scale(1)}
+.court-caption{position:absolute;left:0.75rem;right:0.75rem;bottom:0.75rem;border-radius:var(--radius-xl);backdrop-filter:blur(6px);color:#fff;padding:0.75rem 1rem}
+.court-caption.tone-clay{background:rgba(15,47,99,.4)}
+.court-caption.tone-blue{background:rgba(11,110,151,.55)}
+.court-caption strong{display:block;font-size:0.875rem;font-weight:500}
+.court-caption span{font-size:0.65rem;opacity:.85}
+
+/* ---------- stats ---------- */
+#stats{background:var(--brand-deep);color:#fff;border-radius:var(--radius-card-lg);margin-top:0.75rem;padding:5rem 1.5rem}
+@media (min-width:640px){#stats{padding-left:2.5rem;padding-right:2.5rem}}
+#stats-title{font-size:3rem;font-weight:500;line-height:.95;letter-spacing:-0.02em;margin-top:1rem}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);column-gap:2rem;row-gap:3rem;margin-top:4rem}
+@media (min-width:1024px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
+.stat-cell{border-top:1px solid rgba(255,255,255,.2);padding-top:1.25rem}
+.stat-cell .value{font-size:4.5rem;font-weight:500;letter-spacing:-0.02em;line-height:1}
+@media (min-width:640px){.stat-cell .value{font-size:4.5rem}}
+.stat-cell .label{display:block;font-size:0.875rem;color:rgba(255,255,255,.65);margin-top:0.75rem}
+
+/* ---------- testimonials ---------- */
+#testimonials{background:var(--background);padding:5rem 1.5rem}
+@media (min-width:640px){#testimonials{padding:6rem 2.5rem}}
+#testimonials-title{font-size:3rem;font-weight:500;line-height:.95;letter-spacing:-0.02em;margin-top:1rem}
+.testimonial-grid{display:grid;grid-template-columns:1fr;gap:1.25rem;margin-top:3.5rem}
+@media (min-width:768px){.testimonial-grid{grid-template-columns:repeat(3,1fr)}}
+.testimonial-card{display:flex;flex-direction:column;justify-content:space-between;height:100%;border-radius:var(--radius-card);background:var(--surface);padding:1.75rem}
+.testimonial-quote-mark{font-size:2.25rem;color:var(--brand);line-height:1}
+.testimonial-card blockquote{font-size:1.125rem;line-height:1.6;color:var(--ink);margin-top:1rem}
+.testimonial-figcaption{border-top:1px solid var(--hairline);padding-top:1rem;margin-top:1.5rem}
+.testimonial-figcaption strong{display:block;font-weight:500}
+.testimonial-figcaption span{font-size:0.875rem;color:var(--ink-soft)}
+
+/* ---------- footer ---------- */
+#contact{background:var(--brand-deep);color:#fff;border-radius:var(--radius-card-lg);margin-top:0.75rem;padding:3.5rem 1.5rem}
+@media (min-width:640px){#contact{padding:4rem 2.5rem}}
+.footer-cta{border-bottom:1px solid rgba(255,255,255,.15);padding-bottom:3.5rem;display:flex;flex-direction:column;gap:1.5rem}
+@media (min-width:640px){.footer-cta{flex-direction:row;justify-content:space-between;align-items:flex-end}}
+.footer-cta-title{font-size:3.75rem;font-weight:500;line-height:.92;letter-spacing:-0.02em;margin-top:1rem}
+.footer-columns{padding:3.5rem 0;display:grid;grid-template-columns:1fr;gap:2.5rem}
+@media (min-width:768px){.footer-columns{grid-template-columns:1.4fr 1fr 1fr 1fr}}
+.footer-brand-col{max-width:20rem}
+.footer-brand-col .brand{color:#fff}
+.footer-blurb{font-size:0.875rem;color:rgba(255,255,255,.65);margin-top:1rem}
+.footer-address{margin-top:1.5rem;color:rgba(255,255,255,.8);font-size:0.875rem;display:flex;flex-direction:column;gap:0.35rem}
+.footer-address a:hover{text-decoration:underline}
+.footer-address .muted{color:rgba(255,255,255,.55)}
+.footer-nav h3{font-size:0.75rem;font-weight:500;text-transform:uppercase;letter-spacing:0.2em;color:rgba(255,255,255,.5)}
+.footer-nav ul{margin-top:1rem;font-size:0.875rem;color:rgba(255,255,255,.8);display:flex;flex-direction:column;gap:0.75rem}
+.footer-nav a{display:inline-flex}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.15);padding-top:2rem;font-size:0.875rem;color:rgba(255,255,255,.6);display:flex;flex-direction:column;gap:1.25rem}
+@media (min-width:640px){.footer-bottom{flex-direction:row;justify-content:space-between;align-items:center}}
+.footer-bottom nav{display:flex;gap:1.25rem}
+
+/* ---------- link nudge (generic hover-spring target) ---------- */
+.hover-nudge{display:inline-block}
+
+/* ---------- loader ---------- */
+#loader{position:fixed;inset:0;z-index:200;background:var(--brand-deep);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2rem}
+.loader-wordmark{display:flex;align-items:center;gap:0.5rem;font-size:1.5rem;font-weight:500;text-transform:uppercase;letter-spacing:0.2em}
+.loader-wordmark svg{width:1.75rem;height:1.75rem}
+.loader-track{width:10rem;height:1px;border-radius:var(--radius-pill);background:rgba(255,255,255,.2);overflow:hidden}
+.loader-fill{width:100%;height:100%;background:#fff;transform-origin:left;transform:scaleX(0)}
+
+/* ---------- menu overlay ---------- */
+#menu-overlay{position:fixed;inset:0;z-index:70;display:flex;flex-direction:column;pointer-events:none}
+#menu-overlay .menu-backdrop{position:absolute;inset:0;background:var(--brand-deep);opacity:0}
+#menu-overlay .menu-panel{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;padding:0.5rem;opacity:0;transform:translateY(-24px);color:#fff}
+@media (min-width:640px){#menu-overlay .menu-panel{padding:0.75rem}}
+.menu-inner{flex:1;display:flex;flex-direction:column;padding:1.5rem}
+@media (min-width:640px){.menu-inner{padding:2.5rem}}
+.menu-top{display:flex;align-items:center;justify-content:space-between}
+.menu-close{width:2.5rem;height:2.5rem;border-radius:var(--radius-pill);background:rgba(255,255,255,.15);display:grid;place-items:center;transition:background-color .2s ease}
+.menu-close:hover{background:rgba(255,255,255,.25)}
+.menu-close svg{width:1.1rem;height:1.1rem}
+.menu-nav{flex:1;display:flex;flex-direction:column;justify-content:center;gap:0.5rem}
+.menu-nav a{display:block;font-size:4.5rem;font-weight:500;letter-spacing:-0.02em;line-height:1.05;transition:color .2s ease}
+@media (min-width:640px){.menu-nav a{font-size:6rem}}
+.menu-nav a:hover{color:var(--brand-light)}
+.menu-bottom{border-top:1px solid rgba(255,255,255,.15);padding-top:2rem;display:flex;flex-direction:column;gap:1.5rem}
+@media (min-width:640px){.menu-bottom{flex-direction:row;justify-content:space-between;align-items:center}}
+.menu-bottom nav{display:flex;gap:1.5rem;font-size:0.875rem;color:rgba(255,255,255,.7)}
+.menu-bottom nav a:hover{color:#fff}
+
+/* ---------- modal ---------- */
+#modal-overlay{position:fixed;inset:0;z-index:90;display:flex;align-items:flex-end;justify-content:center;padding:0.75rem;pointer-events:none}
+@media (min-width:640px){#modal-overlay{align-items:center;padding:1.5rem}}
+#modal-overlay .modal-backdrop{position:absolute;inset:0;background:rgba(15,47,99,.4);backdrop-filter:blur(6px);opacity:0}
+.modal-panel{position:relative;z-index:1;width:100%;max-width:32rem;max-height:92svh;overflow-y:auto;border-radius:var(--radius-card-lg);background:var(--surface-card);padding:1.5rem;color:var(--ink);box-shadow:0 2rem 4rem rgba(15,47,99,.35);opacity:0;transform:translateY(28px) scale(.96)}
+@media (min-width:640px){.modal-panel{padding:2rem}}
+.modal-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
+.modal-header h2{font-size:2.25rem;font-weight:500;line-height:1;letter-spacing:-0.01em;margin-top:0.75rem}
+@media (min-width:640px){.modal-header h2{font-size:3rem}}
+.modal-close{width:2.5rem;height:2.5rem;border-radius:var(--radius-pill);background:var(--surface);display:grid;place-items:center;flex:none;transition:background-color .2s ease}
+.modal-close:hover{background:var(--hairline)}
+.modal-close svg{width:1rem;height:1rem}
+#contact-form{margin-top:1.75rem;display:flex;flex-direction:column;gap:1rem}
+.field label{display:block;font-size:0.75rem;font-weight:500;text-transform:uppercase;letter-spacing:0.18em;color:var(--ink-soft);margin-bottom:0.4rem}
+.field input,.field textarea{width:100%;border-radius:var(--radius-xl);border:1px solid var(--hairline);background:var(--background);padding:0.75rem 1rem;font-size:0.875rem;font-family:inherit;transition:border-color .2s ease,box-shadow .2s ease}
+.field textarea{resize:none}
+.field input:focus-visible,.field textarea:focus-visible{outline:none;border-color:var(--brand-light);box-shadow:0 0 0 3px rgba(87,144,230,.25)}
+.modal-submit{margin-top:0.25rem;align-self:flex-start;border-radius:var(--radius-pill);background:var(--ink);color:#fff;padding:0.875rem 1.75rem;font-size:0.875rem;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;transition:background-color .2s ease,opacity .2s ease}
+.modal-submit:hover{background:var(--brand-deep)}
+.modal-submit:disabled{opacity:.6;cursor:default}
+.modal-success{display:none;margin-top:2rem;border-radius:var(--radius-card);background:var(--surface);padding:1.5rem;text-align:center}
+.modal-success .check-badge{width:3rem;height:3rem;margin:0 auto;border-radius:var(--radius-pill);background:var(--brand);display:grid;place-items:center}
+.modal-success .check-badge svg{width:1.25rem;height:1.25rem;color:#fff}
+.modal-success h3{font-size:1.125rem;font-weight:500;margin-top:0.75rem}
+.modal-success p{font-size:0.875rem;color:var(--ink-soft);margin-top:0.5rem}
+.modal-success .pill-btn{margin-top:1.25rem}
+#contact-modal.success-mode #contact-form,#contact-modal.success-mode .modal-header{display:none}
+#contact-modal.success-mode .modal-success{display:block}
+</style>
+</head>
+<body>
+<main id="main">
+
+<section id="hero">
+  <div class="hero-bg">
+    <div class="hero-bg-inner" id="hero-parallax">
+      <img id="hero-img" alt="Player lunging for a shot on a hard court" loading="eager" fetchpriority="high" />
+    </div>
+    <div class="hero-gradient"></div>
+  </div>
+
+  <header class="site-header">
+    <nav class="nav-left">
+      <a href="#programs" data-scroll="programs">Programs &amp; Coaches</a>
+      <a href="#facilities" data-scroll="facilities">Club &amp; Events</a>
+    </nav>
+    <div class="brand-center">
+      <a href="#hero" class="brand" data-scroll="hero">
+        <svg class="brand-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M4.8 5.6A9 9 0 0 0 4.8 18.4"/><path d="M19.2 5.6a9 9 0 0 1 0 12.8"/></svg>
+        <span>Baseline</span>
+      </a>
+    </div>
+    <div class="header-right">
+      <button class="book-visit-text" data-open-modal>Book a Visit</button>
+      <button class="burger" id="burger-btn" aria-label="Open menu">
+        <span class="burger-bars"><span></span><span></span></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="hero-title-block">
+    <h1 id="hero-title">Own The Court</h1>
+  </div>
+
+  <div class="hero-bottom">
+    <p class="hero-tagline" id="hero-tagline">
+      <span class="tagline-line">Show Up,</span>
+      <span class="tagline-line">Level Up</span>
+    </p>
+    <div class="hero-right-cluster">
+      <div class="collection-slider" id="collection-slider">
+        <div class="glass-card collection-card">
+          <div class="collection-card-inner" id="collection-card-inner"></div>
+        </div>
+        <div class="dots light" id="collection-dots"></div>
+      </div>
+      <article class="glass-card membership-card" id="membership-card">
+        <div class="membership-left">
+          <div>
+            <div class="membership-value">9K+</div>
+            <div class="membership-dots">
+              <span style="background:#5790e6"></span>
+              <span style="background:#c2e029"></span>
+              <span style="background:#0b6e97"></span>
+              <span style="background:#ffffff"></span>
+            </div>
+          </div>
+          <div class="membership-caption">Members on court</div>
+        </div>
+        <div class="membership-img"><img id="membership-img" alt="Player waiting to return on a clay court" loading="lazy" /></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="trust">
+  <div class="trust-badges-row">
+    <div class="percent-badge" id="percent-badge"><strong>100%</strong><span>Coaching built around your game</span></div>
+    <article class="badge-card" id="badge-card">
+      <div class="badge-chip">#01</div>
+      <div class="badge-card-body">
+        <h3>Trusted by serious players</h3>
+        <p>From first-timers to nationally ranked juniors, players train here because the progress shows up on the scoreboard.</p>
+      </div>
+    </article>
+  </div>
+
+  <h2 class="ghost-heading" id="trust-title">
+    <div class="ghost-row"><span class="ghost-word" data-gi="0"></span><span class="ghost-word" data-gi="1"></span></div>
+    <div class="ghost-row"><span class="ghost-word ink" data-gi="2"></span><span class="ghost-word" data-gi="3"></span></div>
+  </h2>
+
+  <figure class="coach-card" id="coach-card">
+    <div class="coach-figure">
+      <img id="coach-img" alt="" loading="lazy" />
+      <div class="coach-caption"><strong id="coach-name"></strong><span id="coach-role"></span></div>
+    </div>
+  </figure>
+
+  <div class="trust-controls">
+    <button class="arrow-btn outline prev" id="trust-prev" aria-label="Previous">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </button>
+    <div class="dots dark" id="trust-dots"></div>
+    <button class="arrow-btn solid" id="trust-next" aria-label="Next">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </button>
+  </div>
+</section>
+
+<section id="programs">
+  <div class="eyebrow dark">Training programs</div>
+  <h2 class="stacked-lines" id="programs-title">
+    <span class="line-wrap">Built for</span>
+    <span class="line-wrap">every level</span>
+  </h2>
+  <ul class="programs-list" id="programs-list"></ul>
+</section>
+
+<section id="facilities">
+  <div class="facilities-grid">
+    <div class="facilities-intro">
+      <div class="facilities-icon" id="facilities-icon"><img alt="Player stretching for a forehand on clay" loading="lazy" /></div>
+      <h2 class="stacked-lines" id="facilities-title">
+        <span class="line-wrap">Tour Our</span>
+        <span class="line-wrap">World-Class</span>
+        <span class="line-wrap">Courts</span>
+      </h2>
+      <p id="facilities-body">Reserve a court for focused practice, squad drills, or private sessions — and train in the same conditions you'll compete in.</p>
+    </div>
+    <div class="court-cards" id="court-cards"></div>
+  </div>
+</section>
+
+<section id="stats">
+  <div class="eyebrow light">By the numbers</div>
+  <h2 class="stacked-lines" id="stats-title">
+    <span class="line-wrap">A club that</span>
+    <span class="line-wrap">keeps score</span>
+  </h2>
+  <dl class="stats-grid" id="stats-grid"></dl>
+</section>
+
+<section id="testimonials">
+  <div class="eyebrow dark">What players say</div>
+  <h2 class="stacked-lines" id="testimonials-title">
+    <span class="line-wrap">Loved by</span>
+    <span class="line-wrap">the locker room</span>
+  </h2>
+  <ul class="testimonial-grid" id="testimonial-grid"></ul>
+</section>
+
+<footer id="contact">
+  <div class="footer-cta">
+    <div>
+      <div class="eyebrow light">Get started</div>
+      <p class="footer-cta-title stacked-lines" id="footer-cta-title">
+        <span class="line-wrap">Ready to</span>
+        <span class="line-wrap">play?</span>
+      </p>
+    </div>
+    <button class="pill-btn light" id="footer-cta-btn" data-open-modal>
+      <span>Book a Visit</span>
+      <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </button>
+  </div>
+
+  <div class="footer-columns">
+    <div class="footer-brand-col">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M4.8 5.6A9 9 0 0 0 4.8 18.4"/><path d="M19.2 5.6a9 9 0 0 1 0 12.8"/></svg>
+        <span>Baseline</span>
+      </div>
+      <p class="footer-blurb">A members' tennis club and academy where focused coaching meets championship courts.</p>
+      <address class="footer-address">
+        <a href="mailto:play@baseline.club">play@baseline.club</a>
+        <a href="tel:+12125550148">+1 (212) 555-0148</a>
+        <span class="muted">120 Court Lane, New York</span>
+      </address>
+    </div>
+    <nav class="footer-nav">
+      <h3>Programs</h3>
+      <ul>
+        <li><a href="#junior" class="hover-nudge">Junior Development</a></li>
+        <li><a href="#performance" class="hover-nudge">Performance Squad</a></li>
+        <li><a href="#adult" class="hover-nudge">Adult Clinics</a></li>
+        <li><a href="#private" class="hover-nudge">Private Coaching</a></li>
+      </ul>
+    </nav>
+    <nav class="footer-nav">
+      <h3>Club</h3>
+      <ul>
+        <li><a href="#membership" class="hover-nudge">Membership</a></li>
+        <li><a href="#facilities" class="hover-nudge" data-scroll="facilities">Facilities</a></li>
+        <li><a href="#club" class="hover-nudge">Events</a></li>
+        <li><a href="#shop" class="hover-nudge">Pro Shop</a></li>
+      </ul>
+    </nav>
+    <nav class="footer-nav">
+      <h3>Company</h3>
+      <ul>
+        <li><a href="#about" class="hover-nudge">About</a></li>
+        <li><a href="#programs" class="hover-nudge" data-scroll="programs">Coaches</a></li>
+        <li><a href="#careers" class="hover-nudge">Careers</a></li>
+        <li><a href="#contact" class="hover-nudge">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+
+  <div class="footer-bottom">
+    <span>© 2026 Baseline Tennis Club. All rights reserved.</span>
+    <nav>
+      <a href="#instagram">Instagram</a><a href="#x">X</a><a href="#youtube">YouTube</a><a href="#linkedin">LinkedIn</a>
+    </nav>
+    <nav>
+      <a href="#privacy">Privacy</a><a href="#terms">Terms</a>
+    </nav>
+  </div>
+</footer>
+
+</main>
+
+<div id="menu-overlay" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="menu-backdrop" id="menu-backdrop"></div>
+  <div class="menu-panel" id="menu-panel">
+    <div class="menu-inner">
+      <div class="menu-top">
+        <div class="brand">
+          <svg class="brand-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M4.8 5.6A9 9 0 0 0 4.8 18.4"/><path d="M19.2 5.6a9 9 0 0 1 0 12.8"/></svg>
+          <span>Baseline</span>
+        </div>
+        <button class="menu-close" id="menu-close-btn" aria-label="Close menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <nav class="menu-nav" id="menu-nav">
+        <a href="#programs" data-scroll="programs">Programs</a>
+        <a href="#facilities" data-scroll="facilities">Facilities</a>
+        <a href="#testimonials" data-scroll="testimonials">Reviews</a>
+        <a href="#contact" data-scroll="contact">Contact</a>
+      </nav>
+      <div class="menu-bottom">
+        <button class="pill-btn light" id="menu-book-btn">
+          <span>Book a Visit</span>
+          <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+        <nav>
+          <a href="#instagram">Instagram</a><a href="#x">X</a><a href="#youtube">YouTube</a><a href="#linkedin">LinkedIn</a>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-overlay" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="modal-backdrop" id="modal-backdrop"></div>
+  <div class="modal-panel" id="contact-modal">
+    <div class="modal-header">
+      <div>
+        <div class="eyebrow dark">Book a visit</div>
+        <h2 class="stacked-lines" id="modal-title">
+          <span class="line-wrap">Come see</span>
+          <span class="line-wrap">the courts</span>
+        </h2>
+      </div>
+      <button class="modal-close" id="modal-close-btn" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <form id="contact-form" novalidate>
+      <div class="field">
+        <label for="f-name">Full name</label>
+        <input id="f-name" name="name" type="text" placeholder="Alex Rivera" required />
+      </div>
+      <div class="field">
+        <label for="f-email">Email</label>
+        <input id="f-email" name="email" type="email" placeholder="you@email.com" required />
+      </div>
+      <div class="field">
+        <label for="f-message">What would you like to play?</label>
+        <textarea id="f-message" name="message" rows="3" placeholder="I'd love to try a private lesson on the clay courts…" required></textarea>
+      </div>
+      <button type="submit" class="modal-submit" id="modal-submit-btn">Request a visit</button>
+    </form>
+    <div class="modal-success" id="modal-success">
+      <div class="check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></div>
+      <h3>Request received</h3>
+      <p id="modal-success-text">Thanks, there — our team will be in touch to lock in your visit.</p>
+      <button class="pill-btn solid" id="modal-done-btn">Done</button>
+    </div>
+  </div>
+</div>
+
+<div id="loader">
+  <div class="loader-wordmark" id="loader-wordmark">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M4.8 5.6A9 9 0 0 0 4.8 18.4"/><path d="M19.2 5.6a9 9 0 0 1 0 12.8"/></svg>
+    <span>Baseline</span>
+  </div>
+  <div class="loader-track"><div class="loader-fill" id="loader-fill"></div></div>
+</div>
+
+<script type="importmap">
+{ "imports": { "lenis": "https://cdn.jsdelivr.net/npm/lenis@1.1.18/+esm" } }
+</script>
+<script type="module">
+import Lenis from 'lenis';
+
+/* ================= constants ================= */
+const ASSET_BASE = 'https://api.getlayers.ai/storage/v1/object/public/public/assets/baseline-88535e4000';
+const IMG = {
+  hero: `${ASSET_BASE}/hero/hero-court.webp`,
+  a1: `${ASSET_BASE}/1.webp`,
+  a2: `${ASSET_BASE}/2.webp`,
+  a3: `${ASSET_BASE}/3.webp`,
+  a4: `${ASSET_BASE}/4.webp`,
+  a5: `${ASSET_BASE}/5.webp`,
+};
+const EASE_OUT_EXPO = 'cubic-bezier(0.16, 1, 0.3, 1)';
+const EASE_OUT_QUART = 'cubic-bezier(0.25, 1, 0.5, 1)';
+const EASE_IN_OUT_CUBIC = 'cubic-bezier(0.65, 0, 0.35, 1)';
+const MIN_VISIBLE_MS = 1400, MAX_VISIBLE_MS = 2600, EXIT_MS = 850;
+const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ================= adaptive rem grid ================= */
+function applyAdaptiveGrid(){
+  const FONT_BASE = 16, BASE_W = 1920, COEF = 0.6666;
+  const reduction = ((BASE_W - window.innerWidth) / BASE_W) * 100 * COEF;
+  const size = FONT_BASE - (FONT_BASE * reduction) / 100;
+  if (size > FONT_BASE) document.documentElement.style.fontSize = size + 'px';
+  else document.documentElement.style.removeProperty('font-size');
+}
+applyAdaptiveGrid();
+window.addEventListener('resize', applyAdaptiveGrid);
+
+/* ================= lenis + scroll lock ================= */
+window.scrollTo(0, 0);
+const lenis = new Lenis({ smoothWheel: true });
+function raf(t){ lenis.raf(t); requestAnimationFrame(raf); }
+requestAnimationFrame(raf);
+
+let lockCount = 0;
+function lockScroll(){
+  lockCount++;
+  lenis.stop();
+  document.documentElement.style.position = 'relative';
+  document.documentElement.style.overflow = 'hidden';
+  document.documentElement.style.height = '100%';
+}
+function unlockScroll(){
+  lockCount = Math.max(0, lockCount - 1);
+  if (lockCount === 0){
+    lenis.start();
+    document.documentElement.style.removeProperty('position');
+    document.documentElement.style.removeProperty('overflow');
+    document.documentElement.style.removeProperty('height');
+  }
+}
+function smoothScrollTo(id){
+  const el = document.getElementById(id);
+  if (el) lenis.scrollTo(el, { offset: 0 });
+}
+document.querySelectorAll('[data-scroll]').forEach(el=>{
+  el.addEventListener('click', (e)=>{ e.preventDefault(); smoothScrollTo(el.dataset.scroll); });
+});
+
+/* ================= spring engine ================= */
+class SpringVal{
+  constructor(v=0){ this.value=v; this.target=v; this.v=0; }
+  set(t){ this.target=t; }
+  step(dt, tension, friction){
+    const force = -tension*(this.value-this.target) - friction*this.v;
+    this.v += force*dt;
+    this.value += this.v*dt;
+  }
+  done(eps=0.0015){ return Math.abs(this.target-this.value)<eps && Math.abs(this.v)<eps; }
+}
+const springJobs = new Set();
+let lastFrame = null;
+function tickSprings(t){
+  if (lastFrame == null) lastFrame = t;
+  const dt = Math.min((t - lastFrame)/1000, 0.032);
+  lastFrame = t;
+  springJobs.forEach(job=>{
+    let allDone = true;
+    for (const k in job.vals){ const s = job.vals[k]; s.step(dt, job.tension, job.friction); if (!s.done()) allDone = false; }
+    job.apply(job.vals);
+    if (allDone) springJobs.delete(job);
+  });
+  parallaxBindings.forEach(fn=>fn());
+  requestAnimationFrame(tickSprings);
+}
+requestAnimationFrame(tickSprings);
+
+function makeSpring(initial, tension, friction, apply){
+  const vals = {};
+  for (const k in initial) vals[k] = new SpringVal(initial[k]);
+  const job = { vals, tension, friction, apply };
+  apply(vals);
+  return {
+    to(targets){ for (const k in targets) vals[k].set(targets[k]); springJobs.add(job); },
+    set(values){ for (const k in values){ vals[k].value=values[k]; vals[k].target=values[k]; vals[k].v=0; } apply(vals); }
+  };
+}
+
+function hoverEnabled(){
+  return window.matchMedia('(hover: hover) and (pointer: fine)').matches && window.innerWidth > 768;
+}
+function bindHover(el, from, to, tension, friction, apply){
+  const spring = makeSpring(from, tension, friction, apply);
+  el.addEventListener('pointerenter', ()=>{ if (hoverEnabled()) spring.to(to); });
+  el.addEventListener('pointerleave', ()=>{ if (hoverEnabled()) spring.to(from); });
+  return spring;
+}
+
+/* ================= parallax registry ================= */
+const parallaxBindings = [];
+function sectionProgress(section){
+  const r = section.getBoundingClientRect();
+  const vh = window.innerHeight;
+  const total = r.height + vh;
+  const passed = vh - r.top;
+  return Math.min(1, Math.max(0, passed/total));
+}
+function registerParallax(section, apply){
+  if (REDUCED_MOTION) return;
+  parallaxBindings.push(()=>apply(sectionProgress(section)));
+}
+
+/* ================= inview ================= */
+function inView(el, cb, opts={}){
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if (entry.isIntersecting){ cb(); io.unobserve(el); }
+    });
+  }, { threshold: opts.threshold ?? 0.2 });
+  io.observe(el);
+}
+
+/* ================= text reveal (clip-mask) ================= */
+function wrapWordReveal(el, { stagger=0, baseDelay=0, duration=900, easing=EASE_OUT_EXPO, translateY=115 } = {}){
+  const text = el.textContent.trim();
+  const words = text.split(/\s+/);
+  el.textContent = '';
+  el.style.display = 'block';
+  const inners = [];
+  words.forEach((w, i)=>{
+    const clip = document.createElement('span');
+    clip.className = 'clip';
+    clip.style.paddingBottom = '0.12em';
+    const inner = document.createElement('span');
+    inner.className = 'reveal-inner';
+    inner.textContent = w;
+    inner.style.transform = `translateY(${translateY}%)`;
+    inner.style.opacity = '0';
+    inner.style.transitionProperty = 'transform, opacity';
+    inner.style.transitionDuration = duration + 'ms';
+    inner.style.transitionTimingFunction = easing;
+    inner.style.transitionDelay = (baseDelay + i*stagger) + 'ms';
+    clip.appendChild(inner);
+    el.appendChild(clip);
+    if (i < words.length - 1) el.appendChild(document.createTextNode(' '));
+    inners.push(inner);
+  });
+  return {
+    play(){
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        inners.forEach(s=>{ s.style.transform = 'translateY(0)'; s.style.opacity = '1'; });
+      }));
+    }
+  };
+}
+function wrapLineReveal(el, { stagger=120, baseDelay=0, duration=950, easing=EASE_OUT_EXPO, translateY=115 } = {}){
+  const text = el.textContent.trim();
+  el.textContent = '';
+  el.classList.add('clip', 'line-clip');
+  el.style.paddingBottom = '0.14em';
+  const inner = document.createElement('span');
+  inner.className = 'reveal-inner';
+  inner.textContent = text;
+  inner.style.transform = `translateY(${translateY}%)`;
+  inner.style.opacity = '0';
+  inner.style.transitionProperty = 'transform, opacity';
+  inner.style.transitionDuration = duration + 'ms';
+  inner.style.transitionTimingFunction = easing;
+  inner.style.transitionDelay = baseDelay + 'ms';
+  el.appendChild(inner);
+  return {
+    play(){
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        inner.style.transform = 'translateY(0)';
+        inner.style.opacity = '1';
+      }));
+    },
+    reset(){
+      inner.style.transitionDelay = '0ms';
+      inner.style.transform = `translateY(${translateY}%)`;
+      inner.style.opacity = '0';
+      void inner.offsetWidth;
+      inner.style.transitionDelay = baseDelay + 'ms';
+    }
+  };
+}
+function stackLines(container, { stagger=120, baseDelay=0, duration=950, easing=EASE_OUT_EXPO } = {}){
+  const lineEls = container.querySelectorAll(':scope > .line-wrap');
+  const reveals = [];
+  lineEls.forEach((lineEl, i)=>{
+    reveals.push(wrapLineReveal(lineEl, { stagger:0, baseDelay: baseDelay + i*stagger, duration, easing }));
+  });
+  return { play(){ reveals.forEach(r=>r.play()); } };
+}
+
+/* ================= loader ================= */
+const loaderEl = document.getElementById('loader');
+const loaderFill = document.getElementById('loader-fill');
+const loaderWordmark = document.getElementById('loader-wordmark');
+let ready = false;
+const readyCallbacks = [];
+function onReady(fn){ if (ready) fn(); else readyCallbacks.push(fn); }
+
+lockScroll();
+makeSpring({ opacity:0, y:16 }, 200, 22, (v)=>{
+  loaderWordmark.style.opacity = v.opacity.value;
+  loaderWordmark.style.transform = `translateY(${v.y.value}px)`;
+}).to({ opacity:1, y:0 });
+
+const fillDuration = REDUCED_MOTION ? 50 : (MIN_VISIBLE_MS - 120);
+loaderFill.style.transition = `transform ${fillDuration}ms ${EASE_IN_OUT_CUBIC}`;
+loaderFill.style.transitionDelay = REDUCED_MOTION ? '0ms' : '120ms';
+requestAnimationFrame(()=>requestAnimationFrame(()=>{ loaderFill.style.transform = 'scaleX(1)'; }));
+
+function finishLoader(){
+  ready = true;
+  unlockScroll();
+  const exitMs = REDUCED_MOTION ? 0 : EXIT_MS;
+  loaderEl.style.transition = `transform ${exitMs}ms ${EASE_IN_OUT_CUBIC}`;
+  loaderEl.style.transform = 'translateY(-105%)';
+  readyCallbacks.forEach(fn=>fn());
+  setTimeout(()=>{ loaderEl.remove(); }, exitMs);
+}
+const minVisible = REDUCED_MOTION ? 200 : MIN_VISIBLE_MS;
+let loaderDone = false;
+function startLoaderExit(){
+  if (loaderDone) return;
+  loaderDone = true;
+  finishLoader();
+}
+function armLoaderTimer(){ setTimeout(startLoaderExit, minVisible); }
+if (document.readyState === 'complete') armLoaderTimer();
+else window.addEventListener('load', armLoaderTimer, { once:true });
+setTimeout(startLoaderExit, REDUCED_MOTION ? 300 : MAX_VISIBLE_MS);
+
+/* ================= header burger -> menu overlay ================= */
+const menuOverlay = document.getElementById('menu-overlay');
+const menuBackdrop = document.getElementById('menu-backdrop');
+const menuPanel = document.getElementById('menu-panel');
+const menuNavLinks = document.querySelectorAll('#menu-nav a');
+let menuOpen = false;
+
+const menuBackdropSpring = makeSpring({ opacity:0 }, 260, 30, (v)=>{ menuBackdrop.style.opacity = v.opacity.value; });
+const menuPanelSpring = makeSpring({ opacity:0, y:-24 }, 220, 28, (v)=>{
+  menuPanel.style.opacity = v.opacity.value;
+  menuPanel.style.transform = `translateY(${v.y.value}px)`;
+});
+const menuLinkSprings = Array.from(menuNavLinks).map((link, i)=>{
+  return makeSpring({ opacity:0, y:28 }, 200, 26, (v)=>{
+    link.style.opacity = v.opacity.value;
+    link.style.transform = `translateY(${v.y.value}px)`;
+  });
+});
+
+function openMenu(){
+  if (menuOpen) return;
+  menuOpen = true;
+  lockScroll();
+  menuOverlay.style.pointerEvents = 'auto';
+  menuOverlay.setAttribute('aria-hidden', 'false');
+  menuBackdropSpring.to({ opacity:1 });
+  menuPanelSpring.to({ opacity:1, y:0 });
+  menuLinkSprings.forEach((s, i)=>{
+    setTimeout(()=>s.to({ opacity:1, y:0 }), 120 + i*70);
+  });
+}
+function closeMenu(){
+  if (!menuOpen) return;
+  menuOpen = false;
+  unlockScroll();
+  menuOverlay.setAttribute('aria-hidden', 'true');
+  menuBackdropSpring.to({ opacity:0 });
+  menuPanelSpring.to({ opacity:0, y:-24 });
+  menuLinkSprings.forEach(s=>s.set({ opacity:0, y:28 }));
+  setTimeout(()=>{ if (!menuOpen) menuOverlay.style.pointerEvents = 'none'; }, 300);
+}
+document.getElementById('burger-btn').addEventListener('click', openMenu);
+document.getElementById('menu-close-btn').addEventListener('click', closeMenu);
+menuBackdrop.addEventListener('click', closeMenu);
+menuNavLinks.forEach(link=>{
+  link.addEventListener('click', (e)=>{ e.preventDefault(); closeMenu(); smoothScrollTo(link.dataset.scroll); });
+});
+document.getElementById('menu-book-btn').addEventListener('click', ()=>{ closeMenu(); openModal(); });
+
+/* ================= contact modal ================= */
+const modalOverlay = document.getElementById('modal-overlay');
+const modalBackdrop = document.getElementById('modal-backdrop');
+const contactModal = document.getElementById('contact-modal');
+const contactForm = document.getElementById('contact-form');
+const modalSubmitBtn = document.getElementById('modal-submit-btn');
+const modalSuccess = document.getElementById('modal-success');
+const modalSuccessText = document.getElementById('modal-success-text');
+let modalOpen = false;
+
+const modalBackdropSpring = makeSpring({ opacity:0 }, 240, 30, (v)=>{ modalBackdrop.style.opacity = v.opacity.value; });
+const modalPanelSpring = makeSpring({ opacity:0, y:28, scale:0.96 }, 240, 26, (v)=>{
+  contactModal.style.opacity = v.opacity.value;
+  contactModal.style.transform = `translateY(${v.y.value}px) scale(${v.scale.value})`;
+});
+let modalTitlePlayed = false;
+const modalTitleStack = stackLines(document.getElementById('modal-title'), { stagger:90, duration:800 });
+
+function openModal(){
+  if (modalOpen) return;
+  modalOpen = true;
+  lockScroll();
+  modalOverlay.style.pointerEvents = 'auto';
+  modalOverlay.setAttribute('aria-hidden', 'false');
+  modalBackdropSpring.to({ opacity:1 });
+  modalPanelSpring.to({ opacity:1, y:0, scale:1 });
+  if (!modalTitlePlayed){ modalTitlePlayed = true; modalTitleStack.play(); }
+  setTimeout(()=>{ document.getElementById('f-name').focus(); }, 120);
+}
+function closeModal(){
+  if (!modalOpen) return;
+  modalOpen = false;
+  unlockScroll();
+  modalOverlay.setAttribute('aria-hidden', 'true');
+  modalBackdropSpring.to({ opacity:0 });
+  modalPanelSpring.to({ opacity:0, y:28, scale:0.96 });
+  setTimeout(()=>{
+    if (!modalOpen) modalOverlay.style.pointerEvents = 'none';
+    contactModal.classList.remove('success-mode');
+    contactForm.reset();
+    modalSubmitBtn.disabled = false;
+    modalSubmitBtn.textContent = 'Request a visit';
+  }, 350);
+}
+document.querySelectorAll('[data-open-modal]').forEach(btn=>btn.addEventListener('click', openModal));
+document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+document.getElementById('modal-done-btn').addEventListener('click', closeModal);
+modalBackdrop.addEventListener('click', closeModal);
+
+contactForm.addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const name = document.getElementById('f-name').value.trim();
+  modalSubmitBtn.disabled = true;
+  modalSubmitBtn.textContent = 'Sending…';
+  setTimeout(()=>{
+    modalSuccessText.textContent = `Thanks, ${name.split(' ')[0] || 'there'} — our team will be in touch to lock in your visit.`;
+    contactModal.classList.add('success-mode');
+  }, 600);
+});
+
+window.addEventListener('keydown', (e)=>{
+  if (e.key !== 'Escape') return;
+  if (modalOpen) closeModal();
+  else if (menuOpen) closeMenu();
+});
+
+/* ================= hero ================= */
+document.getElementById('hero-img').src = IMG.hero;
+document.getElementById('membership-img').src = IMG.a1;
+
+registerParallax(document.getElementById('hero'), (p)=>{
+  const y = p * 12;
+  document.getElementById('hero-parallax').style.transform = `translateY(${y}%)`;
+});
+
+const heroTitleReveal = wrapWordReveal(document.getElementById('hero-title'), { stagger:140, duration:1100, easing:EASE_OUT_EXPO });
+const heroTaglineStack = stackLines(wrapTagline(), { stagger:110, baseDelay:350, duration:900, easing:EASE_OUT_EXPO });
+function wrapTagline(){
+  const p = document.getElementById('hero-tagline');
+  p.querySelectorAll('.tagline-line').forEach(el=>el.classList.add('line-wrap'));
+  return p;
+}
+
+const collectionSliderSpring = makeSpring({ opacity:0, y:28 }, 200, 26, (v)=>{
+  const el = document.getElementById('collection-slider');
+  el.style.opacity = v.opacity.value;
+  el.style.transform = `translateY(${v.y.value}px)`;
+});
+const membershipSpring = makeSpring({ opacity:0, y:28 }, 200, 26, (v)=>{
+  const el = document.getElementById('membership-card');
+  el.style.opacity = v.opacity.value;
+  el.style.transform = `translateY(${v.y.value}px)`;
+});
+
+onReady(()=>{
+  heroTitleReveal.play();
+  heroTaglineStack.play();
+  setTimeout(()=>collectionSliderSpring.to({ opacity:1, y:0 }), 650);
+  setTimeout(()=>membershipSpring.to({ opacity:1, y:0 }), 780);
+  setTimeout(startCollectionAutoplay, 650);
+});
+
+/* collection slider */
+const collectionSlides = [
+  { img: IMG.a2, brand:'Baseline Pro', title:'Featured Gear', cta:'Shop the kit', alt:'Player driving a backhand on a hard court' },
+  { img: IMG.a3, brand:'Court Series', title:'Summer Drop', cta:'View the line', alt:'Player stretching for a forehand on clay' },
+  { img: IMG.a5, brand:'Academy Kit', title:'Junior Range', cta:'Browse juniors', alt:'Player set in a ready stance on clay' },
+];
+let collectionIndex = 0;
+const collectionInner = document.getElementById('collection-card-inner');
+const collectionDotsEl = document.getElementById('collection-dots');
+collectionSlides.forEach((_, i)=>{
+  const btn = document.createElement('button');
+  btn.innerHTML = '<span></span>';
+  btn.setAttribute('aria-current', i === 0 ? 'true' : 'false');
+  btn.addEventListener('click', ()=>setCollectionSlide(i));
+  collectionDotsEl.appendChild(btn);
+});
+function renderCollectionSlide(instant){
+  const s = collectionSlides[collectionIndex];
+  const wrap = document.createElement('div');
+  wrap.className = 'collection-card-inner';
+  wrap.innerHTML = `
+    <div class="collection-img"><img src="${s.img}" alt="${s.alt}" loading="lazy" /></div>
+    <div class="collection-copy">
+      <span class="collection-brand">${s.brand}</span>
+      <span class="collection-title">${s.title}</span>
+      <a href="#" class="collection-cta">${s.cta} →</a>
+    </div>`;
+  wrap.style.opacity = instant ? 1 : 0;
+  wrap.style.transform = instant ? 'translateY(0) scale(1)' : 'translateY(16px) scale(.96)';
+  const outgoing = collectionInner.firstElementChild;
+  collectionInner.parentElement.style.position = 'relative';
+  wrap.style.position = outgoing ? 'absolute' : 'relative';
+  wrap.style.inset = outgoing ? '0' : 'auto';
+  wrap.style.width = '100%';
+  collectionInner.parentElement.appendChild(wrap);
+  const sp = makeSpring({ opacity: instant?1:0, y: instant?0:16, scale: instant?1:0.96 }, 210, 24, (v)=>{
+    wrap.style.opacity = v.opacity.value;
+    wrap.style.transform = `translateY(${v.y.value}px) scale(${v.scale.value})`;
+  });
+  sp.to({ opacity:1, y:0, scale:1 });
+  if (outgoing){
+    const outSp = makeSpring({ opacity:1, y:0, scale:1 }, 210, 24, (v)=>{
+      outgoing.style.opacity = v.opacity.value;
+      outgoing.style.transform = `translateY(${v.y.value}px) scale(${v.scale.value})`;
+    });
+    outgoing.style.position = 'absolute';
+    outgoing.style.inset = '0';
+    outSp.to({ opacity:0, y:-16, scale:0.96 });
+    setTimeout(()=>outgoing.remove(), 400);
+  }
+  Array.from(collectionDotsEl.children).forEach((d, i)=>d.setAttribute('aria-current', i===collectionIndex ? 'true' : 'false'));
+}
+function setCollectionSlide(i){ collectionIndex = ((i % collectionSlides.length) + collectionSlides.length) % collectionSlides.length; renderCollectionSlide(false); }
+renderCollectionSlide(true);
+let collectionTimer = null;
+function startCollectionAutoplay(){
+  if (collectionTimer) return;
+  collectionTimer = setInterval(()=>setCollectionSlide(collectionIndex+1), 3800);
+}
+
+/* ================= trust ================= */
+const trustSlides = [
+  { headline:['Expert','Result-','Driven','Coaching'], img: IMG.a5, name:'Marco Vidal', role:'Head Coach', alt:'Head coach set in a ready stance on clay' },
+  { headline:['Sharper','Faster','Stronger','Player'], img: IMG.a4, name:'Elena Sokolova', role:'Performance Coach', alt:'Performance coach following through on a serve' },
+  { headline:['Future','Champions','Start','Here'], img: IMG.a1, name:'James Okoro', role:'Juniors Lead', alt:'Juniors lead waiting to return on clay' },
+];
+let trustIndex = 0;
+const ghostWordEls = Array.from(document.querySelectorAll('.ghost-word'));
+const ghostParallax = [
+  { from:-3, to:3 }, { from:3, to:-3 }, { from:-2, to:4 }, { from:4, to:-3 },
+];
+const ghostRevealHandles = ghostWordEls.map(()=>null);
+function renderGhostWords(){
+  const slide = trustSlides[trustIndex];
+  ghostWordEls.forEach((el, i)=>{
+    el.textContent = slide.headline[i];
+    el.classList.remove('clip', 'line-clip');
+    el.style.paddingBottom = '';
+    const handle = wrapLineReveal(el, { duration:700, easing:EASE_OUT_EXPO });
+    ghostRevealHandles[i] = handle;
+    handle.play();
+  });
+}
+registerParallax(document.getElementById('trust'), (p)=>{
+  ghostWordEls.forEach((el, i)=>{
+    const cfg = ghostParallax[i];
+    const x = cfg.from + (cfg.to - cfg.from) * p;
+    el.style.setProperty('--gx', x + '%');
+    el.style.transform = `translateX(${x}%)`;
+  });
+});
+const coachImg = document.getElementById('coach-img');
+const coachName = document.getElementById('coach-name');
+const coachRole = document.getElementById('coach-role');
+const coachCrossfade = makeSpring({ opacity:1 }, 260, 26, (v)=>{ coachImg.style.opacity = v.opacity.value; });
+function renderCoach(instant){
+  const s = trustSlides[trustIndex];
+  if (instant){
+    coachImg.src = s.img; coachImg.alt = s.alt; coachName.textContent = s.name; coachRole.textContent = s.role;
+    coachCrossfade.set({ opacity:1 });
+    return;
+  }
+  coachCrossfade.to({ opacity:0 });
+  setTimeout(()=>{
+    coachImg.src = s.img; coachImg.alt = s.alt; coachName.textContent = s.name; coachRole.textContent = s.role;
+    coachCrossfade.to({ opacity:1 });
+  }, 180);
+}
+const trustDotsEl = document.getElementById('trust-dots');
+trustSlides.forEach((_, i)=>{
+  const btn = document.createElement('button');
+  btn.innerHTML = '<span></span>';
+  btn.setAttribute('aria-current', i===0 ? 'true':'false');
+  btn.addEventListener('click', ()=>setTrustSlide(i));
+  trustDotsEl.appendChild(btn);
+});
+function setTrustSlide(i){
+  trustIndex = ((i % trustSlides.length) + trustSlides.length) % trustSlides.length;
+  renderGhostWords();
+  renderCoach(false);
+  Array.from(trustDotsEl.children).forEach((d, idx)=>d.setAttribute('aria-current', idx===trustIndex?'true':'false'));
+}
+document.getElementById('trust-prev').addEventListener('click', ()=>setTrustSlide(trustIndex-1));
+document.getElementById('trust-next').addEventListener('click', ()=>setTrustSlide(trustIndex+1));
+renderGhostWords();
+renderCoach(true);
+
+const percentBadgeSpring = makeSpring({ opacity:0, scale:0.9 }, 220, 22, (v)=>{
+  const el = document.getElementById('percent-badge');
+  el.style.opacity = v.opacity.value;
+  el.style.transform = `scale(${v.scale.value})`;
+});
+const badgeCardSpring = makeSpring({ opacity:0, y:24 }, 200, 26, (v)=>{
+  const el = document.getElementById('badge-card');
+  el.style.opacity = v.opacity.value;
+  el.style.transform = `translateY(${v.y.value}px)`;
+});
+const coachCardSpring = makeSpring({ opacity:0, y:60, scale:0.92 }, 170, 26, (v)=>{
+  const el = document.getElementById('coach-card');
+  el.style.opacity = v.opacity.value;
+  const rotate = window.innerWidth >= 640 ? 'translate(-50%,-50%) rotate(6deg)' : 'rotate(6deg)';
+  el.style.transform = `${rotate} translateY(${v.y.value}px) scale(${v.scale.value})`;
+});
+inView(document.getElementById('percent-badge'), ()=>percentBadgeSpring.to({ opacity:1, scale:1 }));
+inView(document.getElementById('badge-card'), ()=>setTimeout(()=>badgeCardSpring.to({ opacity:1, y:0 }), 120));
+inView(document.getElementById('coach-card'), ()=>coachCardSpring.to({ opacity:1, y:0, scale:1 }));
+
+/* ================= programs ================= */
+const programsData = [
+  { idx:'01', name:'Junior Development', desc:'Fundamentals, footwork, and match play for ages 6–14.', href:'#junior' },
+  { idx:'02', name:'Performance Squad', desc:'High-volume training for competitive and ranked players.', href:'#performance' },
+  { idx:'03', name:'Adult Clinics', desc:'Small-group sessions to sharpen technique and fitness.', href:'#adult' },
+  { idx:'04', name:'Private Coaching', desc:'One-to-one sessions tailored to your goals and schedule.', href:'#private' },
+];
+const programsListEl = document.getElementById('programs-list');
+programsData.forEach((p, i)=>{
+  const li = document.createElement('li');
+  const a = document.createElement('a');
+  a.href = p.href;
+  a.className = 'program-row-link';
+  a.innerHTML = `
+    <div class="program-row">
+      <span class="program-index">${p.idx}</span>
+      <div class="program-copy"><h3>${p.name}</h3><p>${p.desc}</p></div>
+      <span class="program-arrow-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </span>
+    </div>`;
+  li.appendChild(a);
+  programsListEl.appendChild(li);
+  const row = a.querySelector('.program-row');
+  const arrowWrap = a.querySelector('.program-arrow-wrap svg');
+  row.style.opacity = 0;
+  row.style.transform = 'translateY(26px)';
+  const rowSpring = makeSpring({ opacity:0, y:26 }, 190, 26, (v)=>{
+    row.style.opacity = v.opacity.value;
+    row.style.transform = `translateY(${v.y.value}px)`;
+  });
+  inView(a, ()=>setTimeout(()=>rowSpring.to({ opacity:1, y:0 }), i*90));
+  bindHover(a, { x:0, opacity:0.55 }, { x:8, opacity:1 }, 300, 20, (v)=>{
+    arrowWrap.style.transform = `translateX(${v.x.value}px)`;
+    arrowWrap.style.opacity = v.opacity.value;
+  });
+});
+
+/* ================= facilities ================= */
+document.querySelector('#facilities-icon img').src = IMG.a3;
+const facilitiesIconSpring = makeSpring({ opacity:0, scale:0.85 }, 240, 20, (v)=>{
+  const el = document.getElementById('facilities-icon');
+  el.style.opacity = v.opacity.value;
+  el.style.transform = `scale(${v.scale.value})`;
+});
+inView(document.getElementById('facilities-icon'), ()=>facilitiesIconSpring.to({ opacity:1, scale:1 }));
+const facilitiesTitleStack = stackLines(document.getElementById('facilities-title'), { stagger:120, duration:950 });
+inView(document.getElementById('facilities-title'), ()=>facilitiesTitleStack.play());
+const facilitiesBodyReveal = wrapWordReveal(document.getElementById('facilities-body'), { stagger:28, baseDelay:250, duration:700, easing:EASE_OUT_QUART, translateY:18 });
+inView(document.getElementById('facilities-body'), ()=>facilitiesBodyReveal.play());
+
+const courtData = [
+  { img: IMG.a1, name:'Redline Clay', desc:'A fast outdoor clay court tuned for long, physical rallies.', alt:'Player on the baseline of an outdoor clay court', tone:'clay' },
+  { img: IMG.a4, name:'Harbor Court', desc:'A sheltered hard court built for precision and night play.', alt:'Player following through on a blue hard court', tone:'blue' },
+];
+const courtCardsEl = document.getElementById('court-cards');
+courtData.forEach((c, i)=>{
+  const fig = document.createElement('figure');
+  fig.className = 'court-tile' + (i===1 ? ' staggered' : '');
+  fig.innerHTML = `
+    <img src="${c.img}" alt="${c.alt}" loading="lazy" />
+    <div class="court-caption tone-${c.tone}"><strong>${c.name}</strong><span>${c.desc}</span></div>`;
+  courtCardsEl.appendChild(fig);
+  const img = fig.querySelector('img');
+  fig.style.opacity = 0;
+  fig.style.transform = 'translateY(48px)';
+  const revealSpring = makeSpring({ opacity:0, y:48 }, 180, 26, (v)=>{
+    fig.style.opacity = v.opacity.value;
+    fig.style.transform = `translateY(${v.y.value}px)`;
+  });
+  inView(fig, ()=>setTimeout(()=>revealSpring.to({ opacity:1, y:0 }), i*140));
+  bindHover(fig, { scale:1 }, { scale:1.03 }, 300, 22, (v)=>{ img.style.transform = `scale(${v.scale.value})`; });
+});
+
+/* ================= stats ================= */
+const statsData = [
+  { value:'24', label:'Certified coaches' },
+  { value:'12', label:'Championship courts' },
+  { value:'9K+', label:'Members training' },
+  { value:'15', label:'Years on the baseline' },
+];
+const statsGridEl = document.getElementById('stats-grid');
+statsData.forEach((s, i)=>{
+  const dt = document.createElement('dt');
+  dt.className = 'sr-only';
+  dt.textContent = s.label;
+  const dd = document.createElement('dd');
+  dd.className = 'stat-cell';
+  dd.innerHTML = `<span class="value">${s.value}</span><span class="label" aria-hidden="true">${s.label}</span>`;
+  statsGridEl.appendChild(dt);
+  statsGridEl.appendChild(dd);
+  dd.style.opacity = 0;
+  dd.style.transform = 'translateY(30px)';
+  const sp = makeSpring({ opacity:0, y:30 }, 180, 24, (v)=>{
+    dd.style.opacity = v.opacity.value;
+    dd.style.transform = `translateY(${v.y.value}px)`;
+  });
+  inView(dd, ()=>setTimeout(()=>sp.to({ opacity:1, y:0 }), i*110));
+});
+
+/* ================= testimonials ================= */
+const testimonialsData = [
+  { quote:"I added a level to my serve in one season. The coaching is detailed and it actually sticks.", name:'Priya Anand', role:'Performance Squad' },
+  { quote:"Best courts in the city and a team that treats every member like a competitor.", name:'Lukas Brenner', role:'Adult Clinics' },
+  { quote:"My daughter went from shy beginner to club champion. Worth every minute.", name:'Dana Okafor', role:'Parent, Junior Development' },
+];
+const testimonialGridEl = document.getElementById('testimonial-grid');
+testimonialsData.forEach((t, i)=>{
+  const li = document.createElement('li');
+  li.innerHTML = `
+    <article class="testimonial-card">
+      <div>
+        <span class="testimonial-quote-mark">&ldquo;</span>
+        <blockquote>${t.quote}</blockquote>
+      </div>
+      <figcaption class="testimonial-figcaption"><strong>${t.name}</strong><span>${t.role}</span></figcaption>
+    </article>`;
+  testimonialGridEl.appendChild(li);
+  const card = li.querySelector('.testimonial-card');
+  card.style.opacity = 0;
+  card.style.transform = 'translateY(40px)';
+  const revealSpring = makeSpring({ opacity:0, y:40 }, 180, 26, (v)=>{
+    card.style.opacity = v.opacity.value;
+    card.style.transform = `translateY(${v.y.value}px)`;
+  });
+  inView(card, ()=>setTimeout(()=>revealSpring.to({ opacity:1, y:0 }), i*120));
+  bindHover(card, { y:0 }, { y:-8 }, 300, 22, (v)=>{
+    card.style.transform = `translateY(${v.y.value}px)`;
+  });
+});
+
+/* ================= section titles (stacked-lines) ================= */
+[
+  ['programs-title', {}],
+  ['stats-title', {}],
+  ['testimonials-title', {}],
+  ['facilities-title', null], // handled above
+].forEach(([id, opts])=>{
+  if (opts === null) return;
+  const el = document.getElementById(id);
+  const stack = stackLines(el, { stagger:120, duration:950 });
+  inView(el, ()=>stack.play());
+});
+const footerCtaStack = stackLines(document.getElementById('footer-cta-title'), { stagger:120, duration:950 });
+inView(document.getElementById('footer-cta-title'), ()=>footerCtaStack.play());
+
+const footerCtaBtnSpring = makeSpring({ opacity:0, y:20 }, 200, 24, (v)=>{
+  const el = document.getElementById('footer-cta-btn');
+  el.style.opacity = v.opacity.value;
+  el.style.transform = `translateY(${v.y.value}px)`;
+});
+inView(document.getElementById('footer-cta-btn'), ()=>setTimeout(()=>footerCtaBtnSpring.to({ opacity:1, y:0 }), 150));
+
+/* ================= generic hover nudges (footer links, pill arrows, arrow-btn scale, close-btn rotate) ================= */
+document.querySelectorAll('.hover-nudge').forEach(el=>{
+  bindHover(el, { x:0, opacity:0.65 }, { x:4, opacity:1 }, 320, 22, (v)=>{
+    el.style.transform = `translateX(${v.x.value}px)`;
+    el.style.opacity = v.opacity.value;
+  });
+});
+document.querySelectorAll('.pill-btn').forEach(btn=>{
+  const icon = btn.querySelector('.arrow-icon');
+  if (!icon) return;
+  bindHover(btn, { x:0 }, { x:5 }, 320, 20, (v)=>{ icon.style.transform = `translateX(${v.x.value}px)`; });
+});
+document.querySelectorAll('.arrow-btn').forEach(btn=>{
+  const svg = btn.querySelector('svg');
+  bindHover(btn, { scale:1 }, { scale:1.15 }, 320, 18, (v)=>{
+    const flip = btn.classList.contains('prev') ? 'scaleX(-1) ' : '';
+    svg.style.transform = `${flip}scale(${v.scale.value})`;
+  });
+});
+document.querySelectorAll('.modal-close, .menu-close').forEach(btn=>{
+  const svg = btn.querySelector('svg');
+  bindHover(btn, { rot:0 }, { rot:90 }, 300, 18, (v)=>{ svg.style.transform = `rotate(${v.rot.value}deg)`; });
+});
+document.querySelectorAll('.book-visit-text, .nav-left a').forEach(el=>{
+  bindHover(el, { y:0, opacity:0.9 }, { y:-2, opacity:1 }, 320, 22, (v)=>{
+    el.style.transform = `translateY(${v.y.value}px)`;
+    el.style.opacity = v.opacity.value;
+  });
+});
+</script>
+</body>
+</html>
