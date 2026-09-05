@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useScroll, useTransform } from "motion/react";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -172,6 +172,10 @@ export default function Home() {
   const MajorIcon = selectedMajor.icon;
   const createLead = useMutation({ mutationFn: (payload: { kind: "ppdb" | "contact"; name: string; phone: string; major?: string; question?: string; source: "website" }) => apiPost<Lead>("/leads", payload), onSuccess: (_lead, variables) => { if (variables.kind === "ppdb") setIsPpdbOpen(false); toast.success(variables.kind === "ppdb" ? "Terima kasih! Data SPMB tersimpan dan tim kami akan menghubungi Anda." : "Pertanyaan tersimpan. Tim sekolah akan segera menindaklanjuti."); }, onError: () => toast.error("Data belum tersimpan. Silakan coba kembali.") });
 
+  const heroRef = useRef<HTMLElement>(null);
+  const { scrollYProgress: heroScrollProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+  const heroParallaxY = useTransform(heroScrollProgress, [0, 1], ["0%", "18%"]);
+
   const scrollTo = (href: string) => {
     const target = document.querySelector<HTMLElement>(href);
     if (target && lenisRef.current) lenisRef.current.scrollTo(target, { offset: -76 });
@@ -224,11 +228,18 @@ export default function Home() {
       </header>
 
       <main>
-        <section id="beranda" className="relative isolate overflow-hidden bg-[#092c4c]" data-testid="hero-section">
-          <div className="absolute -right-32 -top-40 -z-10 h-[520px] w-[520px] rounded-full bg-emerald-500/15 blur-3xl" />
-          <div className="absolute -bottom-48 left-1/3 -z-10 h-[420px] w-[420px] rounded-full bg-amber-400/10 blur-3xl" />
-          <div className="mx-auto grid min-h-[690px] max-w-7xl items-center gap-12 px-5 py-16 lg:grid-cols-[1.02fr_.98fr] lg:px-8 lg:py-20">
-            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 190, damping: 26 }} className="relative z-10" data-testid="hero-copy">
+        <section id="beranda" ref={heroRef} className="relative isolate overflow-hidden bg-[#092c4c]" data-testid="hero-section">
+          <div className="absolute inset-0 -z-10 overflow-hidden">
+            <motion.div style={{ y: heroParallaxY }} className="absolute inset-x-0 -top-[14%] h-[128%] w-full">
+              <AnimatePresence mode="wait">
+                <motion.img key={heroImage ?? "hero-fallback"} src={heroImage ?? imageUrls.hero} alt="Siswa SMK belajar bersama" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }} className="h-full w-full object-cover" />
+              </AnimatePresence>
+            </motion.div>
+            <div className="absolute inset-0 bg-gradient-to-b from-[#092c4c]/80 via-[#092c4c]/45 to-[#092c4c]/85" />
+            {heroImages.length > 1 && <div className="absolute right-5 top-24 z-10 flex gap-1.5 sm:right-8" data-testid="hero-carousel-dots">{heroImages.map((url, index) => <span key={url} className={`h-1.5 rounded-full transition-all ${index === heroIndex ? "w-5 bg-amber-300" : "w-1.5 bg-white/40"}`} />)}</div>}
+          </div>
+          <div className="relative mx-auto flex min-h-[690px] max-w-7xl flex-col justify-center gap-10 px-5 py-16 lg:px-8 lg:py-20">
+            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 190, damping: 26 }} className="relative z-10 max-w-2xl" data-testid="hero-copy">
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3.5 py-2 text-xs font-bold uppercase tracking-[.18em] text-emerald-300"><Sparkles size={14} /> Sekolah inspirasi masa depan</div>
               <h1 className="max-w-3xl font-heading text-4xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-6xl" data-testid="hero-heading"><ClipReveal delay={200}>Mempersiapkan generasi <span className="text-amber-300">emas</span> yang kompeten &amp; siap kerja global.</ClipReveal></h1>
               <p className="mt-6 max-w-xl text-base leading-relaxed text-slate-300 sm:text-lg" data-testid="hero-description">Kurikulum berbasis industri, lingkungan belajar yang suportif, dan lima program keahlian untuk membekali setiap siswa menghadapi masa depan.</p>
@@ -238,13 +249,13 @@ export default function Home() {
               </div>
               <div className="mt-12 flex items-center gap-4 border-t border-white/15 pt-6"><div className="flex -space-x-2"><span className="avatar-dot bg-emerald-400">A</span><span className="avatar-dot bg-amber-400">R</span><span className="avatar-dot bg-sky-400">S</span></div><p className="text-xs leading-relaxed text-slate-300"><strong className="text-white">Dipercaya keluarga Bekasi</strong><br />untuk tumbuh, berkarya, dan berprestasi</p></div>
             </motion.div>
-            <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ type: "spring", stiffness: 170, damping: 26, delay: .15 }} className="relative" data-testid="hero-image-block">
-              <div className="absolute -left-5 top-12 z-10 hidden rounded-2xl border border-white/20 bg-white/95 p-4 shadow-2xl backdrop-blur-md transition-transform duration-300 hover:-translate-y-1 sm:block"><div className="mb-1 flex items-center gap-2 text-emerald-600"><Award size={17} /><span className="text-[10px] font-extrabold uppercase tracking-wider">Komitmen kami</span></div><p className="font-heading text-sm font-extrabold text-[#0a3358]">Belajar untuk berdampak</p></div>
-              <div className="relative h-[420px] overflow-hidden rounded-[2rem] border border-white/20 bg-slate-800 shadow-2xl lg:h-[500px]"><AnimatePresence mode="wait">{heroImage && <motion.img key={heroImage} src={heroImage} alt="Siswa SMK belajar bersama" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }} className="absolute inset-0 h-full w-full object-cover" />}</AnimatePresence><div className="absolute inset-0 bg-gradient-to-t from-[#092c4c]/70 via-transparent to-transparent" />{heroImages.length > 1 && <div className="absolute right-5 top-5 z-10 flex gap-1.5" data-testid="hero-carousel-dots">{heroImages.map((url, index) => <span key={url} className={`h-1.5 rounded-full transition-all ${index === heroIndex ? "w-5 bg-amber-300" : "w-1.5 bg-white/40"}`} />)}</div>}<div className="absolute bottom-6 left-6 right-6 flex items-end justify-between"><span className="max-w-[220px] font-heading text-lg font-bold leading-tight text-white">Masa depan cerah,<br /><span className="text-amber-300">hidup pun indah.</span></span><span className="rounded-xl bg-white/15 px-3 py-2 text-[10px] font-bold text-white backdrop-blur-md">BEKASI · JAWA BARAT</span></div></div>
-              <div className="absolute -bottom-6 -right-3 hidden items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl sm:flex"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600"><GraduationCap size={21} /></span><span><strong className="block font-heading text-xl text-[#0a3358]">5</strong><small className="text-[10px] font-bold text-slate-500">PROGRAM KEAHLIAN</small></span></div>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 170, damping: 26, delay: .2 }} className="relative z-10 flex flex-wrap items-stretch gap-4" data-testid="hero-image-block">
+              <div className="flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 px-5 py-4 shadow-2xl backdrop-blur-md transition-transform duration-300 hover:-translate-y-1"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-emerald-300"><Award size={19} /></span><div><span className="block text-[10px] font-extrabold uppercase tracking-wider text-emerald-300">Komitmen kami</span><p className="font-heading text-sm font-extrabold text-white">Belajar untuk berdampak</p></div></div>
+              <div className="flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 px-5 py-4 shadow-2xl backdrop-blur-md transition-transform duration-300 hover:-translate-y-1"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-amber-300"><GraduationCap size={21} /></span><div><strong className="block font-heading text-xl text-white">5</strong><small className="text-[10px] font-bold text-slate-200">PROGRAM KEAHLIAN</small></div></div>
+              <div className="flex flex-col gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-4 shadow-2xl backdrop-blur-md"><span className="max-w-[220px] font-heading text-sm font-bold leading-tight text-white">Masa depan cerah,<br /><span className="text-amber-300">hidup pun indah.</span></span><span className="w-fit rounded-lg bg-white/15 px-2.5 py-1 text-[10px] font-bold text-white">BEKASI · JAWA BARAT</span></div>
             </motion.div>
           </div>
-          <div className="mx-auto grid max-w-7xl grid-cols-3 border-t border-white/10 px-5 lg:px-8" data-testid="hero-metrics">
+          <div className="relative mx-auto grid max-w-7xl grid-cols-3 border-t border-white/10 px-5 lg:px-8" data-testid="hero-metrics">
             {[['94%', 'Serapan kerja & wirausaha'], ['5', 'Program keahlian unggulan'], ['7+', 'Mitra industri']].map(([value, label], index) => <Reveal key={label} delay={index * 110} y={20} className="border-r border-white/10 px-4 py-6 first:pl-0 last:border-0 sm:py-8"><strong className="block font-heading text-2xl font-extrabold text-amber-300 sm:text-3xl">{value}</strong><span className="mt-1 block max-w-[130px] text-[10px] font-medium leading-relaxed text-slate-300 sm:text-xs">{label}</span></Reveal>)}
           </div>
         </section>
