@@ -265,10 +265,20 @@ export default function Home() {
               <div className="flex flex-col gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-4 shadow-2xl backdrop-blur-md"><span className="max-w-[220px] font-heading text-sm font-bold leading-tight text-white">Masa depan cerah,<br /><span className="text-amber-300">hidup pun indah.</span></span><span className="w-fit rounded-lg bg-white/15 px-2.5 py-1 text-[10px] font-bold text-white">BEKASI · JAWA BARAT</span></div>
             </motion.div>
           </div>
-          <div className="relative mx-auto grid max-w-7xl grid-cols-3 border-t border-white/10 px-5 lg:px-8" data-testid="hero-metrics">
-            {[{ value: 94, suffix: "%", label: "Serapan kerja & wirausaha" }, { value: 5, suffix: "", label: "Program keahlian unggulan" }, { value: 7, suffix: "+", label: "Mitra industri" }].map((metric, index) => <Reveal key={metric.label} delay={index * 110} y={20} className="border-r border-white/10 px-4 py-6 first:pl-0 last:border-0 sm:py-8"><strong className="block font-heading text-2xl font-extrabold text-amber-300 sm:text-3xl"><CountUp value={metric.value} suffix={metric.suffix} /></strong><span className="mt-1 block max-w-[130px] text-[10px] font-medium leading-relaxed text-slate-300 sm:text-xs">{metric.label}</span></Reveal>)}
-          </div>
         </section>
+
+        <div className="relative z-10 mx-auto -mt-10 max-w-5xl px-5 sm:-mt-14 lg:px-8">
+          <Reveal y={24} className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#123a70] via-[#0a2c56] to-[#061e34] px-6 py-8 shadow-2xl shadow-blue-950/40 sm:px-10 sm:py-9" data-testid="hero-metrics">
+            <div className="pointer-events-none absolute -left-10 -top-16 h-52 w-52 rounded-full bg-white/10 blur-2xl" />
+            <div className="pointer-events-none absolute -bottom-16 -right-8 h-56 w-56 rounded-full bg-white/10 blur-2xl" />
+            <div className="relative grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4">
+              <div data-testid="hero-metric-tahun-ajaran"><strong className="block font-heading text-xl font-extrabold text-white sm:text-3xl">2026/2027</strong><span className="mt-1 block text-xs font-bold text-white/90 sm:text-sm">Tahun Ajaran</span></div>
+              <div data-testid="hero-metric-peserta-didik"><strong className="block font-heading text-xl font-extrabold text-white sm:text-3xl"><CountUp value={145} /></strong><span className="mt-1 block text-xs font-bold text-white/90 sm:text-sm">Peserta Didik</span></div>
+              <div data-testid="hero-metric-guru-tendik"><strong className="block font-heading text-xl font-extrabold text-white sm:text-3xl"><CountUp value={35} /></strong><span className="mt-1 block text-xs font-bold text-white/90 sm:text-sm">Guru Tendik</span></div>
+              <div data-testid="hero-metric-program-keahlian"><strong className="block font-heading text-xl font-extrabold text-white sm:text-3xl">10</strong><span className="mt-1 block text-xs font-bold text-white/90 sm:text-sm">Program Keahlian</span></div>
+            </div>
+          </Reveal>
+        </div>
 
         <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20" data-testid="value-props-section">
           <div className="grid gap-6 sm:grid-cols-3">
