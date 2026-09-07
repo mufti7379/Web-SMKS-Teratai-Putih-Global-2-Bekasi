@@ -169,7 +169,9 @@ export default function Home() {
     const interval = setInterval(() => setHeroIndex((current) => (current + 1) % heroImages.length), 5000);
     return () => clearInterval(interval);
   }, [heroImages.length]);
-  const heroImage = heroImages[heroIndex % heroImages.length] ?? null;
+  // Don't fall back to the stock photo until the CMS fetch has actually settled — otherwise
+  // every visitor briefly sees an unrelated stock photo before the real school photo swaps in.
+  const heroImage = heroImages[heroIndex % heroImages.length] ?? (heroContent.isFetched ? imageUrls.hero : null);
   const displayFacilities = facilityContent.data?.length ? facilityContent.data.map((item) => ({ image: item.image_url ?? imageUrls.hero, title: item.title, desc: item.description })) : fallbackFacilities;
   const profileMainItem = profileContent.data?.find((item) => item.code === "utama") ?? profileContent.data?.[0];
   const profileSecondaryItem = profileContent.data?.find((item) => item.code === "sekunder") ?? profileContent.data?.[1];
@@ -240,7 +242,7 @@ export default function Home() {
           <div className="absolute inset-0 -z-10 overflow-hidden">
             <motion.div style={{ y: heroParallaxY }} className="absolute inset-x-0 -top-[14%] h-[128%] w-full">
               <AnimatePresence mode="wait">
-                <motion.img key={heroImage ?? "hero-fallback"} src={heroImage ?? imageUrls.hero} alt="Siswa SMK belajar bersama" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }} className="h-full w-full object-cover" />
+                {heroImage && <motion.img key={heroImage} src={heroImage} alt="Siswa SMK belajar bersama" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }} className="h-full w-full object-cover" />}
               </AnimatePresence>
             </motion.div>
             <div className="absolute inset-0 bg-gradient-to-b from-[#092c4c]/80 via-[#092c4c]/45 to-[#092c4c]/85" />
