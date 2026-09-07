@@ -145,6 +145,7 @@ export default function Home() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [showSpmbBanner, isPpdbOpen, isVideoOpen, galleryVideo, facilityLightbox]);
   const heroContent = useQuery({ queryKey: ["public-content", "hero"], queryFn: () => apiGet<CMSItem[]>("/content/hero"), retry: false });
+  const profileContent = useQuery({ queryKey: ["public-content", "profile"], queryFn: () => apiGet<CMSItem[]>("/content/profile"), retry: false });
   const facilityContent = useQuery({ queryKey: ["public-content", "facility"], queryFn: () => apiGet<CMSItem[]>("/content/facility"), retry: false });
   const majorContent = useQuery({ queryKey: ["public-content", "major"], queryFn: () => apiGet<CMSItem[]>("/content/major"), retry: false });
   const galleryContent = useQuery({ queryKey: ["public-content", "gallery"], queryFn: () => apiGet<CMSItem[]>("/content/gallery"), retry: false });
@@ -170,6 +171,12 @@ export default function Home() {
   }, [heroImages.length]);
   const heroImage = heroImages[heroIndex % heroImages.length] ?? null;
   const displayFacilities = facilityContent.data?.length ? facilityContent.data.map((item) => ({ image: item.image_url ?? imageUrls.hero, title: item.title, desc: item.description })) : fallbackFacilities;
+  const profileMainItem = profileContent.data?.find((item) => item.code === "utama") ?? profileContent.data?.[0];
+  const profileSecondaryItem = profileContent.data?.find((item) => item.code === "sekunder") ?? profileContent.data?.[1];
+  const profileMainImage = profileMainItem?.image_url ?? imageUrls.office;
+  const profileMainAlt = profileMainItem?.title ?? "Aktivitas siswa di lingkungan sekolah";
+  const profileSecondaryImage = profileSecondaryItem?.image_url ?? imageUrls.digital;
+  const profileSecondaryAlt = profileSecondaryItem?.title ?? "Siswa berkegiatan di ruang praktik bisnis digital";
   const MajorIcon = selectedMajor.icon;
   const createLead = useMutation({ mutationFn: (payload: { kind: "ppdb" | "contact"; name: string; phone: string; major?: string; question?: string; source: "website" }) => apiPost<Lead>("/leads", payload), onSuccess: (_lead, variables) => { if (variables.kind === "ppdb") setIsPpdbOpen(false); toast.success(variables.kind === "ppdb" ? "Terima kasih! Data SPMB tersimpan dan tim kami akan menghubungi Anda." : "Pertanyaan tersimpan. Tim sekolah akan segera menindaklanjuti."); }, onError: () => toast.error("Data belum tersimpan. Silakan coba kembali.") });
 
@@ -281,8 +288,8 @@ export default function Home() {
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <Reveal className="relative mx-auto w-full max-w-md" data-testid="profile-media">
               <span className="absolute -left-4 -top-4 z-10 flex h-16 w-16 items-center justify-center rounded-full bg-[#0f4c81] text-white shadow-lg shadow-blue-900/25"><GraduationCap size={26} /></span>
-              <div className="aspect-[4/5] overflow-hidden rounded-[2rem]"><img src={imageUrls.office} alt="Aktivitas siswa di lingkungan sekolah" className="h-full w-full object-cover" /></div>
-              <div className="absolute -bottom-8 -right-6 aspect-square w-[48%] overflow-hidden rounded-2xl border-4 border-white shadow-xl"><img src={imageUrls.digital} alt="Siswa berkegiatan di ruang praktik bisnis digital" className="h-full w-full object-cover" /></div>
+              <div className="aspect-[4/5] overflow-hidden rounded-[2rem]"><img src={profileMainImage} alt={profileMainAlt} className="h-full w-full object-cover" /></div>
+              <div className="absolute -bottom-8 -right-6 aspect-square w-[48%] overflow-hidden rounded-2xl border-4 border-white shadow-xl"><img src={profileSecondaryImage} alt={profileSecondaryAlt} className="h-full w-full object-cover" /></div>
             </Reveal>
             <Reveal delay={120} data-testid="profile-intro">
               <p className="section-kicker">01 · Tentang kami</p>
