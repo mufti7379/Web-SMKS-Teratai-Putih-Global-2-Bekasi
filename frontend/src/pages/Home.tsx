@@ -39,6 +39,7 @@ import { CountUp } from "@/components/motion/CountUp";
 import { useLenisScroll } from "@/hooks/useLenisScroll";
 import { apiGet, apiPost } from "@/lib/api";
 import { optimizeImageUrl, buildDriveSrcSet } from "@/lib/images";
+import { takePreloadedHero } from "@/lib/preload";
 import type { CMSItem, Lead } from "@/lib/cms";
 import { toast } from "sonner";
 
@@ -145,7 +146,7 @@ export default function Home() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [showSpmbBanner, isPpdbOpen, isVideoOpen, galleryVideo, facilityLightbox]);
-  const heroContent = useQuery({ queryKey: ["public-content", "hero"], queryFn: () => apiGet<CMSItem[]>("/content/hero"), retry: false });
+  const heroContent = useQuery({ queryKey: ["public-content", "hero"], queryFn: async () => (await takePreloadedHero()) ?? apiGet<CMSItem[]>("/content/hero"), retry: false });
   const profileContent = useQuery({ queryKey: ["public-content", "profile"], queryFn: () => apiGet<CMSItem[]>("/content/profile"), retry: false });
   const facilityContent = useQuery({ queryKey: ["public-content", "facility"], queryFn: () => apiGet<CMSItem[]>("/content/facility"), retry: false });
   const majorContent = useQuery({ queryKey: ["public-content", "major"], queryFn: () => apiGet<CMSItem[]>("/content/major"), retry: false });
