@@ -377,7 +377,7 @@ export default function Home() {
               </ul>
             </div>
           </div>
-          <div className="mt-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-center"><span className="text-[11px]">© 2026 etosdev.com</span></div>
+          <div className="mt-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-center"><span className="text-[11px]">© 2026 <a href="https://etosdev.com" target="_blank" rel="noreferrer" className="hover:text-white hover:underline">etosdev.com</a></span></div>
         </div>
       </footer>
       <div className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 border-t border-slate-200 bg-white p-2 shadow-[0_-8px_30px_rgba(15,23,42,.12)] sm:hidden" data-testid="mobile-bottom-actions"><a href={whatsappUrl} className="flex h-11 items-center justify-center gap-2 text-xs font-extrabold text-emerald-700" data-testid="mobile-bottom-whatsapp"><MessageCircle size={17} /> Tanya Admin</a><button type="button" onClick={() => setIsPpdbOpen(true)} className="flex h-11 items-center justify-center gap-2 rounded-xl bg-amber-400 text-xs font-extrabold text-[#092c4c]" data-testid="mobile-bottom-ppdb"><GraduationCap size={17} /> Daftar SPMB</button></div>
