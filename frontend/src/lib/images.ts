@@ -14,3 +14,14 @@ export function optimizeImageUrl(url: string | null | undefined, width: number):
   const base = trimmed.replace(/=w\d+[^/]*$/, "");
   return `${base}=w${width}`;
 }
+
+/**
+ * Builds a "srcset" string requesting several widths of the same drive image so the browser
+ * can pick the one that matches the viewport instead of every device downloading one
+ * fixed-size (often way-too-large-for-mobile) file. No-op for non-drive URLs — returns
+ * undefined so callers can skip the srcSet attribute entirely.
+ */
+export function buildDriveSrcSet(url: string | null | undefined, widths: number[]): string | undefined {
+  if (!url || !url.includes(DRIVE_HOST)) return undefined;
+  return widths.map((width) => `${optimizeImageUrl(url, width)} ${width}w`).join(", ");
+}
