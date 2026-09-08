@@ -273,8 +273,8 @@ export default function Home() {
             <div className="pointer-events-none absolute -bottom-16 -right-8 h-56 w-56 rounded-full bg-white/10 blur-2xl" />
             <div className="relative grid grid-cols-3 gap-x-4 gap-y-6">
               <div data-testid="hero-metric-tahun-ajaran"><strong className="block font-heading text-xl font-extrabold text-white sm:text-3xl">2026/2027</strong><span className="mt-1 block text-xs font-bold text-white/90 sm:text-sm">Tahun Ajaran</span></div>
-              <div data-testid="hero-metric-guru-tendik"><strong className="block font-heading text-xl font-extrabold text-white sm:text-3xl"><CountUp value={35} suffix="+" /></strong><span className="mt-1 block text-xs font-bold text-white/90 sm:text-sm">Guru Tendik</span></div>
-              <div data-testid="hero-metric-mitra-industri"><strong className="block font-heading text-xl font-extrabold text-white sm:text-3xl"><CountUp value={8} suffix="+" /></strong><span className="mt-1 block text-xs font-bold text-white/90 sm:text-sm">Mitra Industri</span></div>
+              <div data-testid="hero-metric-guru-tendik"><strong className="block font-heading text-xl font-extrabold text-white sm:text-3xl"><CountUp value={35} suffix="+" /></strong><span className="mt-1 block text-[10px] font-bold text-white/90 sm:text-sm">Guru Tendik</span></div>
+              <div data-testid="hero-metric-mitra-industri"><strong className="block font-heading text-xl font-extrabold text-white sm:text-3xl"><CountUp value={8} suffix="+" /></strong><span className="mt-1 block text-[10px] font-bold text-white/90 sm:text-sm">Mitra Industri</span></div>
             </div>
           </Reveal>
         </div>
