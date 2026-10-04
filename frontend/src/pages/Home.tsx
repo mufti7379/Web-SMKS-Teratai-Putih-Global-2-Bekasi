@@ -120,6 +120,13 @@ function getDriveFileId(url: string) {
 export default function Home() {
   const lenisRef = useLenisScroll();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [headerScrolled, setHeaderScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setHeaderScrolled(window.scrollY > 10);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   const [selectedMajorCode, setSelectedMajorCode] = useState("RPL");
   const [isPpdbOpen, setIsPpdbOpen] = useState(false);
   const [isVideoOpen, setIsVideoOpen] = useState(false);
@@ -212,7 +219,7 @@ export default function Home() {
         <button type="button" onClick={() => setIsPpdbOpen(true)} className="ml-2 underline decoration-amber-300 underline-offset-4 transition-colors hover:text-amber-200" data-testid="announcement-ppdb-link">Daftar sekarang</button>
       </div>
 
-      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 shadow-sm backdrop-blur-xl" data-testid="site-header">
+      <header className={`sticky z-40 bg-white/95 backdrop-blur-xl transition-all duration-300 ${headerScrolled ? "top-[10px] mx-5 rounded-2xl border border-slate-200/80 shadow-lg" : "top-0 mx-0 rounded-none border-b border-slate-200/80 shadow-sm"}`} data-testid="site-header">
         <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-5 lg:px-8">
           <button type="button" className="flex items-center gap-3 text-left" onClick={() => scrollTo("#beranda")} data-testid="school-brand-button">
             <img src="/logo-tp2.png" alt="Logo SMK Teratai Putih Global 2" className="h-11 w-11 rounded-2xl object-contain shadow-lg shadow-blue-900/15" />
@@ -255,7 +262,6 @@ export default function Home() {
                 <Button onClick={() => setIsPpdbOpen(true)} className="group h-12 rounded-full bg-amber-500 px-6 text-sm font-extrabold text-[#092c4c] shadow-xl shadow-amber-500/20 transition-all hover:-translate-y-1 hover:bg-amber-400" data-testid="hero-ppdb-button">Jelajahi SPMB 2027 <ArrowUpRight size={17} className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" /></Button>
                 <button type="button" onClick={() => setIsVideoOpen(true)} className="group inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/20 px-6 text-sm font-bold text-white transition-all hover:-translate-y-1 hover:border-white/50 hover:bg-white/10" data-testid="hero-profile-video-button"><span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:scale-110"><Play size={12} fill="currentColor" /></span> Lihat profil sekolah</button>
               </div>
-              <div className="mt-12 flex items-center gap-4 border-t border-white/15 pt-6"><div className="flex -space-x-2"><span className="avatar-dot bg-emerald-400">A</span><span className="avatar-dot bg-amber-400">R</span><span className="avatar-dot bg-sky-400">S</span></div><p className="text-xs leading-relaxed text-slate-300"><strong className="text-white">Dipercaya keluarga Bekasi</strong><br />untuk tumbuh, berkarya, dan berprestasi</p></div>
             </motion.div>
           </div>
           <svg className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-10 w-full sm:h-14" viewBox="0 0 1440 120" preserveAspectRatio="none" fill="none" aria-hidden="true">
