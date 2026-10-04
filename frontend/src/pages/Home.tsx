@@ -35,7 +35,6 @@ import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { AcademicCalendar } from "@/components/AcademicCalendar";
 import { Reveal, ClipReveal } from "@/components/motion/Reveal";
-import { CountUp } from "@/components/motion/CountUp";
 import { useLenisScroll } from "@/hooks/useLenisScroll";
 import { apiGet, apiPost } from "@/lib/api";
 import { optimizeImageUrl, buildDriveSrcSet } from "@/lib/images";
@@ -265,26 +264,12 @@ export default function Home() {
               <div className="flex flex-col gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-4 shadow-2xl backdrop-blur-md"><span className="max-w-[220px] font-heading text-sm font-bold leading-tight text-white">Masa depan cerah,<br /><span className="text-amber-300">hidup pun indah.</span></span><span className="w-fit rounded-lg bg-white/15 px-2.5 py-1 text-[10px] font-bold text-white">BEKASI · JAWA BARAT</span></div>
             </motion.div>
           </div>
+          <svg className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-10 w-full sm:h-14" viewBox="0 0 1440 120" preserveAspectRatio="none" fill="none" aria-hidden="true">
+            <path d="M0,64 C240,112 480,16 720,64 C960,112 1200,16 1440,64 L1440,120 L0,120 Z" fill="#f8fafc" />
+          </svg>
         </section>
 
-        <div className="relative z-10 mx-auto -mt-10 max-w-5xl px-5 sm:-mt-14 lg:px-8">
-          <Reveal y={24} className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#123a70] via-[#0a2c56] to-[#061e34] px-4 py-8 shadow-2xl shadow-blue-950/40 sm:px-10 sm:py-9" data-testid="hero-metrics">
-            <div className="pointer-events-none absolute -left-10 -top-16 h-52 w-52 rounded-full bg-white/10 blur-2xl" />
-            <div className="pointer-events-none absolute -bottom-16 -right-8 h-56 w-56 rounded-full bg-white/10 blur-2xl" />
-            <div className="relative grid grid-cols-3 gap-x-2 gap-y-6 sm:gap-x-4">
-              <div data-testid="hero-metric-tahun-ajaran"><strong className="block font-heading text-base font-extrabold text-white sm:text-3xl">2026/2027</strong><span className="mt-1 block text-xs font-bold text-white/90 sm:text-sm">Tahun Ajaran</span></div>
-              <div data-testid="hero-metric-guru-tendik"><strong className="block font-heading text-base font-extrabold text-white sm:text-3xl"><CountUp value={35} suffix="+" /></strong><span className="mt-1 block text-[10px] font-bold text-white/90 sm:text-sm">Guru Tendik</span></div>
-              <div data-testid="hero-metric-mitra-industri"><strong className="block font-heading text-base font-extrabold text-white sm:text-3xl"><CountUp value={8} suffix="+" /></strong><span className="mt-1 block text-[10px] font-bold text-white/90 sm:text-sm">Mitra Industri</span></div>
-            </div>
-          </Reveal>
-        </div>
-
         <section className="relative" data-testid="value-props-section">
-          <div className="relative h-20 overflow-hidden bg-gradient-to-br from-[#052e22] via-[#0a4d38] to-[#0f7a56] sm:h-28">
-            <svg className="absolute bottom-0 left-0 h-10 w-full sm:h-14" viewBox="0 0 1440 120" preserveAspectRatio="none" fill="none" aria-hidden="true">
-              <path d="M0,64 C240,112 480,16 720,64 C960,112 1200,16 1440,64 L1440,120 L0,120 Z" fill="#f8fafc" />
-            </svg>
-          </div>
           <div className="relative z-10 mx-auto -mt-10 max-w-7xl px-5 sm:-mt-14 lg:px-8">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {[
