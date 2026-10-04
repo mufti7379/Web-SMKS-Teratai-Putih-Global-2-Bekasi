@@ -207,7 +207,7 @@ export default function Home() {
     <div className="min-h-screen bg-[#f8fafc] pb-16 text-slate-900 sm:pb-0" data-testid="school-website-shell">
       <Toaster position="top-right" richColors />
 
-      <header className={`sticky z-40 bg-white/95 backdrop-blur-xl transition-all duration-300 ${headerScrolled ? "top-[10px] mx-5 rounded-2xl border border-slate-200/80 shadow-lg" : "top-0 mx-0 rounded-none border-b border-slate-200/80 shadow-sm"}`} data-testid="site-header">
+      <header className={`sticky z-40 backdrop-blur-xl transition-all duration-300 ${headerScrolled ? "top-[10px] mx-5 rounded-2xl border border-white/40 bg-slate-200/60 shadow-lg" : "top-0 mx-0 rounded-none border-b border-slate-200/80 bg-white/95 shadow-sm"}`} data-testid="site-header">
         <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-5 lg:px-8">
           <button type="button" className="flex items-center gap-3 text-left" onClick={() => scrollTo("#beranda")} data-testid="school-brand-button">
             <img src="/logo-tp2.png" alt="Logo SMK Teratai Putih Global 2" className="h-11 w-11 rounded-2xl object-contain shadow-lg shadow-blue-900/15" />
