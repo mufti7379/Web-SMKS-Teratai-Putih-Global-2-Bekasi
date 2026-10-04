@@ -5,7 +5,6 @@ import { AnimatePresence, motion, useScroll, useTransform } from "motion/react";
 import {
   ArrowRight,
   ArrowUpRight,
-  Award,
   BriefcaseBusiness,
   Camera,
   Building2,
@@ -174,9 +173,9 @@ export default function Home() {
   const displayFacilities = facilityContent.data?.length ? facilityContent.data.map((item) => ({ image: optimizeImageUrl(item.image_url, 700) ?? imageUrls.hero, title: item.title, desc: item.description })) : fallbackFacilities;
   const profileMainItem = profileContent.data?.find((item) => item.code === "utama") ?? profileContent.data?.[0];
   const profileSecondaryItem = profileContent.data?.find((item) => item.code === "sekunder") ?? profileContent.data?.[1];
-  const profileMainImage = optimizeImageUrl(profileMainItem?.image_url, 700) ?? imageUrls.office;
+  const profileMainImage = optimizeImageUrl(profileMainItem?.image_url, 700);
   const profileMainAlt = profileMainItem?.title ?? "Aktivitas siswa di lingkungan sekolah";
-  const profileSecondaryImage = optimizeImageUrl(profileSecondaryItem?.image_url, 700) ?? imageUrls.digital;
+  const profileSecondaryImage = optimizeImageUrl(profileSecondaryItem?.image_url, 700);
   const profileSecondaryAlt = profileSecondaryItem?.title ?? "Siswa berkegiatan di ruang praktik bisnis digital";
   const MajorIcon = selectedMajor.icon;
   const createLead = useMutation({ mutationFn: (payload: { kind: "ppdb" | "contact"; name: string; phone: string; major?: string; question?: string; source: "website" }) => apiPost<Lead>("/leads", payload), onSuccess: (_lead, variables) => { if (variables.kind === "ppdb") setIsPpdbOpen(false); toast.success(variables.kind === "ppdb" ? "Terima kasih! Data SPMB tersimpan dan tim kami akan menghubungi Anda." : "Pertanyaan tersimpan. Tim sekolah akan segera menindaklanjuti."); }, onError: () => toast.error("Data belum tersimpan. Silakan coba kembali.") });
@@ -258,11 +257,6 @@ export default function Home() {
               </div>
               <div className="mt-12 flex items-center gap-4 border-t border-white/15 pt-6"><div className="flex -space-x-2"><span className="avatar-dot bg-emerald-400">A</span><span className="avatar-dot bg-amber-400">R</span><span className="avatar-dot bg-sky-400">S</span></div><p className="text-xs leading-relaxed text-slate-300"><strong className="text-white">Dipercaya keluarga Bekasi</strong><br />untuk tumbuh, berkarya, dan berprestasi</p></div>
             </motion.div>
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 170, damping: 26, delay: .2 }} className="relative z-10 flex flex-wrap items-stretch gap-4" data-testid="hero-image-block">
-              <div className="flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 px-5 py-4 shadow-2xl backdrop-blur-md transition-transform duration-300 hover:-translate-y-1"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-emerald-300"><Award size={19} /></span><div><span className="block text-[10px] font-extrabold uppercase tracking-wider text-emerald-300">Komitmen kami</span><p className="font-heading text-sm font-extrabold text-white">Belajar untuk berdampak</p></div></div>
-              <div className="flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 px-5 py-4 shadow-2xl backdrop-blur-md transition-transform duration-300 hover:-translate-y-1"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-amber-300"><GraduationCap size={21} /></span><div><strong className="block font-heading text-xl text-white">5</strong><small className="text-[10px] font-bold text-slate-200">PROGRAM KEAHLIAN</small></div></div>
-              <div className="flex flex-col gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-4 shadow-2xl backdrop-blur-md"><span className="max-w-[220px] font-heading text-sm font-bold leading-tight text-white">Masa depan cerah,<br /><span className="text-amber-300">hidup pun indah.</span></span><span className="w-fit rounded-lg bg-white/15 px-2.5 py-1 text-[10px] font-bold text-white">BEKASI · JAWA BARAT</span></div>
-            </motion.div>
           </div>
           <svg className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-10 w-full sm:h-14" viewBox="0 0 1440 120" preserveAspectRatio="none" fill="none" aria-hidden="true">
             <path d="M0,64 C240,112 480,16 720,64 C960,112 1200,16 1440,64 L1440,120 L0,120 Z" fill="#f8fafc" />
@@ -293,15 +287,15 @@ export default function Home() {
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <Reveal className="relative mx-auto w-full max-w-md" data-testid="profile-media">
               <span className="absolute -left-4 -top-4 z-10 flex h-16 w-16 items-center justify-center rounded-full bg-[#0f4c81] text-white shadow-lg shadow-blue-900/25"><GraduationCap size={26} /></span>
-              <div className="aspect-[4/5] overflow-hidden rounded-[2rem]"><img src={profileMainImage} alt={profileMainAlt} className="h-full w-full object-cover" /></div>
-              <div className="absolute -bottom-8 -right-6 aspect-square w-[48%] overflow-hidden rounded-2xl border-4 border-white shadow-xl"><img src={profileSecondaryImage} alt={profileSecondaryAlt} className="h-full w-full object-cover" /></div>
+              <div className="aspect-[4/5] overflow-hidden rounded-[2rem] bg-slate-100">{profileMainImage && <img src={profileMainImage} alt={profileMainAlt} className="h-full w-full object-cover" />}</div>
+              {profileSecondaryImage && <div className="absolute -bottom-8 -right-6 aspect-square w-[48%] overflow-hidden rounded-2xl border-4 border-white shadow-xl bg-slate-100"><img src={profileSecondaryImage} alt={profileSecondaryAlt} className="h-full w-full object-cover" /></div>}
             </Reveal>
             <Reveal delay={120} data-testid="profile-intro">
               <p className="section-kicker">01 · Tentang kami</p>
               <h2 className="section-heading mt-3"><ClipReveal>Sekolah yang menyalakan <span className="text-emerald-600">potensi.</span></ClipReveal></h2>
               <p className="mt-5 text-base leading-relaxed text-slate-600">SMK Teratai Putih Global 2 Bekasi hadir sebagai ruang tumbuh bagi generasi muda yang unggul, terpercaya, dan profesional. Kami mempertemukan karakter baik dengan kompetensi yang relevan dengan kebutuhan industri.</p>
               <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-                {["Kurikulum berbasis industri", "Sertifikasi kompetensi", "Bimbingan karier & SPMB", "Pembinaan karakter islami"].map((item) => (
+                {["Kurikulum berbasis industri", "Sertifikasi kompetensi", "Bimbingan karier", "Pembinaan karakter islami"].map((item) => (
                   <li key={item} className="flex items-center gap-2 text-sm font-semibold text-slate-700"><Check size={16} className="shrink-0 text-emerald-600" /> {item}</li>
                 ))}
               </ul>
