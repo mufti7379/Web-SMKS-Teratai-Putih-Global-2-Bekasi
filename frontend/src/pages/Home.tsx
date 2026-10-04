@@ -279,20 +279,29 @@ export default function Home() {
           </Reveal>
         </div>
 
-        <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20" data-testid="value-props-section">
-          <div className="grid gap-6 sm:grid-cols-3">
-            {[
-              { icon: BriefcaseBusiness, title: "Kurikulum Industri", desc: "Materi belajar dirancang bersama mitra industri agar relevan dengan kebutuhan kerja nyata." },
-              { icon: GraduationCap, title: "5 Program Keahlian", desc: "RPL, DKV, Bisnis Digital, Manajemen Perkantoran, dan Akuntansi — pilih sesuai minatmu." },
-              { icon: TrendingUp, title: "Pendampingan Karier", desc: "Bimbingan karier, sertifikasi kompetensi, dan penyaluran kerja bagi setiap lulusan." },
-            ].map((item, index) => (
-              <Reveal key={item.title} delay={index * 100} className="group rounded-2xl border border-slate-200 bg-white p-7 transition-all duration-300 hover:-translate-y-1 hover:border-[#0f4c81]/30 hover:shadow-lg" data-testid={`value-prop-${index + 1}`}>
-                <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#eaf3f4] text-[#0f4c81]"><item.icon size={22} /></span>
-                <h3 className="mt-5 font-heading text-lg font-extrabold text-[#0a3358]">{item.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-500">{item.desc}</p>
-              </Reveal>
-            ))}
+        <section className="relative" data-testid="value-props-section">
+          <div className="relative h-20 overflow-hidden bg-gradient-to-br from-[#052e22] via-[#0a4d38] to-[#0f7a56] sm:h-28">
+            <svg className="absolute bottom-0 left-0 h-10 w-full sm:h-14" viewBox="0 0 1440 120" preserveAspectRatio="none" fill="none" aria-hidden="true">
+              <path d="M0,64 C240,112 480,16 720,64 C960,112 1200,16 1440,64 L1440,120 L0,120 Z" fill="#f8fafc" />
+            </svg>
           </div>
+          <div className="relative z-10 mx-auto -mt-10 max-w-7xl px-5 sm:-mt-14 lg:px-8">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { value: "5", label: "Program Keahlian", desc: "Pilihan sesuai potensimu", tone: "emerald" },
+                { value: "Proyek", label: "Berbasis Industri", desc: "Belajar dari praktik nyata", tone: "navy" },
+                { value: "3", label: "Jalur Masa Depan", desc: "Kerja, kuliah, dan usaha", tone: "emerald" },
+                { value: "Aktif", label: "Pembinaan Karakter", desc: "Tumbuh dengan nilai positif", tone: "navy" },
+              ].map((item, index) => (
+                <Reveal key={item.label} delay={index * 100} className="rounded-2xl bg-white p-6 text-center shadow-lg shadow-slate-900/5 ring-1 ring-slate-200/70" data-testid={`value-prop-${index + 1}`}>
+                  <strong className={`block font-heading text-3xl font-extrabold ${item.tone === "emerald" ? "text-emerald-700" : "text-[#0a3358]"}`}>{item.value}</strong>
+                  <span className="mt-2 block text-sm font-extrabold text-[#0a3358]">{item.label}</span>
+                  <span className="mt-1 block text-xs text-slate-500">{item.desc}</span>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+          <div className="h-16 sm:h-20" />
         </section>
 
         <section id="profil" className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28" data-testid="profile-section">
