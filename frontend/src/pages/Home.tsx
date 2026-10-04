@@ -29,7 +29,6 @@ import {
   X,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { AcademicCalendar } from "@/components/AcademicCalendar";
 import { Reveal, ClipReveal } from "@/components/motion/Reveal";
@@ -202,7 +201,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] pb-16 text-slate-900 sm:pb-0" data-testid="school-website-shell">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900" data-testid="school-website-shell">
       <Toaster position="top-right" richColors />
 
       <header className={`sticky z-40 backdrop-blur-xl transition-all duration-300 ${headerScrolled ? "top-[10px] mx-5 rounded-2xl border border-white/40 bg-slate-200/60 shadow-lg" : "top-0 mx-0 rounded-none border-b border-slate-200/80 bg-white/95 shadow-sm"}`} data-testid="site-header">
@@ -214,16 +213,15 @@ export default function Home() {
           <nav className="hidden items-center gap-6 lg:flex" aria-label="Navigasi utama" data-testid="desktop-navigation">
             {navItems.map(([label, href]) => <button type="button" key={href} onClick={() => scrollTo(href)} className="inline-block text-[13px] font-bold text-slate-600 transition-all duration-300 hover:-translate-y-0.5 hover:text-[#0f4c81]" data-testid={`nav-link-${label.toLowerCase()}`}>{label}</button>)}
           </nav>
-          <div className="flex items-center gap-2">
-            <button type="button" onClick={() => scrollTo("#spmb")} className="hidden items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-bold text-amber-700 transition-all hover:-translate-y-0.5 hover:bg-amber-100 sm:flex" data-testid="header-spmb-link"><GraduationCap size={15} /> SPMB</button>
-            <a href="https://s.id/DGB-TERPUT" target="_blank" rel="noreferrer" className="group hidden items-center gap-2 rounded-full bg-amber-500 px-5 py-2.5 text-xs font-bold text-[#092c4c] shadow-lg shadow-amber-500/20 transition-all hover:-translate-y-0.5 hover:bg-amber-400 sm:inline-flex" data-testid="header-guestbook-link">Buku Tamu Digital <ArrowUpRight size={16} className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" /></a>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <button type="button" onClick={() => scrollTo("#spmb")} className="flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 transition-all hover:-translate-y-0.5 hover:bg-amber-100 sm:gap-2 sm:px-4 sm:py-2" data-testid="header-spmb-link"><GraduationCap size={15} /> SPMB</button>
+            <a href="https://s.id/DGB-TERPUT" target="_blank" rel="noreferrer" className="group flex items-center gap-1.5 rounded-full bg-amber-500 px-3 py-1.5 text-xs font-bold text-[#092c4c] shadow-lg shadow-amber-500/20 transition-all hover:-translate-y-0.5 hover:bg-amber-400 sm:gap-2 sm:px-5 sm:py-2.5" data-testid="header-guestbook-link"><span className="hidden min-[400px]:inline">Buku Tamu Digital</span><span className="min-[400px]:hidden">Buku Tamu</span> <ArrowUpRight size={16} className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" /></a>
             <button type="button" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="rounded-xl p-2 text-[#0a3358] lg:hidden" aria-label="Buka menu" data-testid="mobile-menu-toggle">{mobileMenuOpen ? <X /> : <Menu />}</button>
           </div>
         </div>
         <AnimatePresence>
           {mobileMenuOpen && <motion.nav initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="border-t border-slate-100 bg-white px-5 py-4 lg:hidden" data-testid="mobile-navigation">
             {navItems.map(([label, href]) => <button type="button" key={href} onClick={() => scrollTo(href)} className="block w-full border-b border-slate-100 py-3 text-left text-sm font-bold text-slate-700" data-testid={`mobile-nav-link-${label.toLowerCase()}`}>{label}</button>)}
-            <Button onClick={() => { setMobileMenuOpen(false); setIsPpdbOpen(true); }} className="mt-4 w-full rounded-xl bg-amber-500 font-bold text-[#092c4c]" data-testid="mobile-ppdb-button">Mulai Pendaftaran <ArrowRight size={16} /></Button>
           </motion.nav>}
         </AnimatePresence>
       </header>
@@ -245,7 +243,6 @@ export default function Home() {
               <h1 className="max-w-3xl font-heading text-4xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-6xl" data-testid="hero-heading"><ClipReveal delay={200}>Mempersiapkan generasi <span className="text-amber-300">emas</span> yang kompeten &amp; siap kerja global.</ClipReveal></h1>
               <p className="mt-6 max-w-xl text-base leading-relaxed text-slate-300 sm:text-lg" data-testid="hero-description">Kurikulum berbasis industri, lingkungan belajar yang suportif, dan lima program keahlian untuk membekali setiap siswa menghadapi masa depan.</p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <Button onClick={() => setIsPpdbOpen(true)} className="group h-12 rounded-full bg-amber-500 px-6 text-sm font-extrabold text-[#092c4c] shadow-xl shadow-amber-500/20 transition-all hover:-translate-y-1 hover:bg-amber-400" data-testid="hero-ppdb-button">Jelajahi SPMB 2027 <ArrowUpRight size={17} className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" /></Button>
                 <button type="button" onClick={() => setIsVideoOpen(true)} className="group inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/20 px-6 text-sm font-bold text-white transition-all hover:-translate-y-1 hover:border-white/50 hover:bg-white/10" data-testid="hero-profile-video-button"><span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:scale-110"><Play size={12} fill="currentColor" /></span> Lihat profil sekolah</button>
               </div>
             </motion.div>
@@ -359,7 +356,6 @@ export default function Home() {
           <div className="mt-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-center"><span className="text-[11px]">© 2026 <a href="https://etosdev.com" target="_blank" rel="noreferrer" className="hover:text-white hover:underline">etosdev.com</a></span></div>
         </div>
       </footer>
-      <div className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 border-t border-slate-200 bg-white p-2 shadow-[0_-8px_30px_rgba(15,23,42,.12)] sm:hidden" data-testid="mobile-bottom-actions"><a href={whatsappUrl} className="flex h-11 items-center justify-center gap-2 text-xs font-extrabold text-emerald-700" data-testid="mobile-bottom-whatsapp"><MessageCircle size={17} /> Tanya Admin</a><button type="button" onClick={() => setIsPpdbOpen(true)} className="flex h-11 items-center justify-center gap-2 rounded-xl bg-amber-400 text-xs font-extrabold text-[#092c4c]" data-testid="mobile-bottom-ppdb"><GraduationCap size={17} /> Daftar SPMB</button></div>
 
       <AnimatePresence>
         {isPpdbOpen && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-[#061e34]/75 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Formulir SPMB" data-testid="ppdb-modal"><motion.div initial={{ opacity: 0, y: 28, scale: .96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 18, scale: .96 }} transition={{ type: "spring", stiffness: 240, damping: 26 }} className="relative w-full max-w-lg rounded-[1.75rem] bg-white p-6 shadow-2xl sm:p-8"><button type="button" onClick={() => setIsPpdbOpen(false)} className="group absolute right-4 top-4 rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Tutup formulir SPMB" data-testid="ppdb-modal-close-button"><X size={18} className="transition-transform duration-300 group-hover:rotate-90" /></button><p className="section-kicker">SPMB 2027 / 2028</p><h2 className="mt-2 font-heading text-2xl font-extrabold text-[#0a3358]">Mulai perjalananmu.</h2><p className="mt-2 text-sm leading-relaxed text-slate-500">Isi data singkat berikut. Tim SPMB kami akan menghubungi Anda melalui WhatsApp.</p><form onSubmit={submitPpdb} className="mt-6 space-y-4"><label className="block"><span className="form-label">Nama calon siswa</span><input required name="student" className="form-input" placeholder="Tulis nama lengkap" data-testid="ppdb-student-name-input" /></label><label className="block"><span className="form-label">Pilihan program keahlian</span><select name="major" className="form-input" defaultValue="RPL" data-testid="ppdb-major-select"><option value="RPL">RPL — Rekayasa Perangkat Lunak</option><option value="DKV">DKV — Desain Komunikasi Visual</option><option value="BD">BD — Bisnis Digital &amp; Pemasaran</option><option value="MP">MP — Manajemen Perkantoran</option><option value="AKL">AKL — Akuntansi Keuangan Lembaga</option></select></label><label className="block"><span className="form-label">Nomor WhatsApp orang tua / siswa</span><input required name="whatsapp" className="form-input" placeholder="08xx-xxxx-xxxx" data-testid="ppdb-whatsapp-input" /></label><button type="submit" className="group mt-2 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-amber-500 text-sm font-extrabold text-[#092c4c] transition-all hover:bg-amber-400" data-testid="ppdb-submit-button">Kirim minat pendaftaran <ArrowRight size={17} className="transition-transform duration-300 group-hover:translate-x-1" /></button></form></motion.div></motion.div>}
