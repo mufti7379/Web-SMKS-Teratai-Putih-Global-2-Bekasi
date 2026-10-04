@@ -74,8 +74,6 @@ const navItems = [
   ["Beranda", "#beranda"], ["Profil", "#profil"], ["Jurusan", "#jurusan"], ["Fasilitas", "#fasilitas"], ["Agenda", "#berita"], ["Berita", "#berita-terkini"], ["Galeri", "#galeri"], ["Kontak", "#kontak"],
 ] as const;
 
-const mobileNavItems = navItems.filter(([label]) => ["Beranda", "Jurusan", "Agenda", "Kontak"].includes(label));
-
 const footerShortcuts = [
   ["Ujian", "https://ujiango.smk-terataiputih2.sch.id"],
   ["Absensi", "https://absensi.smk-terataiputih2.sch.id"],
@@ -224,7 +222,7 @@ export default function Home() {
         </div>
         <AnimatePresence>
           {mobileMenuOpen && <motion.nav initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="border-t border-slate-100 bg-white px-5 py-4 lg:hidden" data-testid="mobile-navigation">
-            {mobileNavItems.map(([label, href]) => <button type="button" key={href} onClick={() => scrollTo(href)} className="block w-full border-b border-slate-100 py-3 text-left text-sm font-bold text-slate-700" data-testid={`mobile-nav-link-${label.toLowerCase()}`}>{label}</button>)}
+            {navItems.map(([label, href]) => <button type="button" key={href} onClick={() => scrollTo(href)} className="block w-full border-b border-slate-100 py-3 text-left text-sm font-bold text-slate-700" data-testid={`mobile-nav-link-${label.toLowerCase()}`}>{label}</button>)}
             <Button onClick={() => { setMobileMenuOpen(false); setIsPpdbOpen(true); }} className="mt-4 w-full rounded-xl bg-amber-500 font-bold text-[#092c4c]" data-testid="mobile-ppdb-button">Mulai Pendaftaran <ArrowRight size={16} /></Button>
           </motion.nav>}
         </AnimatePresence>
