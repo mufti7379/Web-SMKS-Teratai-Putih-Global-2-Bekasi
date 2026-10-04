@@ -214,10 +214,6 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#f8fafc] pb-16 text-slate-900 sm:pb-0" data-testid="school-website-shell">
       <Toaster position="top-right" richColors />
-      <div className="bg-[#092c4c] px-5 py-2.5 text-center text-xs font-semibold tracking-wide text-white sm:text-sm" data-testid="announcement-bar">
-        <span className="mr-2 text-amber-300">●</span> SPMB TA 2027/2028 telah dibuka — kesempatan beasiswa prestasi menanti Anda
-        <button type="button" onClick={() => setIsPpdbOpen(true)} className="ml-2 underline decoration-amber-300 underline-offset-4 transition-colors hover:text-amber-200" data-testid="announcement-ppdb-link">Daftar sekarang</button>
-      </div>
 
       <header className={`sticky z-40 bg-white/95 backdrop-blur-xl transition-all duration-300 ${headerScrolled ? "top-[10px] mx-5 rounded-2xl border border-slate-200/80 shadow-lg" : "top-0 mx-0 rounded-none border-b border-slate-200/80 shadow-sm"}`} data-testid="site-header">
         <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-5 lg:px-8">
