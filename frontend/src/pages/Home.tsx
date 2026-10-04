@@ -226,7 +226,7 @@ export default function Home() {
           </nav>
           <div className="flex items-center gap-2">
             <a href={whatsappUrl} target="_blank" rel="noreferrer" className="hidden items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-bold text-emerald-700 transition-all hover:-translate-y-0.5 hover:bg-emerald-100 sm:flex" data-testid="header-whatsapp-link"><MessageCircle size={15} /> WhatsApp</a>
-            <Button onClick={() => setIsPpdbOpen(true)} className="group hidden rounded-full bg-amber-500 px-5 font-bold text-[#092c4c] shadow-lg shadow-amber-500/20 transition-all hover:-translate-y-0.5 hover:bg-amber-400 sm:inline-flex" data-testid="header-ppdb-button">SPMB Online <ArrowUpRight size={16} className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" /></Button>
+            <a href="https://s.id/DGB-TERPUT" target="_blank" rel="noreferrer" className="group hidden items-center gap-2 rounded-full bg-amber-500 px-5 py-2.5 text-xs font-bold text-[#092c4c] shadow-lg shadow-amber-500/20 transition-all hover:-translate-y-0.5 hover:bg-amber-400 sm:inline-flex" data-testid="header-guestbook-link">Buku Tamu Digital <ArrowUpRight size={16} className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" /></a>
             <button type="button" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="rounded-xl p-2 text-[#0a3358] lg:hidden" aria-label="Buka menu" data-testid="mobile-menu-toggle">{mobileMenuOpen ? <X /> : <Menu />}</button>
           </div>
         </div>
@@ -301,7 +301,6 @@ export default function Home() {
                   <li key={item} className="flex items-center gap-2 text-sm font-semibold text-slate-700"><Check size={16} className="shrink-0 text-emerald-600" /> {item}</li>
                 ))}
               </ul>
-              <button type="button" onClick={() => setIsVideoOpen(true)} className="group mt-7 inline-flex items-center gap-2 text-sm font-extrabold text-[#0f4c81] transition-colors hover:text-emerald-600" data-testid="profile-video-link">Kenali kami lebih dekat <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" /></button>
             </Reveal>
           </div>
           <Reveal delay={200} className="relative mt-14 rounded-[2rem] bg-white p-7 shadow-[0_20px_60px_-30px_rgba(15,76,129,.32)] ring-1 ring-slate-200/80 transition-transform duration-300 hover:-translate-y-1 sm:p-10" data-testid="foundation-quote-card"><Quote className="absolute right-8 top-8 text-amber-100" size={74} fill="currentColor" /><p className="relative max-w-2xl font-heading text-2xl font-bold leading-snug tracking-tight text-[#0a3358] sm:text-3xl">“Pendidikan adalah harga mati untuk menjadi pondasi bangsa dan negara dalam menghadapi perkembangan zaman.”</p><div className="relative mt-8 flex items-center gap-3 border-t border-slate-100 pt-5"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0f4c81] text-white"><Building2 size={18} /></span><span><strong className="block text-sm text-slate-800">Yayasan Teratai Putih Global</strong><small className="text-xs text-slate-500">Komitmen untuk generasi masa depan</small></span></div></Reveal>
