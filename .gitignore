@@ -95,4 +95,5 @@ credentials.json
 README.md
 TEMPLATE.md
 .gitconfig
-/tests/*
+/tests/
+/backend/tests/
