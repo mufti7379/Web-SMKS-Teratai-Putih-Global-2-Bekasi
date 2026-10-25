@@ -1,5 +1,6 @@
+import fs from "node:fs";
 import path from "node:path";
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { visualEdits } from "@emergentbase/visual-edits/vite";
@@ -17,12 +18,30 @@ if (!hotReloadDisabled) {
   process.env.CHOKIDAR_USEPOLLING = "true";
 }
 
+// Vercel answers any URL that vercel.json doesn't route with dist/404.html and a real 404
+// status. Make that file the app shell too, so the router renders its "not found" page —
+// with the home page's search tags swapped for a noindex.
+function notFoundPage(): Plugin {
+  return {
+    name: "not-found-page",
+    apply: "build",
+    enforce: "post",
+    writeBundle(options) {
+      const dir = options.dir ?? path.resolve(__dirname, "dist");
+      const shell = fs.readFileSync(path.join(dir, "index.html"), "utf8");
+      const head = `<!-- seo:start -->\n    <title>Halaman tidak ditemukan — SMK Teratai Putih Global 2 Bekasi</title>\n    <meta name="robots" content="noindex" />\n    <!-- seo:end -->`;
+      fs.writeFileSync(path.join(dir, "404.html"), shell.replace(/<!-- seo:start[^>]*-->[\s\S]*?<!-- seo:end -->/, () => head));
+    },
+  };
+}
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
     ...(visualEditsDisabled ? [] : [visualEdits()]),
+    notFoundPage(),
   ],
   resolve: {
     alias: {
@@ -68,6 +87,9 @@ export default defineConfig({
     // is correct on both localhost:3000 (smoke) and the https/:443 preview proxy.
     hmr: !hotReloadDisabled,
     watch: hotReloadDisabled ? null : { usePolling: true, interval: 300 },
+    // The app imports one module from ../api/_lib (news URL logic shared with the Vercel
+    // functions), which sits outside this package — let the dev server serve it.
+    fs: { allow: [path.resolve(__dirname, "..")] },
     // The /api proxy convention: frontend code calls relative /api/*, never an
     // absolute backend URL. Target is the FastAPI dev server (supervisor: backend).
     proxy: {

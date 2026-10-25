@@ -1,11 +1,7 @@
 import { useMemo, useState } from "react";
 import { ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, Clock3 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { AgendaCategory, CMSItem } from "@/lib/cms";
-
-const fallbackEvents: CMSItem[] = [
-  { id: "fallback-asat", resource: "agenda", title: "Ujian ASAT Genap TA 2025/2026", description: "Ujian akhir semester berbasis CBT.", date: "2026-06-08", end_date: "2026-06-12", time: "08:00", image_url: null, link: "https://ujiango.smk-terataiputih2.sch.id/", is_published: true, code: null, badge: null, skills: [], careers: [], category: "ujian", created_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-01T00:00:00Z" },
-  { id: "fallback-expo", resource: "agenda", title: "Pameran Karya Kreatif DKV & Expo RPL", description: "Pameran karya kreatif siswa.", date: "2026-06-20", end_date: null, time: "09:00", image_url: null, link: null, is_published: true, code: null, badge: null, skills: [], careers: [], category: "kegiatan", created_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-01T00:00:00Z" },
-];
 
 const categoryStyle: Record<AgendaCategory, { label: string; day: string; dot: string; badge: string }> = {
   akademik: { label: "Akademik", day: "bg-blue-600 text-white hover:bg-blue-700", dot: "bg-blue-500", badge: "bg-blue-400/15 text-blue-200" },
@@ -36,12 +32,34 @@ function googleCalendarUrl(event: CMSItem) {
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
 
+/** Loading placeholder with the calendar's shape: month grid on the left, event card on the right. */
+export function AcademicCalendarSkeleton() {
+  return (
+    <div className="grid gap-5 xl:grid-cols-[1.18fr_.82fr]" data-testid="academic-calendar-loading">
+      <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <div className="flex items-center justify-between"><div><Skeleton className="h-2.5 w-28" /><Skeleton className="mt-2 h-6 w-40" /></div><div className="flex gap-2"><Skeleton className="h-9 w-9" /><Skeleton className="h-9 w-9" /></div></div>
+        <Skeleton className="mt-4 h-2.5 w-3/4" />
+        <div className="mt-6 grid grid-cols-7 gap-1">{Array.from({ length: 35 }, (_, index) => <Skeleton key={index} className="aspect-square bg-slate-100" />)}</div>
+      </div>
+      <div className="flex flex-col rounded-[1.5rem] bg-[#092c4c] p-6">
+        <div className="flex items-center justify-between"><Skeleton className="h-10 w-10 bg-white/10" /><Skeleton className="h-6 w-20 rounded-full bg-white/10" /></div>
+        <Skeleton className="mt-6 h-2.5 w-32 bg-white/10" />
+        <Skeleton className="mt-3 h-6 w-3/4 bg-white/10" />
+        <Skeleton className="mt-3 h-3 w-full bg-white/10" />
+        <Skeleton className="mt-2 h-3 w-2/3 bg-white/10" />
+        <Skeleton className="mt-8 h-10 w-40 rounded-full bg-white/10" />
+      </div>
+    </div>
+  );
+}
+
 interface AcademicCalendarProps {
   events: CMSItem[];
 }
 
 export function AcademicCalendar({ events }: AcademicCalendarProps) {
-  const displayEvents = events.length ? events.filter((item) => item.date) : fallbackEvents;
+  // Mount only once the agenda has loaded: the initially selected date is derived from it.
+  const displayEvents = events.filter((item) => item.date);
   const today = new Date();
   const todayKey = dateKey(today);
   const sortedEvents = [...displayEvents].sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""));
@@ -79,7 +97,7 @@ export function AcademicCalendar({ events }: AcademicCalendarProps) {
         })}</div>
       </div>
       <div className="flex flex-col gap-4">
-        {selectedEvent && <article className="flex-1 rounded-[1.5rem] bg-[#092c4c] p-6 text-white" data-testid="calendar-event-detail"><div className="flex items-center justify-between gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-400/15 text-emerald-300"><CalendarDays size={19} /></span><span className={`rounded-full px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-wider ${categoryStyle[selectedEvent.category ?? "akademik"].badge}`} data-testid="calendar-event-category">{categoryStyle[selectedEvent.category ?? "akademik"].label}</span></div><p className="mt-5 text-[10px] font-extrabold uppercase tracking-[.16em] text-amber-300" data-testid="calendar-event-date">{selectedEvent.date && parseDate(selectedEvent.date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</p><h3 className="mt-2 font-heading text-xl font-extrabold" data-testid="calendar-event-title">{selectedEvent.title}</h3><p className="mt-2 text-sm leading-relaxed text-slate-300">{selectedEvent.description}</p><p className="mt-4 flex items-center gap-2 text-xs text-slate-300"><Clock3 size={14} /> {selectedEvent.time ?? "Sepanjang hari"} WIB</p><div className="mt-6 flex flex-wrap gap-2"><a href={googleCalendarUrl(selectedEvent)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full bg-amber-400 px-4 py-2.5 text-xs font-extrabold text-[#092c4c] hover:bg-amber-300" data-testid="calendar-reminder-link">Tambah pengingat <ArrowUpRight size={14} /></a>{selectedEvent.link && <a href={selectedEvent.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-2.5 text-xs font-bold text-white hover:bg-white/10" data-testid="calendar-event-link">Buka tautan <ArrowUpRight size={14} /></a>}</div></article>}
+        {selectedEvent ? <article className="flex-1 rounded-[1.5rem] bg-[#092c4c] p-6 text-white" data-testid="calendar-event-detail"><div className="flex items-center justify-between gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-400/15 text-emerald-300"><CalendarDays size={19} /></span><span className={`rounded-full px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-wider ${categoryStyle[selectedEvent.category ?? "akademik"].badge}`} data-testid="calendar-event-category">{categoryStyle[selectedEvent.category ?? "akademik"].label}</span></div><p className="mt-5 text-[10px] font-extrabold uppercase tracking-[.16em] text-amber-300" data-testid="calendar-event-date">{selectedEvent.date && parseDate(selectedEvent.date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</p><h3 className="mt-2 font-heading text-xl font-extrabold" data-testid="calendar-event-title">{selectedEvent.title}</h3><p className="mt-2 text-sm leading-relaxed text-slate-300">{selectedEvent.description}</p><p className="mt-4 flex items-center gap-2 text-xs text-slate-300"><Clock3 size={14} /> {selectedEvent.time ?? "Sepanjang hari"} WIB</p><div className="mt-6 flex flex-wrap gap-2"><a href={googleCalendarUrl(selectedEvent)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full bg-amber-400 px-4 py-2.5 text-xs font-extrabold text-[#092c4c] hover:bg-amber-300" data-testid="calendar-reminder-link">Tambah pengingat <ArrowUpRight size={14} /></a>{selectedEvent.link && <a href={selectedEvent.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-2.5 text-xs font-bold text-white hover:bg-white/10" data-testid="calendar-event-link">Buka tautan <ArrowUpRight size={14} /></a>}</div></article> : <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-[1.5rem] bg-[#092c4c] p-6 text-center text-sm text-slate-300" data-testid="calendar-event-empty"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-slate-400"><CalendarDays size={19} /></span>Belum ada agenda.</div>}
       </div>
     </div>
   );

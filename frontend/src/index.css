@@ -152,4 +152,10 @@
   .calendar-nav-button { @apply flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition-colors hover:border-[#0f4c81] hover:bg-[#0f4c81] hover:text-white; }
   .admin-nav-item { @apply flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-xs font-bold text-slate-600 transition-colors hover:bg-slate-100 hover:text-[#0f4c81]; }
   .admin-nav-active { @apply bg-[#0f4c81] text-white shadow-md shadow-blue-900/10 hover:bg-[#0f4c81] hover:text-white; }
+  /* Typewriter caret (components/motion/Typewriter.tsx) while idle: a hard on/off blink, like a text cursor. */
+  .typing-caret { animation: typing-caret-blink 1s step-end infinite; }
+}
+
+@keyframes typing-caret-blink {
+  50% { opacity: 0; }
 }

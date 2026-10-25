@@ -163,7 +163,7 @@ export const resourceLabels: Record<ResourceType, string> = {
   major: "Jurusan",
   hero: "Gambar Hero",
   facility: "Fasilitas Belajar",
-  banner: "Pop-up Pengumuman",
+  banner: "Pengumuman",
   profile: "Foto Tentang Kami",
   partner: "Kerja Sama",
 };

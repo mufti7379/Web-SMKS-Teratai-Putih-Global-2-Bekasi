@@ -6,6 +6,10 @@ import Home from "@/pages/Home";
 // downloading the full admin dashboard bundle before it could even show the landing page.
 const Admin = lazy(() => import("@/pages/AdminPortal"));
 const HeroPreview = lazy(() => import("@/pages/HeroPreview"));
+const NewsList = lazy(() => import("@/pages/NewsList"));
+const NewsDetail = lazy(() => import("@/pages/NewsDetail"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
+const GalleryAlbum = lazy(() => import("@/pages/GalleryAlbum"));
 
 const routeFallback = <div className="flex min-h-screen items-center justify-center text-sm font-bold text-slate-500">Memuat…</div>;
 
@@ -14,8 +18,14 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/berita" element={<Suspense fallback={routeFallback}><NewsList /></Suspense>} />
+      <Route path="/berita/:bulan/:tahun/:slug" element={<Suspense fallback={routeFallback}><NewsDetail /></Suspense>} />
+      {/* Old id-based links (/berita/<uuid>) already shared before the readable URLs — NewsDetail redirects them. */}
+      <Route path="/berita/:id" element={<Suspense fallback={routeFallback}><NewsDetail /></Suspense>} />
+      <Route path="/galeri/:album" element={<Suspense fallback={routeFallback}><GalleryAlbum /></Suspense>} />
       <Route path="/admin" element={<Suspense fallback={routeFallback}><Admin /></Suspense>} />
       <Route path="/hero-preview" element={<Suspense fallback={routeFallback}><HeroPreview /></Suspense>} />
+      <Route path="*" element={<Suspense fallback={routeFallback}><NotFound /></Suspense>} />
     </Routes>
   );
 }

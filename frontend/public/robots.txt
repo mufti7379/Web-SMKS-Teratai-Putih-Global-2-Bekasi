@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /hero-preview
+
+Sitemap: https://www.smk-terataiputih2.sch.id/sitemap.xml
