@@ -12,19 +12,18 @@ db = MongoClient(mongo_url)[os.environ["DB_NAME"]]
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 accounts = [
-    ("admin@terataiputih2.sch.id", "Admin Sekolah", "SEED_ADMIN_PASSWORD", "<redacted>", "super_admin"),
-    ("editor@terataiputih2.sch.id", "Editor Konten", "SEED_EDITOR_PASSWORD", "<redacted>", "content_editor"),
-    ("ppdb@terataiputih2.sch.id", "Petugas SPMB", "SEED_PPDB_PASSWORD", "<redacted>", "ppdb_officer"),
-    ("agenda@terataiputih2.sch.id", "Pengelola Agenda", "SEED_AGENDA_PASSWORD", "<redacted>", "agenda_manager"),
+    ("admin@terataiputih2.sch.id", "Admin Sekolah", "SEED_ADMIN_PASSWORD", "super_admin"),
+    ("editor@terataiputih2.sch.id", "Editor Konten", "SEED_EDITOR_PASSWORD", "content_editor"),
+    ("ppdb@terataiputih2.sch.id", "Petugas SPMB", "SEED_PPDB_PASSWORD", "ppdb_officer"),
+    ("agenda@terataiputih2.sch.id", "Pengelola Agenda", "SEED_AGENDA_PASSWORD", "agenda_manager"),
 ]
-for email, name, env_var, default_password, role in accounts:
-    password = os.environ.get(env_var)
-    if not password:
-        password = default_password
-        print(f"PERINGATAN: {env_var} tidak diset, memakai password default untuk {email}. Ganti password ini segera setelah login pertama.")
+missing = [env_var for _, _, env_var, _ in accounts if not os.environ.get(env_var)]
+if missing:
+    raise SystemExit(f"Set {', '.join(missing)} di backend/.env dulu. seed.py tidak punya password default.")
+for email, name, env_var, role in accounts:
     db.admins.update_one(
         {"email": email},
-        {"$set": {"name": name, "role": role, "is_active": True}, "$setOnInsert": {"id": str(uuid4()), "email": email, "password_hash": pwd_context.hash(password), "created_at": datetime.now(timezone.utc)}},
+        {"$set": {"name": name, "role": role, "is_active": True}, "$setOnInsert": {"id": str(uuid4()), "email": email, "password_hash": pwd_context.hash(os.environ[env_var]), "created_at": datetime.now(timezone.utc)}},
         upsert=True,
     )
 

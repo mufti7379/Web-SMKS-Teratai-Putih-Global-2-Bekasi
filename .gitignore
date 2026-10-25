@@ -92,7 +92,7 @@ credentials.json
 *.key
 .credentials
 .env*
-vercel.json
 README.md
 TEMPLATE.md
 .gitconfig
+/tests/*
