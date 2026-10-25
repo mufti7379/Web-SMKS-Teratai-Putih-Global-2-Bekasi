@@ -35,6 +35,9 @@ export async function fetchAppShell(origin: string): Promise<string | null> {
   }
 }
 
+/** A picture for crawlers, who need a full address — CMS pictures are site-relative /media links. */
+export const absoluteImageUrl = (url: string | null | undefined) => (url ? new URL(url, SITE_URL).href : null);
+
 const escapeHtml = (value: string) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 /** First sentence-ish chunk of a body text, for meta descriptions (~160 chars). */
@@ -68,7 +71,7 @@ export function renderHead({ title, description, path, image, type = "website", 
     `<meta property="og:title" content="${escapeHtml(title)}" />`,
     `<meta property="og:description" content="${escapeHtml(description)}" />`,
     `<meta property="og:url" content="${escapeHtml(url)}" />`,
-    `<meta property="og:image" content="${escapeHtml(image || LOGO_URL)}" />`,
+    `<meta property="og:image" content="${escapeHtml(absoluteImageUrl(image) ?? LOGO_URL)}" />`,
     `<meta name="twitter:card" content="${image ? "summary_large_image" : "summary"}" />`,
   ];
   // "<" escaped so a title containing "</script>" can't break out of the JSON-LD block.

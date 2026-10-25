@@ -7,10 +7,11 @@
 //   album   — /galeri/<slug>, a gallery album such as /galeri/perpisahan-2025
 // The React app still renders everything in the browser; this only changes what crawlers
 // and link previews read before JavaScript runs.
-import { listDriveImages } from "./_lib/drive";
+import { albumDrivePictures } from "./_lib/drive";
 import { albumDriveFolders, galleryMedia, galleryStill, isInAlbum, isSinglePhoto, listAlbums } from "./_lib/gallery";
+import { optimizeImageUrl } from "./_lib/images";
 import { findNewsByPath, newsPath } from "./_lib/newsPath";
-import { LOGO_URL, SITE_NAME, SITE_URL, excerpt, fetchAppShell, fetchPublishedGallery, fetchPublishedNews, htmlResponse, injectHead, renderHead } from "./_lib/seo";
+import { LOGO_URL, SITE_NAME, SITE_URL, absoluteImageUrl, excerpt, fetchAppShell, fetchPublishedGallery, fetchPublishedNews, htmlResponse, injectHead, renderHead } from "./_lib/seo";
 import type { PublicNews } from "./_lib/seo";
 
 // Vercel's CDN keeps each page for 5 minutes (new or edited news shows up within that), and
@@ -28,7 +29,7 @@ function articleStructuredData(item: PublicNews, path: string) {
     "@type": "NewsArticle",
     headline: item.title.slice(0, 110),
     description: excerpt(item.description),
-    image: [item.image_url || LOGO_URL],
+    image: [absoluteImageUrl(optimizeImageUrl(item.image_url, 1200)) ?? LOGO_URL],
     datePublished: item.date ?? item.created_at,
     dateModified: item.updated_at || item.created_at,
     mainEntityOfPage: `${SITE_URL}${path}`,
@@ -45,10 +46,10 @@ async function albumPage(origin: string, shell: string, requested: string) {
   const album = listAlbums(gallery).find((entry) => entry.slug === slug);
   if (!album) return htmlResponse(injectHead(shell, renderHead({ title: `Album tidak ditemukan — ${SITE_NAME}`, description: "Album yang Anda cari tidak ada.", path: "/", noindex: true })), 404, CACHE);
   if (requested !== slug) return redirect(`/galeri/${slug}`);
-  const listings = await Promise.all(albumDriveFolders(slug, gallery).map(listDriveImages));
+  const drivePictures = (await albumDrivePictures(albumDriveFolders(slug, gallery))) ?? [];
   // Same order as the album page: the Drive folders' pictures, then single items filed under the album.
   const media = [
-    ...listings.flatMap((files) => files ?? []).map((file) => ({ kind: "drive", id: file.id }) as const),
+    ...drivePictures.map((src) => ({ kind: "image", src }) as const),
     ...gallery.filter((item) => isSinglePhoto(item) && isInAlbum(item, slug)).sort((a, b) => a.created_at.localeCompare(b.created_at)).map((item) => galleryMedia(item.image_url ?? "")),
   ];
   // The first photo with a still (uploaded videos have none) becomes the share preview.
@@ -102,7 +103,7 @@ export async function GET(request: Request) {
     title: `${item.title} — ${SITE_NAME}`,
     description: excerpt(item.description) || `Berita dari ${SITE_NAME}.`,
     path,
-    image: item.image_url?.trim() || null,
+    image: optimizeImageUrl(item.image_url, 1200),
     type: "article",
     structuredData: articleStructuredData(item, path),
   });

@@ -1,6 +1,6 @@
 // Gallery albums and media — shared by the React app (frontend/src/lib/gallery.ts re-exports
-// it) and the Vercel functions (album photos, album page tags, sitemap). Lives here,
-// dependency-free, for the same CommonJS reason as newsPath.ts.
+// it) and the Vercel functions (album photos, album page tags, sitemap). Lives here, free of
+// packages, for the same CommonJS reason as newsPath.ts.
 //
 // An album (a gallery category, e.g. "Perpisahan 2025") lives on /galeri/<slug> and is managed
 // entirely in the CMS. Its photos come from, in this order:
@@ -9,6 +9,7 @@
 //     automatically (read by api/album.ts, cached ~5 minutes);
 //  2. single CMS gallery items whose "Album" field (stored in `badge`) names the album.
 // Items filed under an album leave the home page's activity stack for the album page.
+import { optimizeImageUrl } from "./images";
 
 export type AlbumRef = { badge: string | null; title?: string; image_url?: string | null; created_at?: string };
 
@@ -16,9 +17,12 @@ export function albumSlug(name: string) {
   return name.normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "album";
 }
 
-/** The folder id in a Google Drive folder link ("…/drive/folders/<id>", also "…/drive/u/0/folders/<id>"), or null. */
+/**
+ * The folder in a Google Drive folder link ("…/drive/folders/<id>", also "…/drive/u/0/folders/<id>"),
+ * or — in public content, where the backend seals it as "/media/folder/<token>" — its token; null otherwise.
+ */
 export function driveFolderId(url: string) {
-  return url.match(/drive\.google\.com\/drive\/(?:u\/\d+\/)?folders\/([\w-]+)/)?.[1] ?? null;
+  return url.match(/drive\.google\.com\/drive\/(?:u\/\d+\/)?folders\/([\w-]+)|^\s*\/media\/folder\/([\w-]+)/)?.slice(1).find(Boolean) ?? null;
 }
 
 const isFolderEntry = (item: AlbumRef) => Boolean(item.image_url && driveFolderId(item.image_url));
@@ -54,7 +58,8 @@ export function albumDriveFolders(slug: string, items: AlbumRef[]) {
 
 export type GalleryMedia =
   | { kind: "image"; src: string }
-  | { kind: "drive"; id: string }
+  // `still` is the file as a picture, `player` Drive's video player for it.
+  | { kind: "drive"; still: string; player: string }
   | { kind: "folder"; id: string }
   | { kind: "youtube"; id: string }
   | { kind: "file"; src: string };
@@ -66,7 +71,10 @@ export function galleryMedia(url: string): GalleryMedia {
   const folder = driveFolderId(url);
   if (folder) return { kind: "folder", id: folder };
   const drive = url.match(/drive\.google\.com\/file\/d\/([\w-]+)/);
-  if (drive) return { kind: "drive", id: drive[1] };
+  if (drive) return { kind: "drive", still: `https://lh3.googleusercontent.com/d/${drive[1]}`, player: `https://drive.google.com/file/d/${drive[1]}/preview` };
+  // The same, sealed in public content — served by api/media.ts.
+  const sealed = url.match(/^\s*\/media\/drive\/([\w-]+)/);
+  if (sealed) return { kind: "drive", still: `/media/${sealed[1]}`, player: `/media/preview/${sealed[1]}` };
   if (/\.(mp4|webm|ogg)(\?.*)?$/i.test(url)) return { kind: "file", src: url };
   return { kind: "image", src: url.trim() };
 }
@@ -74,8 +82,8 @@ export function galleryMedia(url: string): GalleryMedia {
 /** A still for a tile or a share preview (Drive files via Google's image CDN); null for folders and uploaded videos. */
 export function galleryStill(media: GalleryMedia, width: number) {
   if (media.kind === "youtube") return `https://img.youtube.com/vi/${media.id}/hqdefault.jpg`;
-  if (media.kind === "drive") return `https://lh3.googleusercontent.com/d/${media.id}=w${width}`;
-  return media.kind === "image" ? media.src : null;
+  if (media.kind === "drive" || media.kind === "image") return optimizeImageUrl(media.kind === "drive" ? media.still : media.src, width);
+  return null;
 }
 
 /** Album photos that are single items (not folder entries — those expand into their pictures). */

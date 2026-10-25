@@ -57,7 +57,7 @@ export function Announcements({ items, number, activeId, onSelect }: Announcemen
   const flipbook = flipbookUrl(active.link);
   const buttonLink = flipbook ? null : active.link;
   const linkIsExternal = Boolean(buttonLink && /^https?:\/\//i.test(buttonLink));
-  const imageHref = buttonLink ?? active.image_url?.trim();
+  const imageHref = buttonLink ?? optimizeImageUrl(active.image_url, 2000);
 
   const heading = (
     <>

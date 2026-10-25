@@ -6,7 +6,6 @@ import { AlbumCarousel, AlbumCarouselSkeleton } from "@/components/AlbumCarousel
 import { SubpageLayout } from "@/components/SubpageLayout";
 import { albumDriveFolders, albumPhotosQuery, galleryMedia, galleryQuery, galleryStill, isInAlbum, isSinglePhoto, listAlbums } from "@/lib/gallery";
 import type { GalleryMedia } from "@/lib/gallery";
-import { optimizeImageUrl } from "@/lib/images";
 
 type AlbumPhoto = { key: string; title: string; description: string | null; media: GalleryMedia };
 
@@ -15,8 +14,8 @@ type AlbumPhoto = { key: string; title: string; description: string | null; medi
 // the full-screen viewer.
 function albumMedia(media: GalleryMedia) {
   const isVideo = media.kind === "youtube" || media.kind === "file";
-  const card = media.kind === "image" ? optimizeImageUrl(media.src, 1000) : galleryStill(media, 1000);
-  const full = media.kind === "image" ? optimizeImageUrl(media.src, 1600) ?? media.src : media.kind === "drive" ? galleryStill(media, 1600) : null;
+  const card = galleryStill(media, 1000);
+  const full = media.kind === "image" || media.kind === "drive" ? galleryStill(media, 1600) : null;
   return { media, isVideo, card, full };
 }
 
@@ -32,7 +31,7 @@ export default function GalleryAlbum() {
   const drivePhotos = useQuery(albumPhotosQuery(slug, albumDriveFolders(slug, items).length > 0));
   const albumName = listAlbums(items).find((entry) => entry.slug === slug)?.name ?? null;
   const photos: AlbumPhoto[] = [
-    ...(drivePhotos.data ?? []).map((file, index) => ({ key: file.id, title: `${albumName ?? "Foto"} — foto ${index + 1}`, description: null, media: { kind: "drive", id: file.id } as const })),
+    ...(drivePhotos.data ?? []).map((photo, index) => ({ key: photo.src, title: `${albumName ?? "Foto"} — foto ${index + 1}`, description: null, media: { kind: "image", src: photo.src } as const })),
     ...items.filter((item) => isSinglePhoto(item) && isInAlbum(item, slug)).sort((a, b) => a.created_at.localeCompare(b.created_at)).map((item) => ({ key: item.id, title: item.title, description: item.description || null, media: galleryMedia(item.image_url ?? "") })),
   ];
   // isLoading, not isPending: a disabled query (album without a Drive folder) stays "pending" forever.

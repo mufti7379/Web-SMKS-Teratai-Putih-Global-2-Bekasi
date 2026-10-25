@@ -1,19 +1,7 @@
-const DRIVE_HOST = "lh3.googleusercontent.com";
+import { isResizableImage, optimizeImageUrl } from "../../../api/_lib/images";
 
-/**
- * CMS photos come back as Google Drive "lh3.googleusercontent.com" links served at full
- * upload resolution (often 1-2MB, sometimes uncompressed PNG) — that's what was tanking
- * mobile LCP. Google's own image CDN accepts a "=w<pixels>" size suffix and resizes/
- * re-encodes server-side, so request only the width the layout actually needs instead of
- * shipping the original. Also trims stray whitespace some CMS entries were saved with.
- */
-export function optimizeImageUrl(url: string | null | undefined, width: number): string | null {
-  if (!url) return url ?? null;
-  const trimmed = url.trim();
-  if (!trimmed.includes(DRIVE_HOST)) return trimmed;
-  const base = trimmed.replace(/=w\d+[^/]*$/, "");
-  return `${base}=w${width}`;
-}
+// Shared with the Vercel functions that build share images (see that file).
+export { optimizeImageUrl };
 
 /**
  * Builds a "srcset" string requesting several widths of the same drive image so the browser
@@ -22,6 +10,6 @@ export function optimizeImageUrl(url: string | null | undefined, width: number):
  * undefined so callers can skip the srcSet attribute entirely.
  */
 export function buildDriveSrcSet(url: string | null | undefined, widths: number[]): string | undefined {
-  if (!url || !url.includes(DRIVE_HOST)) return undefined;
+  if (!url || !isResizableImage(url)) return undefined;
   return widths.map((width) => `${optimizeImageUrl(url, width)} ${width}w`).join(", ");
 }

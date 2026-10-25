@@ -2,6 +2,7 @@
 // long-standing (but undocumented) embeddable folder view. The folder must be shared as
 // "Anyone with the link". If Google ever drops that page, replace this with the official
 // Drive API (files.list with an API key) — callers only need { id, name }.
+import { drivePictureUrl, resolveDriveId } from "./media";
 
 export type DriveFile = { id: string; name: string };
 
@@ -24,4 +25,16 @@ export async function listDriveImages(folderId: string): Promise<DriveFile[] | n
   } catch {
     return null;
   }
+}
+
+/**
+ * The pictures in an album's Drive folders (from albumDriveFolders — sealed or not), folder after
+ * folder, each in name order and a picture in two folders only once, as the addresses to show
+ * them at (sealed /media links once MEDIA_KEY is set). Null if Drive can't be reached.
+ */
+export async function albumDrivePictures(folders: string[]): Promise<string[] | null> {
+  const listings = await Promise.all(folders.map((folder) => listDriveImages(resolveDriveId(folder))));
+  if (listings.some((files) => files === null)) return null;
+  const ids = new Set(listings.flatMap((files) => files ?? []).map((file) => file.id));
+  return [...ids].map(drivePictureUrl);
 }

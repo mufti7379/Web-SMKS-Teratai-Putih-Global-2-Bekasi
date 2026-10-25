@@ -8,6 +8,8 @@
     { "source": "/berita/:id", "destination": "/api/page?route=legacy&id=:id" },
     { "source": "/galeri/:album", "destination": "/api/page?route=album&album=:album" },
     { "source": "/data/album/:album", "destination": "/api/album?album=:album" },
+    { "source": "/media/preview/:token", "destination": "/api/media?token=:token&preview=1" },
+    { "source": "/media/:token", "destination": "/api/media?token=:token" },
     { "source": "/api/(.*)", "destination": "https://terataiputih2-backend.vercel.app/api/$1" },
     { "source": "/admin", "destination": "/index.html" },
     { "source": "/hero-preview", "destination": "/index.html" }

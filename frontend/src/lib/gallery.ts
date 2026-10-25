@@ -5,7 +5,8 @@ import type { CMSItem } from "@/lib/cms";
 // One query for the home page grid and the album pages, so moving between them reuses the fetch.
 export const galleryQuery = queryOptions({ queryKey: ["public-content", "gallery"], queryFn: () => apiGet<CMSItem[]>("/content/gallery"), retry: false });
 
-export type DriveAlbumPhoto = { id: string; name: string };
+/** `src` is where the picture is shown — a sealed /media link, never the Drive file itself. */
+export type DriveAlbumPhoto = { src: string };
 
 /** Pictures in an album's Google Drive folders (via api/album.ts). Pass `hasFolders` = albumDriveFolders(slug, items).length > 0. */
 export const albumPhotosQuery = (slug: string, hasFolders: boolean) => queryOptions({

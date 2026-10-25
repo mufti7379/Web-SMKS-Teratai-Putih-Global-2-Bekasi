@@ -1,6 +1,5 @@
 import { Edit3, ExternalLink, Eye, EyeOff, FolderOpen, Images, Play, Trash2 } from "lucide-react";
 import { albumOf, albumSlug, galleryMedia, galleryStill } from "@/lib/gallery";
-import { optimizeImageUrl } from "@/lib/images";
 import type { CMSItem } from "@/lib/cms";
 
 type GalleryAdminPanelProps = {
@@ -13,7 +12,7 @@ const folderUrl = (id: string) => `https://drive.google.com/drive/folders/${id}`
 
 function EntryCard({ item, onEdit, onDelete }: { item: CMSItem; onEdit: () => void; onDelete: () => void }) {
   const media = item.image_url ? galleryMedia(item.image_url) : null;
-  const still = !media ? null : media.kind === "image" ? optimizeImageUrl(media.src, 600) : galleryStill(media, 600);
+  const still = media && galleryStill(media, 600);
   // A Drive file plays as a video in the home page stack but shows as a photo in an album, so it gets a neutral label.
   const kind = media?.kind === "folder" ? "Album Google Drive" : media?.kind === "drive" ? "File Google Drive" : media?.kind === "youtube" || media?.kind === "file" ? "Video" : "Foto";
   const album = albumOf(item);

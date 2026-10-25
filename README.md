@@ -74,6 +74,10 @@ FastAPI, async throughout. `python` is the app venv interpreter
   above its local imports, and `lib/db.py` self-loads it so standalone scripts
   inherit it too. The pod runs `mongod` locally, so `MONGO_URL` points at
   `localhost`. Add new secrets/config here; read them with `os.environ`.
+- **Google Drive links**: `MEDIA_KEY` seals every Drive link in public content
+  into `/media/<token>` (`backend/lib/media.py`); the frontend project's
+  `api/media.ts` and `api/album.ts` open the tokens again. Set the same value
+  on both Vercel projects. Without it, links are served unsealed.
 - **Dates**: `backend/lib/dates.py` — `today_iso(tz=None)`. The pod clock is
   UTC; anchor "today" server-side with this, never with client-side date math.
 - **Interactive check**: `cd /app/backend && python -c 'import server'` catches
