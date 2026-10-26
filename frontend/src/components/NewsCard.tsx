@@ -17,8 +17,8 @@ type NewsCardProps = {
 
 /**
  * News teaser card used everywhere news is listed: photo + category, title, excerpt,
- * "Lihat Berita". Deliberately static — no entrance or hover motion, only colour/shadow
- * feedback on hover.
+ * "Lihat Berita". Deliberately static — no hover motion, only colour/shadow feedback on
+ * hover. The home page's news section wraps it in a scroll-linked StaggerRise.
  */
 export function NewsCard({ item, to, headingAs: Heading = "h3", onClick, "data-testid": testId }: NewsCardProps) {
   return (

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { FormEvent, MouseEvent } from "react";
 import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion, useScroll, useTransform } from "motion/react";
@@ -11,13 +11,16 @@ import {
   Check,
   ChevronRight,
   Code2,
+  Factory,
   GraduationCap,
+  HeartHandshake,
   Mail,
   Menu,
   MessageCircle,
   Palette,
   Play,
   Quote,
+  Signpost,
   TrendingUp,
   X,
 } from "lucide-react";
@@ -31,7 +34,7 @@ import { ActivityStack, ActivityStackSkeleton } from "@/components/ActivityStack
 import { Announcements } from "@/components/Announcements";
 import type { ActivityItem } from "@/components/ActivityStack";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Reveal, ClipReveal } from "@/components/motion/Reveal";
+import { Reveal, ClipReveal, StaggerRise } from "@/components/motion/Reveal";
 import { Typewriter } from "@/components/motion/Typewriter";
 import { useLenisScroll } from "@/hooks/useLenisScroll";
 import { apiGet, apiPost } from "@/lib/api";
@@ -56,6 +59,14 @@ type Major = {
 
 const navItems = [
   ["Beranda", "#beranda"], ["Profil", "#profil"], ["Jurusan", "#jurusan"], ["Fasilitas", "#fasilitas"], ["Agenda", "#berita"], ["Berita", "#berita-terkini"], ["Galeri", "#galeri"], ["Kontak", "#kontak"],
+] as const;
+
+// The row of cards along the bottom of the hero photo; each one jumps to the section that says more.
+const heroHighlights = [
+  { value: "5", label: "Program Keahlian", desc: "Pilihan sesuai potensimu", icon: GraduationCap, color: "bg-emerald-500", href: "#jurusan" },
+  { value: "Proyek", label: "Berbasis Industri", desc: "Belajar dari praktik nyata", icon: Factory, color: "bg-amber-500", href: "#fasilitas" },
+  { value: "3", label: "Jalur Masa Depan", desc: "Kerja, kuliah, dan usaha", icon: Signpost, color: "bg-sky-500", href: "#jurusan" },
+  { value: "Aktif", label: "Pembinaan Karakter", desc: "Tumbuh dengan nilai positif", icon: HeartHandshake, color: "bg-rose-500", href: "#profil" },
 ] as const;
 
 // Shown when a section's CMS content has loaded but is empty (or failed to load).
@@ -180,14 +191,42 @@ export default function Home() {
   const MajorIcon = selectedMajor?.icon ?? GraduationCap;
   const createLead = useMutation({ mutationFn: (payload: { kind: "ppdb" | "contact"; name: string; phone: string; major?: string; question?: string; source: "website" }) => apiPost<Lead>("/leads", payload), onSuccess: (_lead, variables) => { if (variables.kind === "ppdb") setIsPpdbOpen(false); toast.success(variables.kind === "ppdb" ? "Terima kasih! Data SPMB tersimpan dan tim kami akan menghubungi Anda." : "Pertanyaan tersimpan. Tim sekolah akan segera menindaklanjuti."); }, onError: () => toast.error("Data belum tersimpan. Silakan coba kembali.") });
 
+  // adobe.com-style hand-off: the hero stays pinned while the rest of the page slides up over it
+  // (wave edge first), dimming as it's covered. A hero taller than the viewport pins by its bottom
+  // edge so its lower tiles are seen first; coverStart is where the panel's top sits when covering begins.
   const heroRef = useRef<HTMLElement>(null);
-  const { scrollYProgress: heroScrollProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const heroParallaxY = useTransform(heroScrollProgress, [0, 1], ["0%", "18%"]);
+  const heroCoverRef = useRef<HTMLDivElement>(null);
+  const [heroPin, setHeroPin] = useState({ top: 0, coverStart: 0 });
+  useLayoutEffect(() => {
+    const hero = heroRef.current;
+    if (!hero) return;
+    const measure = () => {
+      const coverStart = Math.min(hero.offsetHeight, window.innerHeight);
+      setHeroPin({ top: coverStart - hero.offsetHeight, coverStart });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(hero);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, []);
+  const { scrollYProgress: heroCoverProgress } = useScroll({ target: heroCoverRef, offset: [`start ${heroPin.coverStart}px`, "start start"] });
+  const heroParallaxY = useTransform(heroCoverProgress, [0, 1], ["0%", "18%"]);
+  const heroDim = useTransform(heroCoverProgress, [0, 1], [0, 0.7]);
 
   const scrollTo = (href: string) => {
-    const target = document.querySelector<HTMLElement>(href);
-    if (target && lenisRef.current) lenisRef.current.scrollTo(target, { offset: -76 });
-    else target?.scrollIntoView({ behavior: "smooth" });
+    // The pinned hero's on-screen box isn't its place in the page — "#beranda" is simply the top.
+    if (href === "#beranda") {
+      if (lenisRef.current) lenisRef.current.scrollTo(0);
+      else window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      const target = document.querySelector<HTMLElement>(href);
+      if (target && lenisRef.current) lenisRef.current.scrollTo(target, { offset: -76 });
+      else target?.scrollIntoView({ behavior: "smooth" });
+    }
     setMobileMenuOpen(false);
   };
   // The header's SPMB button lands on the SPMB announcement, even when another one is showing.
@@ -224,7 +263,7 @@ export default function Home() {
     <div className="min-h-screen bg-[#f8fafc] text-slate-900" data-testid="school-website-shell">
       <Toaster position="top-right" richColors />
 
-      <header className={`sticky z-40 backdrop-blur-xl transition-all duration-300 ${headerScrolled ? "top-[10px] mx-5 rounded-2xl border border-white/40 bg-slate-200/60 shadow-lg" : "top-0 mx-0 rounded-none border-b border-slate-200/80 bg-white/95 shadow-sm"}`} data-testid="site-header">
+      <header className={`sticky z-40 mx-auto backdrop-blur-xl transition-all duration-300 ${headerScrolled ? "top-[10px] max-w-[min(80rem,calc(100%-2.5rem))] rounded-2xl border border-white/40 bg-slate-200/60 shadow-lg" : "top-0 max-w-full rounded-none border-b border-slate-200/80 bg-white/95 shadow-sm"}`} data-testid="site-header">
         <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-5 lg:px-8">
           <button type="button" className="flex items-center gap-3 text-left" onClick={() => scrollTo("#beranda")} data-testid="school-brand-button">
             <img src="/logo-tp2.png" alt="Logo SMK Teratai Putih Global 2" className="h-11 w-11 rounded-2xl object-contain shadow-lg shadow-blue-900/15" />
@@ -247,7 +286,7 @@ export default function Home() {
       </header>
 
       <main>
-        <section id="beranda" ref={heroRef} className="relative isolate overflow-hidden bg-[#092c4c]" data-testid="hero-section">
+        <section id="beranda" ref={heroRef} style={{ top: heroPin.top }} className="sticky isolate overflow-hidden bg-[#092c4c]" data-testid="hero-section">
           <div className="absolute inset-0 -z-10 overflow-hidden">
             <motion.div style={{ y: heroParallaxY }} className="absolute inset-x-0 -top-[14%] h-[128%] w-full">
               <AnimatePresence mode="wait">
@@ -256,93 +295,107 @@ export default function Home() {
             </motion.div>
             {heroContent.isPending && <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-[#0f4c81]/60 to-[#092c4c]" data-testid="hero-loading" />}
             <div className="absolute inset-0 bg-gradient-to-b from-[#092c4c]/80 via-[#092c4c]/45 to-[#092c4c]/85" />
-            {heroImages.length > 1 && <div className="absolute right-5 top-24 z-10 flex gap-1.5 sm:right-8" data-testid="hero-carousel-dots">{heroImages.map((url, index) => <span key={url} className={`h-1.5 rounded-full transition-all ${index === heroIndex ? "w-5 bg-amber-300" : "w-1.5 bg-white/40"}`} />)}</div>}
+            {heroImages.length > 1 && <div className="absolute right-5 top-5 z-10 flex gap-1.5 sm:right-8 sm:top-24" data-testid="hero-carousel-dots">{heroImages.map((url, index) => <span key={url} className={`h-1.5 rounded-full transition-all ${index === heroIndex ? "w-5 bg-amber-300" : "w-1.5 bg-white/40"}`} />)}</div>}
           </div>
-          <div className="relative mx-auto flex min-h-[690px] max-w-7xl flex-col justify-center gap-10 px-5 py-16 lg:px-8 lg:py-20">
-            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 190, damping: 26 }} className="relative z-10 mx-auto max-w-5xl text-center" data-testid="hero-copy">
-              {/* Sizes picked so both rotating phrases take the same number of lines at every width
-                  (2 on phones via the 300px cap, 1 from sm up) — no empty line while the short one shows. */}
-              <h1 className="mx-auto max-w-[300px] font-heading text-[30px] font-normal leading-[1.08] tracking-tight text-white sm:max-w-none sm:text-[34px] md:text-[40px] lg:text-5xl xl:text-6xl" data-testid="hero-heading"><Typewriter phrases={heroPhrases} /></h1>
-              <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-slate-300 sm:text-lg" data-testid="hero-description">Kurikulum berbasis industri, lingkungan belajar yang suportif, dan lima program keahlian untuk membekali setiap siswa menghadapi masa depan.</p>
-              <div className="mt-9 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-                <button type="button" onClick={() => setIsVideoOpen(true)} className="group inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/20 px-6 text-sm font-bold text-white transition-all hover:-translate-y-1 hover:border-white/50 hover:bg-white/10" data-testid="hero-profile-video-button"><span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:scale-110"><Play size={12} fill="currentColor" /></span> Lihat profil sekolah</button>
-              </div>
-            </motion.div>
-          </div>
-          <svg className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-10 w-full sm:h-14" viewBox="0 0 1440 120" preserveAspectRatio="none" fill="none" aria-hidden="true">
-            <path d="M0,64 C240,112 480,16 720,64 C960,112 1200,16 1440,64 L1440,120 L0,120 Z" fill="#f8fafc" />
-          </svg>
-        </section>
-
-        <section className="relative" data-testid="value-props-section">
-          <div className="relative z-10 mx-auto -mt-10 max-w-7xl px-5 sm:-mt-14 lg:px-8">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {[
-                { value: "5", label: "Program Keahlian", desc: "Pilihan sesuai potensimu", tone: "emerald" },
-                { value: "Proyek", label: "Berbasis Industri", desc: "Belajar dari praktik nyata", tone: "navy" },
-                { value: "3", label: "Jalur Masa Depan", desc: "Kerja, kuliah, dan usaha", tone: "emerald" },
-                { value: "Aktif", label: "Pembinaan Karakter", desc: "Tumbuh dengan nilai positif", tone: "navy" },
-              ].map((item, index) => (
-                <Reveal key={item.label} delay={index * 100} className="rounded-2xl bg-white p-6 text-center shadow-lg shadow-slate-900/5 ring-1 ring-slate-200/70" data-testid={`value-prop-${index + 1}`}>
-                  <strong className={`block font-heading text-3xl font-extrabold ${item.tone === "emerald" ? "text-emerald-700" : "text-[#0a3358]"}`}>{item.value}</strong>
-                  <span className="mt-2 block text-sm font-extrabold text-[#0a3358]">{item.label}</span>
-                  <span className="mt-1 block text-xs text-slate-500">{item.desc}</span>
-                </Reveal>
+          {/* From lg up the hero fills the screen below the header, so the cards along its bottom are always in view. */}
+          <div className="relative mx-auto flex min-h-[690px] max-w-7xl flex-col gap-10 px-5 pb-16 pt-16 sm:pb-20 lg:min-h-[max(620px,calc(100svh_-_76px))] lg:px-8 lg:pt-20">
+            <div className="flex flex-1 items-center justify-center">
+              <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 190, damping: 26 }} className="relative z-10 mx-auto max-w-5xl text-center" data-testid="hero-copy">
+                {/* Sizes picked so both rotating phrases take the same number of lines at every width
+                    (2 on phones via the 300px cap, 1 from sm up) — no empty line while the short one shows. */}
+                <h1 className="mx-auto max-w-[300px] font-heading text-[30px] font-normal leading-[1.08] tracking-tight text-white sm:max-w-none sm:text-[34px] md:text-[40px] lg:text-5xl xl:text-6xl" data-testid="hero-heading"><Typewriter phrases={heroPhrases} /></h1>
+                <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-slate-300 sm:text-lg" data-testid="hero-description">Kurikulum berbasis industri, lingkungan belajar yang suportif, dan lima program keahlian untuk membekali setiap siswa menghadapi masa depan.</p>
+                <div className="mt-9 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+                  <button type="button" onClick={() => setIsVideoOpen(true)} className="group inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/20 px-6 text-sm font-bold text-white transition-all hover:-translate-y-1 hover:border-white/50 hover:bg-white/10" data-testid="hero-profile-video-button"><span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:scale-110"><Play size={12} fill="currentColor" /></span> Lihat profil sekolah</button>
+                </div>
+              </motion.div>
+            </div>
+            <div className="relative z-10 grid grid-cols-2 gap-2.5 lg:grid-cols-4 lg:gap-3" data-testid="value-props-section">
+              {heroHighlights.map((item, index) => (
+                <motion.button
+                  key={item.label}
+                  type="button"
+                  onClick={() => scrollTo(item.href)}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ type: "spring", stiffness: 190, damping: 26, delay: 0.25 + index * 0.08 }}
+                  className="group flex min-h-[112px] flex-col justify-between gap-4 rounded-xl border border-white/10 bg-[#061e34]/55 p-4 text-left backdrop-blur-md transition-colors duration-300 hover:bg-white/90 focus-visible:bg-white/90 focus-visible:outline-none sm:p-5"
+                  data-testid={`value-prop-${index + 1}`}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <span className={`flex h-7 w-7 items-center justify-center rounded-lg text-white ${item.color}`}><item.icon size={15} /></span>
+                    <span className="font-heading text-sm font-extrabold text-amber-300 transition-colors group-hover:text-amber-600 group-focus-visible:text-amber-600">{item.value}</span>
+                    {/* On phones the arrow moves up here, leaving the narrow card's full width to the text. */}
+                    <ChevronRight size={16} className="ml-auto shrink-0 text-white/60 transition-colors group-hover:text-[#0a3358] group-focus-visible:text-[#0a3358] sm:hidden" />
+                  </span>
+                  <span className="flex items-end justify-between gap-3">
+                    <span>
+                      <span className="block text-sm font-extrabold text-white transition-colors group-hover:text-[#0a3358] group-focus-visible:text-[#0a3358]">{item.label}</span>
+                      <span className="mt-0.5 block text-xs leading-snug text-slate-300 transition-colors group-hover:text-slate-600 group-focus-visible:text-slate-600">{item.desc}</span>
+                    </span>
+                    <ChevronRight size={16} className="hidden shrink-0 text-white/60 transition-all duration-300 group-hover:translate-x-0.5 group-hover:text-[#0a3358] group-focus-visible:text-[#0a3358] sm:block" />
+                  </span>
+                </motion.button>
               ))}
             </div>
           </div>
-          <div className="h-4" />
+          <motion.div style={{ opacity: heroDim }} className="pointer-events-none absolute inset-0 z-20 bg-black" aria-hidden="true" />
         </section>
 
-        <section id="profil" className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16" data-testid="profile-section">
-          <div className="grid items-center gap-12 lg:grid-cols-2">
-            <Reveal className="relative mx-auto w-full max-w-md" data-testid="profile-media">
-              <span className="absolute -left-4 -top-4 z-10 flex h-16 w-16 items-center justify-center rounded-full bg-[#0f4c81] text-white shadow-lg shadow-blue-900/25"><GraduationCap size={26} /></span>
-              {profileContent.isPending ? <Skeleton className="aspect-[4/5] rounded-[2rem]" /> : <div className="aspect-[4/5] overflow-hidden rounded-[2rem] bg-slate-100">{profileMainImage && <img src={profileMainImage} alt={profileMainAlt} className="h-full w-full object-cover" />}</div>}
-              {profileContent.isPending ? <div className="absolute -bottom-8 -right-4 aspect-square sm:-right-6 w-[48%] overflow-hidden rounded-2xl border-4 border-white bg-white shadow-xl"><Skeleton className="h-full w-full rounded-none" /></div> : profileSecondaryImage && <div className="absolute -bottom-8 -right-4 aspect-square sm:-right-6 w-[48%] overflow-hidden rounded-2xl border-4 border-white shadow-xl bg-slate-100"><img src={profileSecondaryImage} alt={profileSecondaryAlt} className="h-full w-full object-cover" /></div>}
-            </Reveal>
-            <Reveal delay={120} data-testid="profile-intro">
-              <p className="section-kicker">01 · Tentang kami</p>
-              <h2 className="section-heading mt-3"><ClipReveal>Sekolah yang menyalakan <span className="text-emerald-600">potensi.</span></ClipReveal></h2>
-              <p className="mt-5 text-base leading-relaxed text-slate-600">SMK Teratai Putih Global 2 Bekasi hadir sebagai ruang tumbuh bagi generasi muda yang unggul, terpercaya, dan profesional. Kami mempertemukan karakter baik dengan kompetensi yang relevan dengan kebutuhan industri.</p>
-              <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-                {["Kurikulum berbasis industri", "Sertifikasi kompetensi", "Bimbingan karier", "Pembinaan karakter islami"].map((item) => (
-                  <li key={item} className="flex items-center gap-2 text-sm font-semibold text-slate-700"><Check size={16} className="shrink-0 text-emerald-600" /> {item}</li>
-                ))}
-              </ul>
-            </Reveal>
-          </div>
-          <Reveal delay={200} className="relative mt-14 rounded-[2rem] bg-white p-7 shadow-[0_20px_60px_-30px_rgba(15,76,129,.32)] ring-1 ring-slate-200/80 transition-transform duration-300 hover:-translate-y-1 sm:p-10" data-testid="foundation-quote-card"><Quote className="absolute right-8 top-8 text-amber-100" size={74} fill="currentColor" /><p className="relative max-w-2xl font-heading text-2xl font-bold leading-snug tracking-tight text-[#0a3358] sm:text-3xl">“Pendidikan adalah harga mati untuk menjadi pondasi bangsa dan negara dalam menghadapi perkembangan zaman.”</p><div className="relative mt-8 flex items-center gap-3 border-t border-slate-100 pt-5"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0f4c81] text-white"><Building2 size={18} /></span><span><strong className="block text-sm text-slate-800">Yayasan Teratai Putih Global</strong><small className="text-xs text-slate-500">Komitmen untuk generasi masa depan</small></span></div></Reveal>
-        </section>
+        <div ref={heroCoverRef} className="relative z-10 bg-[#f8fafc]">
+          <svg className="pointer-events-none absolute inset-x-0 bottom-[calc(100%-1px)] h-10 w-full sm:h-14" viewBox="0 0 1440 120" preserveAspectRatio="none" fill="none" aria-hidden="true">
+            <path d="M0,64 C240,112 480,16 720,64 C960,112 1200,16 1440,64 L1440,120 L0,120 Z" fill="#f8fafc" />
+          </svg>
+          <section id="profil" className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16" data-testid="profile-section">
+            <div className="grid items-center gap-12 lg:grid-cols-2">
+              <Reveal className="relative mx-auto w-full max-w-md" data-testid="profile-media">
+                <span className="absolute -left-4 -top-4 z-10 flex h-16 w-16 items-center justify-center rounded-full bg-[#0f4c81] text-white shadow-lg shadow-blue-900/25"><GraduationCap size={26} /></span>
+                {profileContent.isPending ? <Skeleton className="aspect-[4/5] rounded-[2rem]" /> : <div className="aspect-[4/5] overflow-hidden rounded-[2rem] bg-slate-100">{profileMainImage && <img src={profileMainImage} alt={profileMainAlt} className="h-full w-full object-cover" />}</div>}
+                {profileContent.isPending ? <div className="absolute -bottom-8 -right-4 aspect-square sm:-right-6 w-[48%] overflow-hidden rounded-2xl border-4 border-white bg-white shadow-xl"><Skeleton className="h-full w-full rounded-none" /></div> : profileSecondaryImage && <div className="absolute -bottom-8 -right-4 aspect-square sm:-right-6 w-[48%] overflow-hidden rounded-2xl border-4 border-white shadow-xl bg-slate-100"><img src={profileSecondaryImage} alt={profileSecondaryAlt} className="h-full w-full object-cover" /></div>}
+              </Reveal>
+              <Reveal delay={120} data-testid="profile-intro">
+                <p className="section-kicker">01 · Tentang kami</p>
+                <h2 className="section-heading mt-3"><ClipReveal>Sekolah yang menyalakan <span className="text-emerald-600">potensi.</span></ClipReveal></h2>
+                <p className="mt-5 text-base leading-relaxed text-slate-600">SMK Teratai Putih Global 2 Bekasi hadir sebagai ruang tumbuh bagi generasi muda yang unggul, terpercaya, dan profesional. Kami mempertemukan karakter baik dengan kompetensi yang relevan dengan kebutuhan industri.</p>
+                <ul className="mt-6 grid gap-3 sm:grid-cols-2">
+                  {["Kurikulum berbasis industri", "Sertifikasi kompetensi", "Bimbingan karier", "Pembinaan karakter islami"].map((item) => (
+                    <li key={item} className="flex items-center gap-2 text-sm font-semibold text-slate-700"><Check size={16} className="shrink-0 text-emerald-600" /> {item}</li>
+                  ))}
+                </ul>
+              </Reveal>
+            </div>
+            <Reveal delay={200} className="relative mt-14 rounded-[2rem] bg-white p-7 shadow-[0_20px_60px_-30px_rgba(15,76,129,.32)] ring-1 ring-slate-200/80 transition-transform duration-300 hover:-translate-y-1 sm:p-10" data-testid="foundation-quote-card"><Quote className="absolute right-8 top-8 text-amber-100" size={74} fill="currentColor" /><p className="relative max-w-2xl font-heading text-2xl font-bold leading-snug tracking-tight text-[#0a3358] sm:text-3xl">“Pendidikan adalah harga mati untuk menjadi pondasi bangsa dan negara dalam menghadapi perkembangan zaman.”</p><div className="relative mt-8 flex items-center gap-3 border-t border-slate-100 pt-5"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0f4c81] text-white"><Building2 size={18} /></span><span><strong className="block text-sm text-slate-800">Yayasan Teratai Putih Global</strong><small className="text-xs text-slate-500">Komitmen untuk generasi masa depan</small></span></div></Reveal>
+          </section>
 
-        <section id="jurusan" className="bg-white px-5 py-12 lg:py-16" data-testid="majors-section">
-          <div className="mx-auto max-w-7xl lg:px-3"><Reveal className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="section-kicker">02 · Program unggulan</p><h2 className="section-heading mt-3"><ClipReveal>Temukan ruang untuk <span className="text-emerald-600">bersinar.</span></ClipReveal></h2></div><p className="max-w-sm text-sm leading-relaxed text-slate-500">Kurikulum kami dirancang bersama dunia industri agar setiap pelajaran terasa dekat dengan masa depan.</p></Reveal>
-            {majorContent.isPending ? <MajorsSkeleton /> : !selectedMajor ? <div className={`mt-12 ${emptyStateClass}`} data-testid="majors-empty">Program keahlian belum tersedia.</div> : <div className="mt-12 grid gap-8 lg:grid-cols-[260px_1fr]"><div className="flex gap-2 overflow-x-auto pb-2 lg:block lg:space-y-2" role="tablist" aria-label="Program keahlian" data-testid="major-tabs">{displayMajors.map((major) => <button type="button" role="tab" aria-selected={selectedMajor.code === major.code} key={major.code} onClick={() => setSelectedMajorCode(major.code)} className={`major-tab group ${selectedMajor.code === major.code ? "major-tab-active" : ""}`} data-testid={`major-tab-${major.code.toLowerCase()}`}><span className="font-mono text-[11px]">{major.code}</span><span className="hidden text-left lg:block">{major.name}</span><ChevronRight size={15} className="ml-auto hidden transition-transform duration-300 group-hover:translate-x-1 lg:block" /></button>)}</div>
-              <AnimatePresence mode="wait"><motion.div key={selectedMajor.code} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} transition={{ type: "spring", stiffness: 260, damping: 26 }} className="overflow-hidden rounded-[1.75rem] bg-[#092c4c]" data-testid="selected-major-panel"><div className="grid min-h-[395px] lg:grid-cols-[.9fr_1.1fr]"><div className="relative min-h-[250px] overflow-hidden lg:min-h-0">{selectedMajor.image && <img src={selectedMajor.image} alt={selectedMajor.name} className="absolute inset-0 h-full w-full object-cover opacity-75" />}<div className="absolute inset-0 bg-gradient-to-r from-[#092c4c]/30 to-[#092c4c]/80 lg:bg-gradient-to-r lg:from-transparent lg:to-[#092c4c]" /><div className="absolute left-6 top-6 rounded-full bg-white/15 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">{selectedMajor.badge}</div></div><div className="flex flex-col justify-center p-7 text-white sm:p-10"><div className="flex items-center gap-3 text-emerald-300"><MajorIcon size={22} /><span className="font-mono text-xs font-bold tracking-widest">PROGRAM {selectedMajor.code}</span></div><h3 className="mt-4 max-w-md font-heading text-2xl font-extrabold sm:text-3xl" data-testid="selected-major-title">{selectedMajor.name}</h3><p className="mt-3 max-w-md text-sm leading-relaxed text-slate-300">{selectedMajor.tagline}</p><div className="mt-7 grid gap-5 sm:grid-cols-2"><div><span className="text-[10px] font-bold uppercase tracking-widest text-amber-300">Kompetensi inti</span><ul className="mt-3 space-y-2">{selectedMajor.skills.map(skill => <li key={skill} className="flex items-center gap-2 text-xs text-slate-200"><Check size={14} className="text-emerald-400" /> {skill}</li>)}</ul></div><div><span className="text-[10px] font-bold uppercase tracking-widest text-amber-300">Pilihan karier</span><ul className="mt-3 space-y-2">{selectedMajor.careers.map(career => <li key={career} className="flex items-center gap-2 text-xs text-slate-200"><ArrowUpRight size={13} className="text-emerald-400" /> {career}</li>)}</ul></div></div></div></div></motion.div></AnimatePresence>
-            </div>}
-          </div>
-        </section>
+          <section id="jurusan" className="bg-white px-5 py-12 lg:py-16" data-testid="majors-section">
+            <div className="mx-auto max-w-7xl lg:px-3"><Reveal className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="section-kicker">02 · Program unggulan</p><h2 className="section-heading mt-3"><ClipReveal>Temukan ruang untuk <span className="text-emerald-600">bersinar.</span></ClipReveal></h2></div><p className="max-w-sm text-sm leading-relaxed text-slate-500">Kurikulum kami dirancang bersama dunia industri agar setiap pelajaran terasa dekat dengan masa depan.</p></Reveal>
+              {majorContent.isPending ? <MajorsSkeleton /> : !selectedMajor ? <div className={`mt-12 ${emptyStateClass}`} data-testid="majors-empty">Program keahlian belum tersedia.</div> : <div className="mt-12 grid gap-8 lg:grid-cols-[260px_1fr]"><div className="flex gap-2 overflow-x-auto pb-2 lg:block lg:space-y-2" role="tablist" aria-label="Program keahlian" data-testid="major-tabs">{displayMajors.map((major) => <button type="button" role="tab" aria-selected={selectedMajor.code === major.code} key={major.code} onClick={() => setSelectedMajorCode(major.code)} className={`major-tab group ${selectedMajor.code === major.code ? "major-tab-active" : ""}`} data-testid={`major-tab-${major.code.toLowerCase()}`}><span className="font-mono text-[11px]">{major.code}</span><span className="hidden text-left lg:block">{major.name}</span><ChevronRight size={15} className="ml-auto hidden transition-transform duration-300 group-hover:translate-x-1 lg:block" /></button>)}</div>
+                <AnimatePresence mode="wait"><motion.div key={selectedMajor.code} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} transition={{ type: "spring", stiffness: 260, damping: 26 }} className="overflow-hidden rounded-[1.75rem] bg-[#092c4c]" data-testid="selected-major-panel"><div className="grid min-h-[395px] lg:grid-cols-[.9fr_1.1fr]"><div className="relative min-h-[250px] overflow-hidden lg:min-h-0">{selectedMajor.image && <img src={selectedMajor.image} alt={selectedMajor.name} className="absolute inset-0 h-full w-full object-cover opacity-75" />}<div className="absolute inset-0 bg-gradient-to-r from-[#092c4c]/30 to-[#092c4c]/80 lg:bg-gradient-to-r lg:from-transparent lg:to-[#092c4c]" /><div className="absolute left-6 top-6 rounded-full bg-white/15 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">{selectedMajor.badge}</div></div><div className="flex flex-col justify-center p-7 text-white sm:p-10"><div className="flex items-center gap-3 text-emerald-300"><MajorIcon size={22} /><span className="font-mono text-xs font-bold tracking-widest">PROGRAM {selectedMajor.code}</span></div><h3 className="mt-4 max-w-md font-heading text-2xl font-extrabold sm:text-3xl" data-testid="selected-major-title">{selectedMajor.name}</h3><p className="mt-3 max-w-md text-sm leading-relaxed text-slate-300">{selectedMajor.tagline}</p><div className="mt-7 grid gap-5 sm:grid-cols-2"><div><span className="text-[10px] font-bold uppercase tracking-widest text-amber-300">Kompetensi inti</span><ul className="mt-3 space-y-2">{selectedMajor.skills.map(skill => <li key={skill} className="flex items-center gap-2 text-xs text-slate-200"><Check size={14} className="text-emerald-400" /> {skill}</li>)}</ul></div><div><span className="text-[10px] font-bold uppercase tracking-widest text-amber-300">Pilihan karier</span><ul className="mt-3 space-y-2">{selectedMajor.careers.map(career => <li key={career} className="flex items-center gap-2 text-xs text-slate-200"><ArrowUpRight size={13} className="text-emerald-400" /> {career}</li>)}</ul></div></div></div></div></motion.div></AnimatePresence>
+              </div>}
+            </div>
+          </section>
 
-        <section id="fasilitas" className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16" data-testid="facilities-section"><Reveal className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="section-kicker">03 · Fasilitas belajar</p><h2 className="section-heading mt-3"><ClipReveal>Belajar lebih <span className="text-emerald-600">nyata.</span></ClipReveal></h2></div><p className="max-w-sm text-sm leading-relaxed text-slate-500">Ruang belajar yang dirancang untuk praktik, kolaborasi, dan keberanian mencoba hal baru.</p></Reveal><div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="facilities-grid">{facilityContent.isPending && <FacilitySkeletons />}{displayFacilities.map(({ image, title, desc }, index) => <motion.button type="button" initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }} whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 200, damping: 24, delay: (index % 3) * 0.08 }} key={title} onClick={() => image && setFacilityLightbox({ image, title, desc })} className={`group relative overflow-hidden rounded-2xl bg-white text-left ring-1 ring-slate-200/80 shadow-sm ${image ? "cursor-zoom-in" : "cursor-default"} ${index === 0 ? "lg:col-span-2" : ""}`} data-testid={`facility-card-${index + 1}`}><div className={`relative overflow-hidden bg-gradient-to-br from-[#0f4c81] to-[#092c4c] ${index === 0 ? "h-64" : "h-52"}`}>{image && <img src={image} alt={title} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />}<div className="absolute inset-0 bg-gradient-to-t from-[#092c4c]/80 to-transparent" /><div className="absolute bottom-4 left-5 right-5"><h3 className="font-heading text-lg font-bold text-white">{title}</h3><p className="mt-1 max-w-lg text-xs leading-relaxed text-slate-200">{desc}</p></div></div></motion.button>)}{!facilityContent.isPending && displayFacilities.length === 0 && <div className={emptyStateClass} data-testid="facilities-empty">Informasi fasilitas belum tersedia.</div>}</div></section>
+          <section id="fasilitas" className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16" data-testid="facilities-section"><Reveal className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="section-kicker">03 · Fasilitas belajar</p><h2 className="section-heading mt-3"><ClipReveal>Belajar lebih <span className="text-emerald-600">nyata.</span></ClipReveal></h2></div><p className="max-w-sm text-sm leading-relaxed text-slate-500">Ruang belajar yang dirancang untuk praktik, kolaborasi, dan keberanian mencoba hal baru.</p></Reveal><div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="facilities-grid">{facilityContent.isPending && <FacilitySkeletons />}{displayFacilities.map(({ image, title, desc }, index) => <motion.button type="button" initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }} whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 200, damping: 24, delay: (index % 3) * 0.08 }} key={title} onClick={() => image && setFacilityLightbox({ image, title, desc })} className={`group relative overflow-hidden rounded-2xl bg-white text-left ring-1 ring-slate-200/80 shadow-sm ${image ? "cursor-zoom-in" : "cursor-default"} ${index === 0 ? "lg:col-span-2" : ""}`} data-testid={`facility-card-${index + 1}`}><div className={`relative overflow-hidden bg-gradient-to-br from-[#0f4c81] to-[#092c4c] ${index === 0 ? "h-64" : "h-52"}`}>{image && <img src={image} alt={title} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />}<div className="absolute inset-0 bg-gradient-to-t from-[#092c4c]/80 to-transparent" /><div className="absolute bottom-4 left-5 right-5"><h3 className="font-heading text-lg font-bold text-white">{title}</h3><p className="mt-1 max-w-lg text-xs leading-relaxed text-slate-200">{desc}</p></div></div></motion.button>)}{!facilityContent.isPending && displayFacilities.length === 0 && <div className={emptyStateClass} data-testid="facilities-empty">Informasi fasilitas belum tersedia.</div>}</div></section>
 
-        <section id="berita" className="bg-[#eaf3f4] px-5 py-12 lg:py-16" data-testid="agenda-section"><div className="mx-auto max-w-7xl lg:px-3"><Reveal className="mb-10 flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="section-kicker">04 · Agenda terkini</p><h2 className="section-heading mt-3"><ClipReveal>Rencanakan setiap <span className="text-emerald-600">momen.</span></ClipReveal></h2></div><div className="flex flex-col items-start gap-3 sm:items-end"><p className="max-w-sm text-sm leading-relaxed text-slate-600">Lihat agenda bulanan, detail kegiatan, dan simpan pengingat langsung ke kalender Anda.</p></div></Reveal>{agendaContent.isPending ? <AcademicCalendarSkeleton /> : <AcademicCalendar events={agendaContent.data ?? []} />}</div></section>
+          <section id="berita" className="bg-[#eaf3f4] px-5 py-12 lg:py-16" data-testid="agenda-section"><div className="mx-auto max-w-7xl lg:px-3"><Reveal className="mb-10 flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="section-kicker">04 · Agenda terkini</p><h2 className="section-heading mt-3"><ClipReveal>Rencanakan setiap <span className="text-emerald-600">momen.</span></ClipReveal></h2></div><div className="flex flex-col items-start gap-3 sm:items-end"><p className="max-w-sm text-sm leading-relaxed text-slate-600">Lihat agenda bulanan, detail kegiatan, dan simpan pengingat langsung ke kalender Anda.</p></div></Reveal>{agendaContent.isPending ? <AcademicCalendarSkeleton /> : <AcademicCalendar events={agendaContent.data ?? []} />}</div></section>
 
-        <section id="berita-terkini" className="bg-slate-50 px-5 py-12 lg:px-8 lg:py-16" data-testid="news-section"><div className="mx-auto max-w-7xl"><Reveal className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="section-kicker">05 · Berita sekolah</p><h2 className="section-heading mt-3"><ClipReveal>Kabar terbaru dari <span className="text-emerald-600">kami.</span></ClipReveal></h2></div><p className="max-w-sm text-sm leading-relaxed text-slate-500">Ikuti pengumuman, prestasi, dan kegiatan terkini sekolah.</p></Reveal><div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" data-testid="news-grid">{newsContent.isPending && <NewsCardSkeletons />}{displayNews.map((item, index) => <NewsCard key={item.id} item={item} to={newsPath(item, allNews)} onClick={rememberNewsSection} data-testid={`news-item-${index + 1}`} />)}{!newsContent.isPending && displayNews.length === 0 && <div className={emptyStateClass} data-testid="news-empty">Belum ada berita.</div>}</div>{allNews.length > 0 && <div className="mt-10 flex flex-col items-center gap-3"><Link to="/berita" onClick={rememberNewsSection} className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#0f4c81] px-7 text-sm font-bold text-white shadow-lg shadow-blue-900/15 transition-colors hover:bg-[#0a3358]" data-testid="news-see-all-link">Lihat semua berita <ArrowRight size={16} /></Link>{allNews.length > homeNewsLimit && <span className="text-xs text-slate-500" data-testid="news-more-count">+{allNews.length - homeNewsLimit} berita lainnya</span>}</div>}</div></section>
+          <section id="berita-terkini" className="bg-slate-50 px-5 py-12 lg:px-8 lg:py-16" data-testid="news-section"><div className="mx-auto max-w-7xl"><Reveal className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="section-kicker">05 · Berita sekolah</p><h2 className="section-heading mt-3"><ClipReveal>Kabar terbaru dari <span className="text-emerald-600">kami.</span></ClipReveal></h2></div><p className="max-w-sm text-sm leading-relaxed text-slate-500">Ikuti pengumuman, prestasi, dan kegiatan terkini sekolah.</p></Reveal><div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" data-testid="news-grid">{newsContent.isPending && <NewsCardSkeletons />}{displayNews.map((item, index) => <StaggerRise key={item.id}><NewsCard item={item} to={newsPath(item, allNews)} onClick={rememberNewsSection} data-testid={`news-item-${index + 1}`} /></StaggerRise>)}{!newsContent.isPending && displayNews.length === 0 && <div className={emptyStateClass} data-testid="news-empty">Belum ada berita.</div>}</div>{allNews.length > 0 && <div className="mt-10 flex flex-col items-center gap-3"><Link to="/berita" onClick={rememberNewsSection} className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#0f4c81] px-7 text-sm font-bold text-white shadow-lg shadow-blue-900/15 transition-colors hover:bg-[#0a3358]" data-testid="news-see-all-link">Lihat semua berita <ArrowRight size={16} /></Link>{allNews.length > homeNewsLimit && <span className="text-xs text-slate-500" data-testid="news-more-count">+{allNews.length - homeNewsLimit} berita lainnya</span>}</div>}</div></section>
 
-        <section id="galeri" className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16" data-testid="gallery-section"><Reveal className="flex items-end justify-between"><div><p className="section-kicker">06 · Galeri aktivitas</p><h2 className="section-heading mt-3"><ClipReveal>Momen yang <span className="text-emerald-600">bermakna.</span></ClipReveal></h2></div></Reveal><div className="mt-10" data-testid="gallery-grid">{galleryContent.isPending ? <ActivityStackSkeleton /> : stackItems.length === 0 ? <div className={emptyStateClass} data-testid="gallery-empty">Belum ada foto galeri.</div> : <ActivityStack items={stackItems} onPlay={(item) => item.video && setGalleryVideo({ ...item.video, title: item.title })} onZoom={(item) => item.fullImage && setFacilityLightbox({ image: item.fullImage, title: item.title, desc: item.description })} />}</div></section>
+          <section id="galeri" className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16" data-testid="gallery-section"><Reveal className="flex items-end justify-between"><div><p className="section-kicker">06 · Galeri aktivitas</p><h2 className="section-heading mt-3"><ClipReveal>Momen yang <span className="text-emerald-600">bermakna.</span></ClipReveal></h2></div></Reveal><div className="mt-10" data-testid="gallery-grid">{galleryContent.isPending ? <ActivityStackSkeleton /> : stackItems.length === 0 ? <div className={emptyStateClass} data-testid="gallery-empty">Belum ada foto galeri.</div> : <ActivityStack items={stackItems} onPlay={(item) => item.video && setGalleryVideo({ ...item.video, title: item.title })} onZoom={(item) => item.fullImage && setFacilityLightbox({ image: item.fullImage, title: item.title, desc: item.description })} />}</div></section>
 
-        {showPartners && <section id="kerja-sama" className="bg-slate-50 px-5 py-12 lg:px-8 lg:py-16" data-testid="partners-section"><div className="mx-auto max-w-7xl"><Reveal className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="section-kicker">07 · Kerja sama</p><h2 className="section-heading mt-3"><ClipReveal>Mitra industri <span className="text-emerald-600">kami.</span></ClipReveal></h2></div><p className="max-w-sm text-sm leading-relaxed text-slate-500">Bersama dunia usaha dan dunia industri, kami menyiapkan siswa lewat praktik kerja, rekrutmen, dan kurikulum yang relevan.</p></Reveal><div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" data-testid="partners-grid">{partnerContent.isPending && <PartnerSkeletons />}{displayPartners.map((item, index) => {
-              const entrance = { initial: { opacity: 0, y: 24 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, amount: 0.3 }, transition: { type: "spring" as const, stiffness: 210, damping: 24, delay: (index % 5) * 0.06 } };
-              const inner = <><img src={optimizeImageUrl(item.image_url, 400) ?? ""} alt={item.title} loading="lazy" className="h-14 w-full object-contain grayscale transition-all duration-500 group-hover:grayscale-0 sm:h-16" /><span className="mt-3 line-clamp-1 text-center text-[11px] font-bold text-slate-500 group-hover:text-[#0a3358]">{item.title}</span></>;
-              const cardClass = "group flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md";
-              return item.link
-                ? <motion.a {...entrance} whileHover={{ y: -4 }} href={item.link} target="_blank" rel="noreferrer" key={item.id} className={cardClass} data-testid={`partner-item-${index + 1}`}>{inner}</motion.a>
-                : <motion.div {...entrance} whileHover={{ y: -4 }} key={item.id} className={cardClass} data-testid={`partner-item-${index + 1}`}>{inner}</motion.div>;
-            })}</div></div></section>}
+          {showPartners && <section id="kerja-sama" className="bg-slate-50 px-5 py-12 lg:px-8 lg:py-16" data-testid="partners-section"><div className="mx-auto max-w-7xl"><Reveal className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="section-kicker">07 · Kerja sama</p><h2 className="section-heading mt-3"><ClipReveal>Mitra industri <span className="text-emerald-600">kami.</span></ClipReveal></h2></div><p className="max-w-sm text-sm leading-relaxed text-slate-500">Bersama dunia usaha dan dunia industri, kami menyiapkan siswa lewat praktik kerja, rekrutmen, dan kurikulum yang relevan.</p></Reveal><div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" data-testid="partners-grid">{partnerContent.isPending && <PartnerSkeletons />}{displayPartners.map((item, index) => {
+                const entrance = { initial: { opacity: 0, y: 24 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, amount: 0.3 }, transition: { type: "spring" as const, stiffness: 210, damping: 24, delay: (index % 5) * 0.06 } };
+                const inner = <><img src={optimizeImageUrl(item.image_url, 400) ?? ""} alt={item.title} loading="lazy" className="h-14 w-full object-contain grayscale transition-all duration-500 group-hover:grayscale-0 sm:h-16" /><span className="mt-3 line-clamp-1 text-center text-[11px] font-bold text-slate-500 group-hover:text-[#0a3358]">{item.title}</span></>;
+                const cardClass = "group flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md";
+                return item.link
+                  ? <motion.a {...entrance} whileHover={{ y: -4 }} href={item.link} target="_blank" rel="noreferrer" key={item.id} className={cardClass} data-testid={`partner-item-${index + 1}`}>{inner}</motion.a>
+                  : <motion.div {...entrance} whileHover={{ y: -4 }} key={item.id} className={cardClass} data-testid={`partner-item-${index + 1}`}>{inner}</motion.div>;
+              })}</div></div></section>}
 
-        {showBanner && <section id="spmb" className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16" data-testid="spmb-banner-section">{announcements.length === 0 ? <BannerSkeleton /> : <Announcements items={announcements} number={spmbNumber} activeId={announcementId} onSelect={setAnnouncementId} />}</section>}
+          {showBanner && <section id="spmb" className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16" data-testid="spmb-banner-section">{announcements.length === 0 ? <BannerSkeleton /> : <Announcements items={announcements} number={spmbNumber} activeId={announcementId} onSelect={setAnnouncementId} />}</section>}
 
-        <section id="kontak" className="bg-[#092c4c] px-5 py-12 text-white lg:py-16" data-testid="contact-section"><div className="mx-auto max-w-7xl lg:px-3"><div className="grid gap-12 lg:grid-cols-[.8fr_1.2fr]"><Reveal><p className="section-kicker text-emerald-300">{String(contactNumber).padStart(2, "0")} · Hubungi kami</p><h2 className="mt-3 max-w-lg font-heading text-3xl font-extrabold leading-tight sm:text-4xl"><ClipReveal>Langkah pertama menuju masa depan dimulai <span className="text-amber-300">di sini.</span></ClipReveal></h2><p className="mt-5 max-w-md text-sm leading-relaxed text-slate-300">Tim kami siap membantu calon siswa dan orang tua mendapatkan informasi terbaik tentang program, fasilitas, dan SPMB.</p><div className="mt-8 space-y-4"><a href="https://wa.me/628211058321" target="_blank" rel="noreferrer" className="contact-line group" data-testid="contact-whatsapp-primary"><span className="contact-icon bg-emerald-500/15 text-emerald-300"><MessageCircle size={18} /></span><span><small>WhatsApp SPMB</small><strong>+62 821-1058-321</strong></span><ArrowUpRight size={17} className="ml-auto transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-0.5" /></a><a href="mailto:terataiputihglobal2@gmail.com" className="contact-line group" data-testid="contact-email-link"><span className="contact-icon bg-amber-500/15 text-amber-300"><Mail size={18} /></span><span><small>Email resmi</small><strong>terataiputihglobal2@gmail.com</strong></span><ArrowUpRight size={17} className="ml-auto transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-0.5" /></a></div></Reveal><Reveal delay={140} className="overflow-hidden rounded-[1.75rem] border border-white/10" data-testid="contact-map"><iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.219862270376!2d106.97722267472493!3d-6.236668893760604!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e698d21f23894cd%3A0x54ea838beac73d1d!2sSMK%20Teratai%20Putih%20Global%202%20Bekasi!5e0!3m2!1sid!2sid!4v1715569844943!5m2!1sid!2sid" width="100%" height="100%" className="min-h-[320px] lg:min-h-full" style={{ border: 0 }} loading="lazy" referrerPolicy="no-referrer-when-downgrade" title="Lokasi SMK Teratai Putih Global 2 Bekasi" data-testid="contact-map-iframe" /></Reveal></div></div></section>
+          <section id="kontak" className="bg-[#092c4c] px-5 py-12 text-white lg:py-16" data-testid="contact-section"><div className="mx-auto max-w-7xl lg:px-3"><div className="grid gap-12 lg:grid-cols-[.8fr_1.2fr]"><Reveal><p className="section-kicker text-emerald-300">{String(contactNumber).padStart(2, "0")} · Hubungi kami</p><h2 className="mt-3 max-w-lg font-heading text-3xl font-extrabold leading-tight sm:text-4xl"><ClipReveal>Langkah pertama menuju masa depan dimulai <span className="text-amber-300">di sini.</span></ClipReveal></h2><p className="mt-5 max-w-md text-sm leading-relaxed text-slate-300">Tim kami siap membantu calon siswa dan orang tua mendapatkan informasi terbaik tentang program, fasilitas, dan SPMB.</p><div className="mt-8 space-y-4"><a href="https://wa.me/628211058321" target="_blank" rel="noreferrer" className="contact-line group" data-testid="contact-whatsapp-primary"><span className="contact-icon bg-emerald-500/15 text-emerald-300"><MessageCircle size={18} /></span><span><small>WhatsApp SPMB</small><strong>+62 821-1058-321</strong></span><ArrowUpRight size={17} className="ml-auto transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-0.5" /></a><a href="mailto:terataiputihglobal2@gmail.com" className="contact-line group" data-testid="contact-email-link"><span className="contact-icon bg-amber-500/15 text-amber-300"><Mail size={18} /></span><span><small>Email resmi</small><strong>terataiputihglobal2@gmail.com</strong></span><ArrowUpRight size={17} className="ml-auto transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-0.5" /></a></div></Reveal><Reveal delay={140} className="overflow-hidden rounded-[1.75rem] border border-white/10" data-testid="contact-map"><iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.219862270376!2d106.97722267472493!3d-6.236668893760604!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e698d21f23894cd%3A0x54ea838beac73d1d!2sSMK%20Teratai%20Putih%20Global%202%20Bekasi!5e0!3m2!1sid!2sid!4v1715569844943!5m2!1sid!2sid" width="100%" height="100%" className="min-h-[320px] lg:min-h-full" style={{ border: 0 }} loading="lazy" referrerPolicy="no-referrer-when-downgrade" title="Lokasi SMK Teratai Putih Global 2 Bekasi" data-testid="contact-map-iframe" /></Reveal></div></div></section>
+        </div>
       </main>
 
       <SiteFooter />

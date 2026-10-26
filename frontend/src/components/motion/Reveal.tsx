@@ -1,6 +1,6 @@
-import { useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { motion, useInView, type HTMLMotionProps } from "motion/react";
+import { motion, useInView, useReducedMotion, useScroll, useTransform, type HTMLMotionProps } from "motion/react";
 import { cn } from "@/lib/utils";
 
 type RevealProps = Omit<HTMLMotionProps<"div">, "initial" | "animate" | "transition"> & {
@@ -54,5 +54,47 @@ export function ClipReveal({ children, className, innerClassName, delay = 0, dur
         {children}
       </motion.span>
     </Tag>
+  );
+}
+
+type StaggerRiseProps = {
+  children: ReactNode;
+  className?: string;
+  /** How much lower each column further right starts, in px, as its row enters the viewport. */
+  step?: number;
+};
+
+/**
+ * Scroll-linked "uneven → level" entrance for grid items (as on adobe.com): a row starts
+ * stepped — each column further right sits lower — and rises into line as it scrolls in,
+ * level once the row's top reaches 40% of the viewport. Follows the scroll both ways.
+ */
+export function StaggerRise({ children, className, step = 72 }: StaggerRiseProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
+  const [column, setColumn] = useState(0);
+  // Motion measures the target by offsetTop, so the item's own translate doesn't feed back
+  // into its progress — every item in a row shares one progress value.
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "start 0.4"] });
+  const y = useTransform(scrollYProgress, (progress) => (1 - progress) * column * step);
+
+  // Which grid column the item landed in (0 = leftmost), re-measured whenever the grid reflows.
+  useLayoutEffect(() => {
+    const item = ref.current;
+    const grid = item?.parentElement;
+    if (!item || !grid) return;
+    const measure = () => {
+      if (item.offsetWidth) setColumn(Math.round((item.getBoundingClientRect().left - grid.getBoundingClientRect().left) / item.offsetWidth));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(item);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <motion.div ref={ref} style={reduceMotion ? undefined : { y }} className={cn(className)}>
+      {children}
+    </motion.div>
   );
 }
