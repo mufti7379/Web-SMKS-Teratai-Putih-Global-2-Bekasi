@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import { Link } from "react-router-dom";
 import { FooterCredit } from "@/components/FooterCredit";
+import { FooterSkyline } from "@/components/FooterSkyline";
 
 // lucide dropped its brand icons, so the social ones are drawn here in lucide's stroke
 // style (24px grid, 2px round strokes) to match the rest of the site's icons.
@@ -54,7 +55,7 @@ export function SiteFooter() {
         <div className="grid gap-10 border-b border-white/10 pb-12 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr]">
           <div>
             <div className="flex items-center gap-3"><img src="/logo-tp2.png" alt="Logo SMK Teratai Putih Global 2" className="h-10 w-10 rounded-xl object-contain" /><span><strong className="block text-sm text-white">SMK Teratai Putih Global 2</strong><small className="text-[10px]">Unggul · Terpercaya · Profesional</small></span></div>
-            <div className="mt-4 flex flex-wrap gap-2" data-testid="footer-school-identity"><span className="rounded-full bg-emerald-400/15 px-3 py-1 text-[11px] font-bold text-emerald-300">Akreditasi A</span><span className="rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold text-slate-200">NPSN 20254039</span></div>
+            <div className="mt-4 flex flex-wrap gap-2" data-testid="footer-school-identity"><span className="rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold text-slate-200">Akreditasi A</span><span className="rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold text-slate-200">NPSN 20254039</span></div>
             <p className="mt-4 max-w-xs text-xs leading-relaxed text-slate-400">Ruang tumbuh bagi generasi muda yang unggul, terpercaya, dan profesional dengan lima program keahlian siap kerja.</p>
             <p className="mt-4 text-xs leading-relaxed text-slate-400">Jl. Rajawali V, RT.005/RW.023, Kayuringin Jaya<br />Kec. Bekasi Selatan, Kota Bekasi, Jawa Barat 17144</p>
             <div className="mt-5 flex items-center gap-3"><span className="flex h-12 w-12 items-center justify-center rounded-lg bg-white p-1.5"><img src="/logo-yayasan.png" alt="Logo Yayasan Teratai Putih Global" className="h-full w-full object-contain" data-testid="footer-foundation-logo" /></span><span className="flex h-12 w-12 items-center justify-center rounded-lg bg-white p-1.5"><img src="/logo-smk-hebat.jpg" alt="Logo SMK Bisa Hebat" className="h-full w-full object-contain" data-testid="footer-smk-hebat-logo" /></span></div>
@@ -72,6 +73,7 @@ export function SiteFooter() {
               ))}
             </ul>
             <Link to="/admin" className="mt-5 inline-block text-xs font-bold text-slate-500 transition-colors hover:text-white" data-testid="footer-admin-link">Admin</Link>
+            <FooterSkyline />
           </div>
         </div>
         <FooterCredit className="mt-8" />

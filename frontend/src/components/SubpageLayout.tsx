@@ -35,7 +35,7 @@ export function SubpageLayout({ backTo, backLabel, wide = false, banner, childre
         <div className={cn("mx-auto flex h-[76px] items-center justify-between gap-4 px-5 lg:px-8", container)}>
           <Link to="/" className="flex items-center gap-3" data-testid="subpage-brand-link">
             <img src="/logo-tp2.png" alt="Logo SMK Teratai Putih Global 2" className="h-11 w-11 rounded-2xl object-contain shadow-lg shadow-blue-900/15" />
-            <span className="hidden sm:block"><span className="block font-heading text-[15px] font-extrabold leading-tight text-[#0a3358]">SMK TERATAI PUTIH</span><span className="mt-0.5 block text-[10px] font-bold tracking-[0.18em] text-emerald-600">GLOBAL 2 BEKASI</span></span>
+            <span className="hidden sm:block"><span className="block whitespace-nowrap font-heading text-[15px] font-extrabold leading-tight text-[#0a3358]">SMK TERATAI PUTIH GLOBAL 2</span><span className="mt-0.5 block whitespace-nowrap text-[11px] font-bold text-amber-500">Kota Bekasi – Joyfull Learning</span></span>
           </Link>
           <Link to={backTo} className="group inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-xs font-bold text-[#0f4c81] transition-all hover:-translate-y-0.5 hover:border-[#0f4c81]/30 hover:bg-slate-50" data-testid="subpage-back-link"><ArrowLeft size={15} className="transition-transform duration-300 group-hover:-translate-x-1" /> {backLabel}</Link>
         </div>

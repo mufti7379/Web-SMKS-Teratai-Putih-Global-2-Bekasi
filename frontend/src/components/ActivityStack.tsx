@@ -66,7 +66,8 @@ export function ActivityStackSkeleton() {
 /**
  * The home page's activity gallery as a zigzag pile of photo cards — albums and single
  * activities — with a detail panel beside it. Clicking the front card brings up the next one, clicking a card peeking out from behind
- * jumps to it, a horizontal swipe works too, and it loops.
+ * jumps to it, a horizontal swipe works too, and it loops. On first scroll into view the pile slides
+ * in from the left and the detail panel from the right.
  */
 export function ActivityStack({ items, onPlay, onZoom }: ActivityStackProps) {
   const reduceMotion = useReducedMotion();
@@ -81,7 +82,7 @@ export function ActivityStack({ items, onPlay, onZoom }: ActivityStackProps) {
 
   return (
     <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_.9fr] lg:gap-16" data-testid="activity-stack">
-      <div className="py-6">
+      <motion.div className="py-6" initial={reduceMotion ? false : { opacity: 0, x: -80 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ type: "spring", stiffness: 200, damping: 24 }}>
         <div
           className="relative mx-auto aspect-[4/3] w-[84%] touch-pan-y select-none"
           onPointerDown={(event) => { swipe.current = { x: event.clientX, moved: false }; }}
@@ -130,9 +131,9 @@ export function ActivityStack({ items, onPlay, onZoom }: ActivityStackProps) {
           })}
         </div>
         {count > 1 && <p className="mt-8 text-center text-xs text-slate-400">Klik kartu untuk melihat momen berikutnya</p>}
-      </div>
+      </motion.div>
 
-      <div data-testid="activity-detail">
+      <motion.div data-testid="activity-detail" initial={reduceMotion ? false : { opacity: 0, x: 80 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ type: "spring", stiffness: 200, damping: 24, delay: 0.1 }}>
         <p className="font-heading text-sm font-bold tabular-nums text-slate-400" aria-live="polite"><span className="text-4xl font-extrabold text-[#0a3358]" data-testid="activity-detail-counter">{pad(position + 1)}</span> / {pad(count)}</p>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div key={current.key} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: reduceMotion ? 0 : 0.22 }}>
@@ -149,7 +150,7 @@ export function ActivityStack({ items, onPlay, onZoom }: ActivityStackProps) {
             </div>
           </motion.div>
         </AnimatePresence>
-      </div>
+      </motion.div>
     </div>
   );
 }
