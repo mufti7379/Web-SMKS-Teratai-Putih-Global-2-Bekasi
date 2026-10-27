@@ -12,10 +12,19 @@ export type PublicNews = NewsRef & { description: string; image_url: string | nu
 
 export type PublicGalleryItem = AlbumRef & { title: string; image_url: string | null; created_at: string };
 
+/**
+ * Where the functions fetch this site's own content and app shell from. The public domain sits
+ * behind Cloudflare, and fetching it from inside a function fails there (every page and album
+ * answered 502), so on that domain they go to the project's vercel.app alias instead — the same
+ * production deployment, reached directly. Other origins (previews, local) are used as they are.
+ */
+const PRODUCTION_ALIAS = "https://terataiputih2-frontend.vercel.app";
+const fetchOrigin = (origin: string) => (origin === SITE_URL ? PRODUCTION_ALIAS : origin);
+
 /** Published CMS content through this site's own /api proxy, so the backend URL stays only in vercel.json. Null when unreachable. */
 async function fetchPublicContent<T>(origin: string, resource: string): Promise<T[] | null> {
   try {
-    const response = await fetch(`${origin}/api/content/${resource}`, { headers: { accept: "application/json" } });
+    const response = await fetch(`${fetchOrigin(origin)}/api/content/${resource}`, { headers: { accept: "application/json" } });
     return response.ok ? ((await response.json()) as T[]) : null;
   } catch {
     return null;
@@ -28,7 +37,7 @@ export const fetchPublishedGallery = (origin: string) => fetchPublicContent<Publ
 /** The built app shell (dist/index.html), fetched from this deployment's static files. */
 export async function fetchAppShell(origin: string): Promise<string | null> {
   try {
-    const response = await fetch(`${origin}/index.html`);
+    const response = await fetch(`${fetchOrigin(origin)}/index.html`);
     return response.ok ? await response.text() : null;
   } catch {
     return null;
