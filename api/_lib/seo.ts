@@ -8,7 +8,7 @@ export const SITE_URL = "https://www.smk-terataiputih2.sch.id";
 export const SITE_NAME = "SMK Teratai Putih Global 2 Bekasi";
 export const LOGO_URL = `${SITE_URL}/logo-tp2.png`;
 
-export type PublicNews = NewsRef & { description: string; image_url: string | null; badge: string | null; updated_at: string };
+export type PublicNews = NewsRef & { description: string; image_url: string | null; badge: string | null; link: string | null; updated_at: string };
 
 export type PublicGalleryItem = AlbumRef & { title: string; image_url: string | null; created_at: string };
 
@@ -38,7 +38,21 @@ export async function fetchAppShell(origin: string): Promise<string | null> {
 /** A picture for crawlers, who need a full address — CMS pictures are site-relative /media links. */
 export const absoluteImageUrl = (url: string | null | undefined) => (url ? new URL(url, SITE_URL).href : null);
 
-const escapeHtml = (value: string) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+export const escapeHtml = (value: string) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+/**
+ * When an article first went out, for its structured data and the Google News sitemap — the
+ * two must agree. It's the date the article shows; when that's also the day it was posted
+ * (Jakarta time), the posting timestamp gives Google the hour and time zone too.
+ */
+export function newsPublishedAt(item: PublicNews) {
+  if (!item.date) return item.created_at;
+  const postedDay = new Date(item.created_at).toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
+  return item.date.slice(0, 10) === postedDay ? item.created_at : item.date.slice(0, 10);
+}
+
+/** Same order as the app's news pages: by news date, newest first. */
+export const sortNewsNewestFirst = <T extends PublicNews>(news: T[]) => [...news].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
 
 /** First sentence-ish chunk of a body text, for meta descriptions (~160 chars). */
 export function excerpt(text: string, max = 160) {
@@ -64,7 +78,8 @@ export function renderHead({ title, description, path, image, type = "website", 
   const tags = [
     `<title>${escapeHtml(title)}</title>`,
     `<meta name="description" content="${escapeHtml(description)}" />`,
-    noindex ? `<meta name="robots" content="noindex" />` : `<link rel="canonical" href="${escapeHtml(url)}" />`,
+    // Large previews are what Top Stories and Discover need to show the photo, not a thumbnail.
+    noindex ? `<meta name="robots" content="noindex" />` : `<meta name="robots" content="max-image-preview:large" />\n    <link rel="canonical" href="${escapeHtml(url)}" />`,
     `<meta property="og:type" content="${type}" />`,
     `<meta property="og:site_name" content="${escapeHtml(SITE_NAME)}" />`,
     `<meta property="og:locale" content="id_ID" />`,
@@ -86,6 +101,19 @@ const HEAD_BLOCK = /<!-- seo:start[^>]*-->[\s\S]*?<!-- seo:end -->/;
 export function injectHead(shell: string, head: string) {
   return HEAD_BLOCK.test(shell) ? shell.replace(HEAD_BLOCK, () => `<!-- seo:start -->\n    ${head}\n    <!-- seo:end -->`) : shell;
 }
+
+// index.html's <body> carries the home page's text in a <noscript> between these markers, for
+// crawlers that don't run JavaScript (Bing, AI search bots). Pages served through the functions
+// swap it for their own text — or drop it — so no page shows another page's content.
+const FALLBACK_BLOCK = /<!-- fallback:start[^>]*-->[\s\S]*?<!-- fallback:end -->/;
+
+export function injectFallback(shell: string, html: string) {
+  return shell.replace(FALLBACK_BLOCK, () => (html ? `<noscript>${html}</noscript>` : ""));
+}
+
+/** Body text as HTML paragraphs: blank lines split paragraphs, single line breaks stay. */
+export const paragraphsHtml = (text: string) =>
+  text.trim().split(/\n\s*\n/).map((block) => `<p>${escapeHtml(block.trim()).replace(/\n/g, "<br />")}</p>`).join("");
 
 export function htmlResponse(body: string, status: number, cacheControl: string) {
   return new Response(body, { status, headers: { "content-type": "text/html; charset=utf-8", "cache-control": cacheControl } });

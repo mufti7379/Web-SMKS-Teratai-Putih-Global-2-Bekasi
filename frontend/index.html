@@ -18,6 +18,7 @@
          Vercel function in /api/page.ts replaces everything up to seo:end with that page's own. -->
     <title>SMK Teratai Putih Global 2 Bekasi — SMK Terakreditasi A</title>
     <meta name="description" content="SMK swasta terakreditasi A di Bekasi Selatan dengan 5 jurusan: RPL, DKV, Bisnis Digital, Manajemen Perkantoran, dan Akuntansi. Info pendaftaran SPMB." />
+    <meta name="robots" content="max-image-preview:large" />
     <link rel="canonical" href="https://www.smk-terataiputih2.sch.id/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="SMK Teratai Putih Global 2 Bekasi" />
@@ -27,37 +28,72 @@
     <meta property="og:url" content="https://www.smk-terataiputih2.sch.id/" />
     <meta property="og:image" content="https://www.smk-terataiputih2.sch.id/logo-tp2.png" />
     <meta name="twitter:card" content="summary" />
+    <!-- The school, plus the WebSite entry that lets Google show the school's name above
+         results instead of the bare domain. -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "HighSchool",
-        "@id": "https://www.smk-terataiputih2.sch.id/#school",
-        "name": "SMK Teratai Putih Global 2 Bekasi",
-        "alternateName": ["SMKS Teratai Putih Global 2 Bekasi", "SMK Terput 2 Bekasi"],
-        "url": "https://www.smk-terataiputih2.sch.id/",
-        "logo": "https://www.smk-terataiputih2.sch.id/logo-tp2.png",
-        "image": "https://www.smk-terataiputih2.sch.id/logo-tp2.png",
-        "description": "SMK swasta terakreditasi A di Bekasi Selatan dengan 5 jurusan: Rekayasa Perangkat Lunak, Desain Komunikasi Visual, Bisnis Digital & Pemasaran, Manajemen Perkantoran, dan Akuntansi Keuangan Lembaga.",
-        "email": "terataiputihglobal2@gmail.com",
-        "telephone": "+62-821-1058-321",
-        "address": {
-          "@type": "PostalAddress",
-          "streetAddress": "Jl. Rajawali V, RT.005/RW.023, Kayuringin Jaya",
-          "addressLocality": "Kota Bekasi",
-          "addressRegion": "Jawa Barat",
-          "postalCode": "17144",
-          "addressCountry": "ID"
-        },
-        "geo": { "@type": "GeoCoordinates", "latitude": -6.236669, "longitude": 106.977223 },
-        "identifier": { "@type": "PropertyValue", "propertyID": "NPSN", "value": "20254039" },
-        "parentOrganization": { "@type": "Organization", "name": "Yayasan Teratai Putih Global" },
-        "sameAs": ["https://www.facebook.com/teratai.putihdua", "https://www.instagram.com/smkterput2.bekasi/", "https://www.tiktok.com/@smkterput2.bekasi", "https://www.youtube.com/@smkterput2oke559"]
+        "@graph": [
+          {
+            "@type": "HighSchool",
+            "@id": "https://www.smk-terataiputih2.sch.id/#school",
+            "name": "SMK Teratai Putih Global 2 Bekasi",
+            "alternateName": ["SMKS Teratai Putih Global 2 Bekasi", "SMK Terput 2 Bekasi"],
+            "url": "https://www.smk-terataiputih2.sch.id/",
+            "logo": "https://www.smk-terataiputih2.sch.id/logo-tp2.png",
+            "image": "https://www.smk-terataiputih2.sch.id/logo-tp2.png",
+            "description": "SMK swasta terakreditasi A di Bekasi Selatan dengan 5 jurusan: Rekayasa Perangkat Lunak, Desain Komunikasi Visual, Bisnis Digital & Pemasaran, Manajemen Perkantoran, dan Akuntansi Keuangan Lembaga.",
+            "email": "terataiputihglobal2@gmail.com",
+            "telephone": "+62-821-1058-321",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Jl. Rajawali V, RT.005/RW.023, Kayuringin Jaya",
+              "addressLocality": "Kota Bekasi",
+              "addressRegion": "Jawa Barat",
+              "postalCode": "17144",
+              "addressCountry": "ID"
+            },
+            "geo": { "@type": "GeoCoordinates", "latitude": -6.236669, "longitude": 106.977223 },
+            "identifier": { "@type": "PropertyValue", "propertyID": "NPSN", "value": "20254039" },
+            "parentOrganization": { "@type": "Organization", "name": "Yayasan Teratai Putih Global" },
+            "sameAs": ["https://www.facebook.com/teratai.putihdua", "https://www.instagram.com/smkterput2.bekasi/", "https://www.tiktok.com/@smkterput2.bekasi", "https://www.youtube.com/@smkterput2oke559"]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://www.smk-terataiputih2.sch.id/#website",
+            "name": "SMK Teratai Putih Global 2 Bekasi",
+            "alternateName": ["SMK Terput 2 Bekasi", "SMKS Teratai Putih Global 2 Bekasi"],
+            "url": "https://www.smk-terataiputih2.sch.id/",
+            "inLanguage": "id-ID",
+            "publisher": { "@id": "https://www.smk-terataiputih2.sch.id/#school" }
+          }
+        ]
       }
     </script>
     <!-- seo:end -->
   </head>
   <body>
     <div id="root"></div>
+    <!-- fallback:start — the home page's text for crawlers that don't run JavaScript (Bing, AI
+         search bots). /api/page.ts swaps everything up to fallback:end for each news or album
+         page's own text. -->
+    <noscript>
+      <h1>SMK Teratai Putih Global 2 Bekasi</h1>
+      <p>SMK swasta terakreditasi A di Bekasi Selatan, di bawah Yayasan Teratai Putih Global (NPSN 20254039).</p>
+      <h2>Jurusan</h2>
+      <ul>
+        <li>Rekayasa Perangkat Lunak (RPL)</li>
+        <li>Desain Komunikasi Visual (DKV)</li>
+        <li>Bisnis Digital &amp; Pemasaran</li>
+        <li>Manajemen Perkantoran</li>
+        <li>Akuntansi Keuangan Lembaga</li>
+      </ul>
+      <h2>Pendaftaran SPMB &amp; kontak</h2>
+      <p>Jl. Rajawali V, RT.005/RW.023, Kayuringin Jaya, Kota Bekasi, Jawa Barat 17144.</p>
+      <p>WhatsApp: <a href="https://wa.me/628211058321">0821-1058-321</a> · Email: <a href="mailto:terataiputihglobal2@gmail.com">terataiputihglobal2@gmail.com</a></p>
+      <p><a href="/berita">Berita sekolah</a></p>
+    </noscript>
+    <!-- fallback:end -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

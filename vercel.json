@@ -3,6 +3,7 @@
   "outputDirectory": "frontend/dist",
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/news-sitemap.xml", "destination": "/api/news-sitemap" },
     { "source": "/berita", "destination": "/api/page?route=list" },
     { "source": "/berita/:bulan/:tahun/:slug", "destination": "/api/page?route=article&bulan=:bulan&tahun=:tahun&slug=:slug" },
     { "source": "/berita/:id", "destination": "/api/page?route=legacy&id=:id" },

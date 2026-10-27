@@ -122,7 +122,7 @@ export function ActivityStack({ items, onPlay, onZoom }: ActivityStackProps) {
               >
                 {/* Cards deep in the pile skip their image until they come near the front. */}
                 {depth <= BEHIND + 1 && item.image
-                  ? <img src={item.image} alt={item.title} draggable={false} className="h-full w-full object-cover" />
+                  ? <img src={item.image} alt={item.title} draggable={false} loading="lazy" decoding="async" className="h-full w-full object-cover" />
                   : <span className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#0f4c81] to-[#092c4c]">{item.album && <Images size={56} className="text-white/20" />}</span>}
                 {item.album && <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-[#061e34]/75 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-white backdrop-blur-sm"><Images size={12} /> Album{item.album.count ? ` · ${item.album.count} foto` : ""}</span>}
                 {item.video && <span className="absolute bottom-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#0f4c81] shadow"><Play size={16} fill="currentColor" /></span>}

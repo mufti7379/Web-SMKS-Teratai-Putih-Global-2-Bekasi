@@ -100,7 +100,7 @@ export function AlbumCarousel({ photos, index, onIndexChange, onOpen }: AlbumCar
               >
                 {/* Only photos on or next to the stage load their image. */}
                 {distance <= 3 && photo.image
-                  ? <img src={photo.image} alt={photo.title} draggable={false} className="h-full w-full object-cover" />
+                  ? <img src={photo.image} alt={photo.title} draggable={false} loading="lazy" decoding="async" className="h-full w-full object-cover" />
                   : <span className="block h-full w-full bg-gradient-to-br from-[#0f4c81] to-[#092c4c]" />}
                 {/* Side photos sit a little back in the shade. */}
                 {offset !== 0 && <span className={`absolute inset-0 ${distance === 1 ? "bg-[#061e34]/15" : "bg-[#061e34]/30"}`} />}

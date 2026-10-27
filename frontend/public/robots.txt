@@ -4,3 +4,4 @@ Disallow: /admin
 Disallow: /hero-preview
 
 Sitemap: https://www.smk-terataiputih2.sch.id/sitemap.xml
+Sitemap: https://www.smk-terataiputih2.sch.id/news-sitemap.xml
