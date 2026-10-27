@@ -1,6 +1,9 @@
 {
   "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/dist",
+  "redirects": [
+    { "source": "/(.*)", "has": [{ "type": "host", "value": "terataiputih2-frontend.vercel.app" }], "destination": "https://www.smk-terataiputih2.sch.id/$1", "permanent": true }
+  ],
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     { "source": "/news-sitemap.xml", "destination": "/api/news-sitemap" },

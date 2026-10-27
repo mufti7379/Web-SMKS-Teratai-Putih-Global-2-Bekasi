@@ -356,7 +356,7 @@ export default function Home() {
               <Reveal delay={120} data-testid="profile-intro">
                 <p className="section-kicker">01 · Tentang kami</p>
                 <h2 className="section-heading mt-3"><ClipReveal>Sekolah yang menyalakan <span className="text-emerald-600">potensi.</span></ClipReveal></h2>
-                <p className="mt-5 text-base leading-relaxed text-slate-600">SMK Teratai Putih Global 2 Bekasi hadir sebagai ruang tumbuh bagi generasi muda yang unggul, terpercaya, dan profesional. Kami mempertemukan karakter baik dengan kompetensi yang relevan dengan kebutuhan industri.</p>
+                <p className="mt-5 text-base leading-relaxed text-slate-600">SMK Teratai Putih Global 2 Bekasi, yang akrab disapa Terput 2, hadir sebagai ruang tumbuh bagi generasi muda yang unggul, terpercaya, dan profesional. Kami mempertemukan karakter baik dengan kompetensi yang relevan dengan kebutuhan industri.</p>
                 <ul className="mt-6 grid gap-3 sm:grid-cols-2">
                   {["Kurikulum berbasis industri", "Sertifikasi kompetensi", "Bimbingan karier", "Pembinaan karakter islami"].map((item) => (
                     <li key={item} className="flex items-center gap-2 text-sm font-semibold text-slate-700"><Check size={16} className="shrink-0 text-emerald-600" /> {item}</li>

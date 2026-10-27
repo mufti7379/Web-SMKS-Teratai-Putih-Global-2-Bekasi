@@ -15,16 +15,25 @@ export type PublicGalleryItem = AlbumRef & { title: string; image_url: string | 
 /**
  * Where the functions fetch this site's own content and app shell from. The public domain sits
  * behind Cloudflare, and fetching it from inside a function fails there (every page and album
- * answered 502), so on that domain they go to the project's vercel.app alias instead — the same
- * production deployment, reached directly. Other origins (previews, local) are used as they are.
+ * answered 502); the project's vercel.app alias redirects to it (vercel.json). So on that domain
+ * they go to this deployment's own address (VERCEL_URL) — the same build, reached directly.
+ * Other origins (previews, local) are used as they are.
  */
-const PRODUCTION_ALIAS = "https://terataiputih2-frontend.vercel.app";
-const fetchOrigin = (origin: string) => (origin === SITE_URL ? PRODUCTION_ALIAS : origin);
+const DEPLOYMENT_ORIGIN = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : SITE_URL;
+const fetchOrigin = (origin: string) => (origin === SITE_URL ? DEPLOYMENT_ORIGIN : origin);
+
+// Deployment addresses sit behind Vercel's Deployment Protection; these fetches pass with the
+// automation bypass secret Vercel sets once "Protection Bypass for Automation" is on. Without it
+// they'd be redirected to Vercel's login page — `redirect: "error"` makes that a failure, never
+// a login page served as the site.
+const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+const internalFetch = (url: string, headers: Record<string, string> = {}) =>
+  fetch(url, { redirect: "error", headers: bypassSecret ? { ...headers, "x-vercel-protection-bypass": bypassSecret } : headers });
 
 /** Published CMS content through this site's own /api proxy, so the backend URL stays only in vercel.json. Null when unreachable. */
 async function fetchPublicContent<T>(origin: string, resource: string): Promise<T[] | null> {
   try {
-    const response = await fetch(`${fetchOrigin(origin)}/api/content/${resource}`, { headers: { accept: "application/json" } });
+    const response = await internalFetch(`${fetchOrigin(origin)}/api/content/${resource}`, { accept: "application/json" });
     return response.ok ? ((await response.json()) as T[]) : null;
   } catch {
     return null;
@@ -37,7 +46,7 @@ export const fetchPublishedGallery = (origin: string) => fetchPublicContent<Publ
 /** The built app shell (dist/index.html), fetched from this deployment's static files. */
 export async function fetchAppShell(origin: string): Promise<string | null> {
   try {
-    const response = await fetch(`${fetchOrigin(origin)}/index.html`);
+    const response = await internalFetch(`${fetchOrigin(origin)}/index.html`);
     return response.ok ? await response.text() : null;
   } catch {
     return null;
