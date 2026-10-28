@@ -11,8 +11,7 @@ import uuid
 from datetime import datetime
 import asyncio
 from routers.cms import router as cms_router
-from routers.cms import router as cms_router
-from routers.assistant import router as assistant_router   # tambahkan di bawah baris 13
+from routers.assistant import router as assistant_router
 
 
 ROOT_DIR = Path(__file__).parent
@@ -71,6 +70,7 @@ async def get_status_checks():
     return [StatusCheck(**status_check) for status_check in status_checks]
 
 api_router.include_router(cms_router)
+api_router.include_router(assistant_router)
 
 _cors_origins = [origin.strip() for origin in os.environ.get('CORS_ORIGINS', '').split(',') if origin.strip()]
 
@@ -91,6 +91,3 @@ logger = logging.getLogger(__name__)
 
 # Keep router inclusion last so every route above is served.
 app.include_router(api_router)
-
-api_router.include_router(cms_router)
-api_router.include_router(assistant_router)                # tambahkan di bawah baris 71

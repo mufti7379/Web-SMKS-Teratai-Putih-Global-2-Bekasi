@@ -47,10 +47,7 @@ const footerShortcuts = [
 /** Full site footer — school info, shortcut links, contacts and credit — shared by every public page. */
 export function SiteFooter() {
   return (
-    // Higher than the header's z-40 so the footer visually covers the sticky header
-    // as soon as it scrolls up to the top of the viewport, instead of the header
-    // staying pinned on top of the footer for the rest of the scroll.
-    <footer className="relative z-50 bg-[#061e34] px-5 pb-8 pt-16 text-slate-400" data-testid="site-footer">
+    <footer className="bg-[#061e34] px-5 pb-8 pt-16 text-slate-400" data-testid="site-footer">
       <div className="mx-auto max-w-7xl lg:px-3">
         <div className="grid gap-10 border-b border-white/10 pb-12 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr]">
           <div>
