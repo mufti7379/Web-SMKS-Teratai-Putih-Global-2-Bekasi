@@ -99,3 +99,4 @@ TEMPLATE.md
 /backend/tests/
 /test_reports/
 design_guidelines.json
+/vercel.json

@@ -11,6 +11,8 @@ import uuid
 from datetime import datetime
 import asyncio
 from routers.cms import router as cms_router
+from routers.cms import router as cms_router
+from routers.assistant import router as assistant_router   # tambahkan di bawah baris 13
 
 
 ROOT_DIR = Path(__file__).parent
@@ -89,3 +91,6 @@ logger = logging.getLogger(__name__)
 
 # Keep router inclusion last so every route above is served.
 app.include_router(api_router)
+
+api_router.include_router(cms_router)
+api_router.include_router(assistant_router)                # tambahkan di bawah baris 71
