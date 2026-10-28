@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { FormEvent } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { Send, X } from "lucide-react";
 
 type Turn = { role: "user" | "assistant"; content: string };
@@ -20,6 +20,33 @@ function SupportAgentIcon({ className }: { className: string }) {
 /** Lilu's face beside the panel title and each of her replies. Decorative: her name is in the text. */
 function LiluAvatar({ className }: { className: string }) {
   return <img src="/lilu-avatar.png" alt="" aria-hidden="true" className={`shrink-0 rounded-full bg-white object-cover ${className}`} />;
+}
+
+const urlPattern = /https?:\/\/[^\s<>"]+/g;
+
+/** Drops sentence punctuation the URL match swallowed, e.g. "(https://wa.me/62…)." keeps only the link. */
+function trimUrl(url: string) {
+  let end = url.length;
+  while (end > 0) {
+    const char = url[end - 1];
+    // A ")" belongs to the URL only when it closes one opened inside it (Wikipedia-style links).
+    if (".,;:!?'".includes(char) || (char === ")" && !url.slice(0, end).includes("("))) end--;
+    else break;
+  }
+  return url.slice(0, end);
+}
+
+/** Lilu replies in plain text; the WhatsApp link and search sources in it become clickable. */
+function LinkifiedText({ text }: { text: string }) {
+  const parts: ReactNode[] = [];
+  let last = 0;
+  for (const match of text.matchAll(urlPattern)) {
+    const url = trimUrl(match[0]);
+    parts.push(text.slice(last, match.index), <a key={match.index} href={url} target="_blank" rel="noopener noreferrer" className="break-all font-semibold text-[#0f4c81] underline underline-offset-2 hover:text-[#092c4c]">{url}</a>);
+    last = match.index + url.length;
+  }
+  parts.push(text.slice(last));
+  return <>{parts}</>;
 }
 
 /**
@@ -87,7 +114,7 @@ export function ChatAssistant() {
         <div className="flex items-center gap-3">
           <LiluAvatar className="size-10 ring-2 ring-white/20" />
           <div>
-            <p className="text-sm font-bold">Asisten Virtual</p>
+            <p className="text-sm font-bold">Lilu</p>
             <p className="text-xs text-white/70">SMK Teratai Putih Global 2</p>
           </div>
         </div>
@@ -107,7 +134,7 @@ export function ChatAssistant() {
           : (
             <div key={index} className="flex items-start gap-2">
               <LiluAvatar className="size-8 ring-1 ring-slate-200" />
-              <p className="w-fit max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-tl-sm bg-slate-100 px-3 py-2 text-slate-800">{turn.content.trim() || "…"}</p>
+              <p className="w-fit max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-tl-sm bg-slate-100 px-3 py-2 text-slate-800">{turn.content.trim() ? <LinkifiedText text={turn.content.trim()} /> : "…"}</p>
             </div>
           ))}
       </div>
