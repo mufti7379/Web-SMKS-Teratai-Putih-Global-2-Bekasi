@@ -51,7 +51,7 @@ export function NewsCardSkeletons({ count = 3 }: { count?: number }) {
 
 export function PartnerSkeletons() {
   return range(5).map((index) => (
-    <div key={index} className="flex flex-col items-center rounded-2xl border border-slate-200 bg-white p-5" aria-hidden="true">
+    <div key={index} className="flex flex-col items-center rounded-2xl border border-white/70 bg-white/50 p-5 backdrop-blur-xl" aria-hidden="true">
       <Skeleton className="h-14 w-full sm:h-16" />
       <Skeleton className="mt-3 h-2.5 w-2/3" />
     </div>

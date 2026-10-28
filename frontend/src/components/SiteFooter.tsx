@@ -47,7 +47,10 @@ const footerShortcuts = [
 /** Full site footer — school info, shortcut links, contacts and credit — shared by every public page. */
 export function SiteFooter() {
   return (
-    <footer className="bg-[#061e34] px-5 pb-8 pt-16 text-slate-400" data-testid="site-footer">
+    // pb-24 below md: scrolled all the way down, the centred credit would otherwise sit under
+    // the fixed chat button (bottom-4, 56px tall) — on phones, and around 640px where it first
+    // fits on one line and reaches the button. From md the line ends well left of the button.
+    <footer className="bg-[#061e34] px-5 pb-24 pt-16 text-slate-400 md:pb-8" data-testid="site-footer">
       <div className="mx-auto max-w-7xl lg:px-3">
         <div className="grid gap-10 border-b border-white/10 pb-12 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr]">
           <div>

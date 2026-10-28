@@ -1,12 +1,26 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { MessageCircle, Send, X } from "lucide-react";
+import { Send, X } from "lucide-react";
 
 type Turn = { role: "user" | "assistant"; content: string };
 
 // Mirrors ChatTurn in backend/routers/assistant.py: longer turns are rejected with a 422.
 const maxTurnLength = 2000;
 const unavailableReply = "Maaf, asisten sedang tidak tersedia. Silakan coba lagi nanti.";
+
+/** Material Symbols "support_agent" (Rounded, Apache 2.0, github.com/google/material-design-icons) for the launcher. */
+function SupportAgentIcon({ className }: { className: string }) {
+  return (
+    <svg viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" className={className}>
+      <path d="M480-120q-17 0-28.5-11.5T440-160q0-17 11.5-28.5T480-200h280v-284q0-117-81.5-198.5T480-764q-117 0-198.5 81.5T200-484v204q0 17-11.5 28.5T160-240q-33 0-56.5-23.5T80-320v-80q0-21 10.5-39.5T120-469l3-53q8-68 39.5-126t79-101q47.5-43 109-67T480-840q68 0 129 24t109 66.5Q766-707 797-649t40 126l3 52q19 9 29.5 27t10.5 38v92q0 20-10.5 38T840-249v49q0 33-23.5 56.5T760-120H480ZM360-400q-17 0-28.5-11.5T320-440q0-17 11.5-28.5T360-480q17 0 28.5 11.5T400-440q0 17-11.5 28.5T360-400Zm240 0q-17 0-28.5-11.5T560-440q0-17 11.5-28.5T600-480q17 0 28.5 11.5T640-440q0 17-11.5 28.5T600-400Zm-359-62q-7-106 64-182t177-76q89 0 156.5 56.5T720-519q-91-1-167.5-49T435-698q-16 80-67.5 142.5T241-462Z" />
+    </svg>
+  );
+}
+
+/** Lilu's face beside the panel title and each of her replies. Decorative: her name is in the text. */
+function LiluAvatar({ className }: { className: string }) {
+  return <img src="/lilu-avatar.png" alt="" aria-hidden="true" className={`shrink-0 rounded-full bg-white object-cover ${className}`} />;
+}
 
 /**
  * Floating visitor chat, answered by /api/assistant/chat (DeepSeek, grounded in published CMS
@@ -61,7 +75,7 @@ export function ChatAssistant() {
   if (!open) {
     return (
       <button type="button" onClick={() => setOpen(true)} aria-label="Buka asisten virtual" className="fixed bottom-4 right-4 z-40 flex size-14 items-center justify-center rounded-full bg-[#0f4c81] text-white shadow-lg shadow-blue-900/25 transition-colors hover:bg-[#092c4c]" data-testid="chat-assistant-open">
-        <MessageCircle className="size-6" />
+        <SupportAgentIcon className="size-7" />
       </button>
     );
   }
@@ -70,9 +84,12 @@ export function ChatAssistant() {
   return (
     <section aria-label="Asisten virtual" className="fixed bottom-4 right-4 z-40 flex h-[min(520px,calc(100dvh_-_2rem))] w-[min(380px,calc(100vw_-_2rem))] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl" data-testid="chat-assistant-panel">
       <header className="flex items-center justify-between bg-[#092c4c] px-4 py-3 text-white">
-        <div>
-          <p className="text-sm font-bold">Asisten Virtual</p>
-          <p className="text-xs text-white/70">SMK Teratai Putih Global 2</p>
+        <div className="flex items-center gap-3">
+          <LiluAvatar className="size-10 ring-2 ring-white/20" />
+          <div>
+            <p className="text-sm font-bold">Asisten Virtual</p>
+            <p className="text-xs text-white/70">SMK Teratai Putih Global 2</p>
+          </div>
         </div>
         <button type="button" onClick={() => setOpen(false)} aria-label="Tutup asisten virtual" className="rounded-full p-1.5 transition-colors hover:bg-white/10" data-testid="chat-assistant-close">
           <X className="size-4" />
@@ -81,12 +98,18 @@ export function ChatAssistant() {
       <p className="border-b border-amber-100 bg-amber-50 px-4 py-2 text-xs text-slate-600">Jangan tulis data pribadi (nama lengkap, NIK, no. HP) di sini.</p>
       {/* data-lenis-prevent: the home page's smooth scroll would otherwise swallow the wheel here. */}
       <div ref={messagesRef} data-lenis-prevent className="flex-1 space-y-2 overflow-y-auto p-4 text-sm" data-testid="chat-assistant-messages">
-        <p className="w-fit max-w-[85%] rounded-2xl rounded-tl-sm bg-slate-100 px-3 py-2 text-slate-800">Halo! Ada yang bisa saya bantu? Tanyakan soal jurusan, fasilitas, agenda, atau pendaftaran (PPDB).</p>
-        {turns.map((turn, index) => (
-          <p key={index} className={`w-fit max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 ${turn.role === "user" ? "ml-auto rounded-tr-sm bg-[#0f4c81] text-white" : "rounded-tl-sm bg-slate-100 text-slate-800"}`}>
-            {turn.content.trim() || "…"}
-          </p>
-        ))}
+        <div className="flex items-start gap-2">
+          <LiluAvatar className="size-8 ring-1 ring-slate-200" />
+          <p className="w-fit max-w-[85%] rounded-2xl rounded-tl-sm bg-slate-100 px-3 py-2 text-slate-800">Halo, selamat datang! Saya Lilu sebagai asisten virtual SMK Teratai Putih Global 2 Bekasi yang siap membantu Bapak/Ibu dan calon siswa mencari informasi tambahan seputar jurusan, fasilitas, agenda, maupun pendaftaran SPMB. Silakan tuliskan pertanyaan Anda.</p>
+        </div>
+        {turns.map((turn, index) => turn.role === "user"
+          ? <p key={index} className="ml-auto w-fit max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-tr-sm bg-[#0f4c81] px-3 py-2 text-white">{turn.content}</p>
+          : (
+            <div key={index} className="flex items-start gap-2">
+              <LiluAvatar className="size-8 ring-1 ring-slate-200" />
+              <p className="w-fit max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-tl-sm bg-slate-100 px-3 py-2 text-slate-800">{turn.content.trim() || "…"}</p>
+            </div>
+          ))}
       </div>
       <form onSubmit={send} className="flex gap-2 border-t border-slate-100 p-3">
         {/* text-base on phones: iOS zooms the page into any focused input under 16px. */}
