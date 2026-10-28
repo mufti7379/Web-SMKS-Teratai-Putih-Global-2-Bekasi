@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { FormEvent, MouseEvent } from "react";
 import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
-import { AnimatePresence, motion, useScroll, useTransform } from "motion/react";
+import { AnimatePresence, motion, useScroll, useTransform, type MotionValue } from "motion/react";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -76,6 +76,32 @@ const majorIcons: Record<string, typeof Code2> = { RPL: Code2, DKV: Palette, BD:
 const homeNewsLimit = 6;
 // Hero heading, typed in turn on a loop. Module-level so its identity never changes.
 const heroPhrases = ["SMK Teratai Putih Global 2", "Sekolah berbasis Islami dan Teknologi"] as const;
+
+/**
+ * The hero's rotating background photos and their dots. Kept out of Home so a slide change
+ * (every 8s) re-renders just this — re-rendering the whole page blocked a phone's main thread
+ * for 100ms+ each time and made scrolling stutter.
+ */
+function HeroSlides({ images, parallaxY }: { images: string[]; parallaxY: MotionValue<string> }) {
+  const [index, setIndex] = useState(0);
+  useEffect(() => {
+    if (images.length < 2) return;
+    const interval = setInterval(() => setIndex((current) => (current + 1) % images.length), 8000);
+    return () => clearInterval(interval);
+  }, [images.length]);
+  // Until the CMS answers the hero stays plain navy (with a soft pulse) — never a stock photo.
+  const image = images[index % images.length] ?? null;
+  return (
+    <>
+      <motion.div style={{ y: parallaxY }} className="absolute inset-x-0 -top-[14%] h-[128%] w-full">
+        <AnimatePresence mode="wait">
+          {image && <motion.img key={image} src={image} srcSet={buildDriveSrcSet(image, [640, 960, 1400])} sizes="100vw" alt="Siswa SMK belajar bersama" fetchPriority="high" decoding="async" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }} className="h-full w-full object-cover" />}
+        </AnimatePresence>
+      </motion.div>
+      {images.length > 1 && <div className="absolute right-5 top-5 z-10 flex gap-1.5 sm:right-8 sm:top-24" data-testid="hero-carousel-dots">{images.map((url, i) => <span key={url} className={`h-1.5 rounded-full transition-all ${i === index ? "w-5 bg-amber-300" : "w-1.5 bg-white/40"}`} />)}</div>}
+    </>
+  );
+}
 
 export default function Home() {
   const lenisRef = useLenisScroll();
@@ -173,14 +199,6 @@ export default function Home() {
   const allNews = sortNewsNewestFirst(newsContent.data);
   const displayNews = allNews.slice(0, homeNewsLimit);
   const heroImages = (heroContent.data ?? []).map((item) => optimizeImageUrl(item.image_url, 960)).filter((url): url is string => Boolean(url));
-  const [heroIndex, setHeroIndex] = useState(0);
-  useEffect(() => {
-    if (heroImages.length < 2) return;
-    const interval = setInterval(() => setHeroIndex((current) => (current + 1) % heroImages.length), 8000);
-    return () => clearInterval(interval);
-  }, [heroImages.length]);
-  // Until the CMS answers the hero stays plain navy (with a soft pulse) — never a stock photo.
-  const heroImage = heroImages[heroIndex % heroImages.length] ?? null;
   const displayFacilities = (facilityContent.data ?? []).map((item) => ({ image: optimizeImageUrl(item.image_url, 700), title: item.title, desc: item.description }));
   const profileMainItem = profileContent.data?.find((item) => item.code === "utama") ?? profileContent.data?.[0];
   const profileSecondaryItem = profileContent.data?.find((item) => item.code === "sekunder") ?? profileContent.data?.[1];
@@ -200,9 +218,13 @@ export default function Home() {
   useLayoutEffect(() => {
     const hero = heroRef.current;
     if (!hero) return;
+    // clientHeight rather than innerHeight: it holds still while a phone's URL bar slides in and
+    // out during scrolling. And an unchanged pin keeps the old state, so React skips re-rendering
+    // the whole page on every resize event.
     const measure = () => {
-      const coverStart = Math.min(hero.offsetHeight, window.innerHeight);
-      setHeroPin({ top: coverStart - hero.offsetHeight, coverStart });
+      const coverStart = Math.min(hero.offsetHeight, document.documentElement.clientHeight);
+      const top = coverStart - hero.offsetHeight;
+      setHeroPin((pin) => (pin.top === top && pin.coverStart === coverStart ? pin : { top, coverStart }));
     };
     measure();
     const observer = new ResizeObserver(measure);
@@ -279,8 +301,12 @@ export default function Home() {
           </div>
         </div>
         <AnimatePresence>
-          {mobileMenuOpen && <motion.nav initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="border-t border-slate-100 bg-white px-5 py-4 lg:hidden" data-testid="mobile-navigation">
-            {navItems.map(([label, href]) => <button type="button" key={href} onClick={() => scrollTo(href)} className="block w-full border-b border-slate-100 py-3 text-left text-sm font-bold text-slate-700" data-testid={`mobile-nav-link-${label.toLowerCase()}`}>{label}</button>)}
+          {/* Overlays the page instead of pushing it down: a taller in-flow header shifted
+              everything, so a tapped section landed a whole menu's height too far. */}
+          {mobileMenuOpen && <motion.nav initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className={`absolute inset-x-0 top-full overflow-hidden bg-white lg:hidden ${headerScrolled ? "mt-2 rounded-2xl border border-slate-200 shadow-xl" : "border-b border-slate-100 shadow-lg"}`} data-testid="mobile-navigation">
+            <div className="px-5 py-4">
+              {navItems.map(([label, href]) => <button type="button" key={href} onClick={() => scrollTo(href)} className="block w-full border-b border-slate-100 py-3 text-left text-sm font-bold text-slate-700" data-testid={`mobile-nav-link-${label.toLowerCase()}`}>{label}</button>)}
+            </div>
           </motion.nav>}
         </AnimatePresence>
       </header>
@@ -288,14 +314,9 @@ export default function Home() {
       <main>
         <section id="beranda" ref={heroRef} style={{ top: heroPin.top }} className="sticky isolate overflow-hidden bg-[#092c4c]" data-testid="hero-section">
           <div className="absolute inset-0 -z-10 overflow-hidden">
-            <motion.div style={{ y: heroParallaxY }} className="absolute inset-x-0 -top-[14%] h-[128%] w-full">
-              <AnimatePresence mode="wait">
-                {heroImage && <motion.img key={heroImage} src={heroImage} srcSet={buildDriveSrcSet(heroImage, [640, 960, 1400])} sizes="100vw" alt="Siswa SMK belajar bersama" fetchPriority="high" decoding="async" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }} className="h-full w-full object-cover" />}
-              </AnimatePresence>
-            </motion.div>
+            <HeroSlides images={heroImages} parallaxY={heroParallaxY} />
             {heroContent.isPending && <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-[#0f4c81]/60 to-[#092c4c]" data-testid="hero-loading" />}
             <div className="absolute inset-0 bg-gradient-to-b from-[#092c4c]/80 via-[#092c4c]/45 to-[#092c4c]/85" />
-            {heroImages.length > 1 && <div className="absolute right-5 top-5 z-10 flex gap-1.5 sm:right-8 sm:top-24" data-testid="hero-carousel-dots">{heroImages.map((url, index) => <span key={url} className={`h-1.5 rounded-full transition-all ${index === heroIndex ? "w-5 bg-amber-300" : "w-1.5 bg-white/40"}`} />)}</div>}
           </div>
           {/* From lg up the hero fills the screen below the header, so the cards along its bottom are always in view. */}
           <div className="relative mx-auto flex min-h-[690px] max-w-7xl flex-col gap-10 px-5 pb-16 pt-16 sm:pb-20 lg:min-h-[max(620px,calc(100svh_-_76px))] lg:px-8 lg:pt-20">
