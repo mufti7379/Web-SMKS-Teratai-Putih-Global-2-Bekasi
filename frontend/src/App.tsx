@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { ChatAssistant } from "@/components/ChatAssistant";
 import Home from "@/pages/Home";
 
 // Code-split routes nobody but staff/devs visit — every home page visitor was otherwise
@@ -10,12 +11,14 @@ const NewsList = lazy(() => import("@/pages/NewsList"));
 const NewsDetail = lazy(() => import("@/pages/NewsDetail"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const GalleryAlbum = lazy(() => import("@/pages/GalleryAlbum"));
-
+const hideAssistantOn = ["/admin", "/hero-preview"];
 const routeFallback = <div className="flex min-h-screen items-center justify-center text-sm font-bold text-slate-500">Memuat…</div>;
 
 // One <Route> per page in src/pages; BrowserRouter already wraps this in main.tsx.
 export default function App() {
+  const {pathname} = useLocation(); 
   return (
+    <>
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/berita" element={<Suspense fallback={routeFallback}><NewsList /></Suspense>} />
@@ -27,5 +30,7 @@ export default function App() {
       <Route path="/hero-preview" element={<Suspense fallback={routeFallback}><HeroPreview /></Suspense>} />
       <Route path="*" element={<Suspense fallback={routeFallback}><NotFound /></Suspense>} />
     </Routes>
+    {!hideAssistantOn.includes(pathname) && <ChatAssistant />}
+    </>
   );
 }
