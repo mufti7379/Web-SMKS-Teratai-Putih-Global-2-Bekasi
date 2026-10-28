@@ -13,8 +13,10 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 # DeepSeek kompatibel dengan format OpenAI, jadi cukup pakai SDK openai dengan base_url DeepSeek.
-# Kalau key kosong, backend tetap jalan; hanya request chat yang gagal (401).
-client = openai.AsyncOpenAI(api_key=os.environ.get("DEEPSEEK_API_KEY", ""), base_url="https://api.deepseek.com")
+# SDK openai 3.x langsung error kalau api_key kosong, dan error saat import membuat seluruh
+# backend gagal start. Jadi client hanya dibuat kalau key ada; tanpa key, chat membalas 503.
+API_KEY = os.environ.get("DEEPSEEK_API_KEY")
+client = openai.AsyncOpenAI(api_key=API_KEY, base_url="https://api.deepseek.com") if API_KEY else None
 
 MODEL = "deepseek-flash"
 KNOWLEDGE_RESOURCES = ["profile", "major", "facility", "agenda", "news"]
@@ -59,6 +61,8 @@ async def build_knowledge() -> str:
 
 @router.post("/assistant/chat")
 async def chat(payload: ChatRequest):
+    if client is None:
+        raise HTTPException(status_code=503, detail="Asisten virtual belum dikonfigurasi")
     if payload.messages[0].role != "user" or payload.messages[-1].role != "user":
         raise HTTPException(status_code=422, detail="Percakapan harus diawali dan diakhiri pesan user")
 
