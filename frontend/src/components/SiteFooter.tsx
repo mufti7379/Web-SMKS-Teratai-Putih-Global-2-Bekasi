@@ -37,6 +37,7 @@ const footerShortcuts = [
   ["Ujian", "https://ujiango.smk-terataiputih2.sch.id"],
   ["Absensi", "https://absensi.smk-terataiputih2.sch.id"],
   ["Raport", "https://rapor.smk-terataiputih2.sch.id"],
+  ["Aplikasi BankSampah", "https://akun.resikforschools.tech/"],
   ["BKK", "https://bkk.smk-terataiputih2.sch.id"],
   ["Pembayaran Uang Sekolah", "https://sekolah.pro/mobile/LoginPage"],
   ["Validasi SHTKA", "https://shtka.kemendikdasmen.go.id/verifikasi-shtka"],
@@ -55,7 +56,7 @@ export function SiteFooter() {
             <div className="mt-4 flex flex-wrap gap-2" data-testid="footer-school-identity"><span className="rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold text-slate-200">Akreditasi A</span><span className="rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold text-slate-200">NPSN 20254039</span></div>
             <p className="mt-4 max-w-xs text-xs leading-relaxed text-slate-400">Ruang tumbuh bagi generasi muda yang unggul, terpercaya, dan profesional dengan lima program keahlian siap kerja.</p>
             <p className="mt-4 text-xs leading-relaxed text-slate-400">Jl. Rajawali V, RT.005/RW.023, Kayuringin Jaya<br />Kec. Bekasi Selatan, Kota Bekasi, Jawa Barat 17144</p>
-            <div className="mt-5 flex items-center gap-3"><span className="flex h-12 w-12 items-center justify-center rounded-lg bg-white p-1.5"><img src="/logo-yayasan.png" alt="Logo Yayasan Teratai Putih Global" className="h-full w-full object-contain" data-testid="footer-foundation-logo" /></span><span className="flex h-12 w-12 items-center justify-center rounded-lg bg-white p-1.5"><img src="/logo-smk-hebat.jpg" alt="Logo SMK Bisa Hebat" className="h-full w-full object-contain" data-testid="footer-smk-hebat-logo" /></span></div>
+            <div className="mt-5 flex items-center gap-3"><span className="flex h-12 w-12 items-center justify-center rounded-lg bg-white p-1.5"><img src="/logo-yayasan.png" alt="Logo Yayasan Teratai Putih Global" className="h-full w-full object-contain" data-testid="footer-foundation-logo" /></span><span className="flex h-12 w-24 items-center justify-center rounded-lg bg-white p-1.5"><img src="/logo-smk-bermutu.png" alt="Logo SMK Bermutu Kemendikdasmen" className="h-full w-full object-contain" data-testid="footer-smk-bermutu-logo" /></span></div>
           </div>
           <div data-testid="footer-shortcuts">
             <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Tautan</p>

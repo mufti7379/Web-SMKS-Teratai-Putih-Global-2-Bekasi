@@ -5,6 +5,7 @@
 //   article — /berita/<bulan>/<tahun>/<slug>
 //   legacy  — /berita/<id>, the old id links, permanently redirected to the readable URL
 //   album   — /galeri/<slug>, a gallery album such as /galeri/perpisahan-2025
+//   profil  — the "Profil" menu's pages, by `page`: visi-misi, sambutan-kepala-sekolah, gtk
 // The React app still renders everything in the browser; this only changes what crawlers
 // and link previews read before JavaScript runs — the <head>, plus a <noscript> copy of the
 // page's text for crawlers that never run JavaScript.
@@ -12,7 +13,8 @@ import { albumDrivePictures } from "./_lib/drive";
 import { albumDriveFolders, galleryMedia, galleryStill, isInAlbum, isSinglePhoto, listAlbums } from "./_lib/gallery";
 import { optimizeImageUrl } from "./_lib/images";
 import { findNewsByPath, newsPath } from "./_lib/newsPath";
-import { LOGO_URL, SITE_NAME, SITE_URL, absoluteImageUrl, escapeHtml, excerpt, fetchAppShell, fetchPublishedGallery, fetchPublishedNews, htmlResponse, injectFallback, injectHead, newsPublishedAt, paragraphsHtml, renderHead, sortNewsNewestFirst } from "./_lib/seo";
+import { currentPrincipal, foundationMissions, foundationVision, groupStaff } from "./_lib/profile";
+import { LOGO_URL, SITE_NAME, SITE_URL, absoluteImageUrl, escapeHtml, excerpt, fetchAppShell, fetchPublishedGallery, fetchPublishedNews, fetchPublishedPrincipals, fetchPublishedStaff, htmlResponse, injectFallback, injectHead, newsPublishedAt, paragraphsHtml, renderHead, sortNewsNewestFirst } from "./_lib/seo";
 import type { PublicNews } from "./_lib/seo";
 
 // Vercel's CDN keeps each page for 5 minutes (new or edited news shows up within that), and
@@ -105,6 +107,39 @@ async function albumPage(origin: string, shell: string, requested: string) {
   return pageResponse(shell, head, fallback, 200, CACHE);
 }
 
+async function profilePage(origin: string, shell: string, page: string) {
+  if (page === "visi-misi") {
+    const description = `Visi dan misi Yayasan Teratai Putih Global, yayasan yang menaungi ${SITE_NAME}.`;
+    const head = renderHead({ title: `Visi & Misi — ${SITE_NAME}`, description, path: "/visi-misi" });
+    const fallback = `<h1>Visi &amp; Misi</h1><p>${escapeHtml(description)}</p><h2>Visi</h2><p>${escapeHtml(foundationVision)}</p><h2>Misi</h2><ol>${foundationMissions.map((mission) => `<li>${escapeHtml(mission)}</li>`).join("")}</ol>`;
+    return pageResponse(shell, head, fallback, 200, CACHE);
+  }
+  if (page === "sambutan-kepala-sekolah") {
+    const principals = await fetchPublishedPrincipals(origin);
+    const principal = currentPrincipal(principals);
+    const title = `Sambutan Kepala Sekolah — ${SITE_NAME}`;
+    if (!principal) return pageResponse(shell, renderHead({ title, description: `Sambutan kepala sekolah ${SITE_NAME}.`, path: "/sambutan-kepala-sekolah" }), "", 200, principals ? CACHE : CACHE_SHORT);
+    const role = principal.badge || "Kepala Sekolah";
+    const head = renderHead({ title, description: excerpt(principal.description) || `Sambutan ${principal.title}, ${role} ${SITE_NAME}.`, path: "/sambutan-kepala-sekolah", image: optimizeImageUrl(principal.image_url, 1200) });
+    const fallback = `<h1>Sambutan Kepala Sekolah</h1><p>${escapeHtml(principal.title)} — ${escapeHtml(role)}</p>${paragraphsHtml(principal.description)}`;
+    return pageResponse(shell, head, fallback, 200, CACHE);
+  }
+  if (page === "gtk") {
+    const [staff, principals] = await Promise.all([fetchPublishedStaff(origin), fetchPublishedPrincipals(origin)]);
+    const principal = currentPrincipal(principals);
+    // The principal heads "Pimpinan Sekolah", as on the page.
+    const groups = groupStaff(staff).map((group) => ({
+      label: group.label,
+      people: [...(group.code === "pimpinan" && principal ? [{ title: principal.title, badge: principal.badge || "Kepala Sekolah" }] : []), ...group.members],
+    })).filter((group) => group.people.length > 0);
+    const description = `Guru dan tenaga kependidikan (GTK) ${SITE_NAME}: ${staff?.length ? `${staff.length + (principal ? 1 : 0)} pendidik dan staf yang` : "pendidik dan staf yang"} mendampingi siswa setiap hari.`;
+    const head = renderHead({ title: `Guru & Tenaga Kependidikan (GTK) — ${SITE_NAME}`, description, path: "/gtk" });
+    const fallback = `<h1>Guru &amp; Tenaga Kependidikan</h1><p>${escapeHtml(description)}</p>${groups.map((group) => `<h2>${escapeHtml(group.label)}</h2><ul>${group.people.map((person) => `<li>${escapeHtml(person.title)}${person.badge ? ` — ${escapeHtml(person.badge)}` : ""}</li>`).join("")}</ul>`).join("")}`;
+    return pageResponse(shell, head, fallback, 200, staff && principals ? CACHE : CACHE_SHORT);
+  }
+  return pageResponse(shell, renderHead({ title: `Halaman tidak ditemukan — ${SITE_NAME}`, description: "Halaman yang Anda cari tidak ada.", path: "/", noindex: true }), "", 404, CACHE);
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const params = url.searchParams;
@@ -112,6 +147,7 @@ export async function GET(request: Request) {
   if (!shell) return new Response("Halaman belum bisa dimuat. Silakan coba lagi.", { status: 502, headers: { "cache-control": "no-store" } });
 
   if (params.get("route") === "album") return albumPage(url.origin, shell, params.get("album") ?? "");
+  if (params.get("route") === "profil") return profilePage(url.origin, shell, params.get("page") ?? "");
 
   const fetched = await fetchPublishedNews(url.origin);
   const news = fetched && sortNewsNewestFirst(fetched);

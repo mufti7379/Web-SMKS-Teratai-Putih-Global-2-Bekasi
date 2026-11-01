@@ -12,6 +12,10 @@ export type PublicNews = NewsRef & { description: string; image_url: string | nu
 
 export type PublicGalleryItem = AlbumRef & { title: string; image_url: string | null; created_at: string };
 
+export type PublicPrincipal = { id: string; title: string; description: string; image_url: string | null; badge: string | null; updated_at: string };
+
+export type PublicStaff = { id: string; title: string; code: string | null; badge: string | null; image_url: string | null; sort_order?: number | null };
+
 /**
  * Where the functions fetch this site's own content and app shell from. The public domain sits
  * behind Cloudflare, and fetching it from inside a function fails there (every page and album
@@ -42,6 +46,8 @@ async function fetchPublicContent<T>(origin: string, resource: string): Promise<
 
 export const fetchPublishedNews = (origin: string) => fetchPublicContent<PublicNews>(origin, "news");
 export const fetchPublishedGallery = (origin: string) => fetchPublicContent<PublicGalleryItem>(origin, "gallery");
+export const fetchPublishedPrincipals = (origin: string) => fetchPublicContent<PublicPrincipal>(origin, "principal");
+export const fetchPublishedStaff = (origin: string) => fetchPublicContent<PublicStaff>(origin, "staff");
 
 /** The built app shell (dist/index.html), fetched from this deployment's static files. */
 export async function fetchAppShell(origin: string): Promise<string | null> {

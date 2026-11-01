@@ -1,12 +1,11 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { FormEvent, MouseEvent } from "react";
 import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
-import { AnimatePresence, motion, useScroll, useTransform, type MotionValue } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform, type MotionValue } from "motion/react";
 import {
   ArrowRight,
   ArrowUpRight,
   BriefcaseBusiness,
-  Building2,
   Calculator,
   Check,
   ChevronRight,
@@ -35,6 +34,8 @@ import { Announcements } from "@/components/Announcements";
 import type { ActivityItem } from "@/components/ActivityStack";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Reveal, ClipReveal, StaggerRise } from "@/components/motion/Reveal";
+import { RopePull } from "@/components/motion/RopePull";
+import { ProfileNavMenu } from "@/components/ProfileNav";
 import { Typewriter } from "@/components/motion/Typewriter";
 import { useLenisScroll } from "@/hooks/useLenisScroll";
 import { apiGet, apiPost } from "@/lib/api";
@@ -43,6 +44,7 @@ import { optimizeImageUrl, buildDriveSrcSet } from "@/lib/images";
 import { albumDriveFolders, albumOf, albumPhotosQuery, galleryMedia, galleryQuery, galleryStill, isInAlbum, isSinglePhoto, listAlbums } from "@/lib/gallery";
 import { newsPath, newsQuery, sortNewsNewestFirst } from "@/lib/news";
 import { takePreloadedHero } from "@/lib/preload";
+import { profilePages } from "@/lib/profile";
 import type { CMSItem, Lead } from "@/lib/cms";
 import { toast } from "sonner";
 
@@ -105,6 +107,7 @@ function HeroSlides({ images, parallaxY }: { images: string[]; parallaxY: Motion
 
 export default function Home() {
   const lenisRef = useLenisScroll();
+  const reduceMotion = useReducedMotion();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [headerScrolled, setHeaderScrolled] = useState(false);
   useEffect(() => {
@@ -292,7 +295,9 @@ export default function Home() {
             <span className="hidden md:block lg:hidden xl:block"><span className="block whitespace-nowrap font-heading text-[15px] font-extrabold leading-tight text-[#0a3358]">SMK TERATAI PUTIH GLOBAL 2</span><span className="mt-0.5 block whitespace-nowrap text-[11px] font-bold text-amber-500">Kota Bekasi – Joyfull Learning</span></span>
           </button>
           <nav className="hidden items-center gap-6 lg:flex" aria-label="Navigasi utama" data-testid="desktop-navigation">
-            {navItems.map(([label, href]) => <button type="button" key={href} onClick={() => scrollTo(href)} className="inline-block text-[13px] font-bold text-slate-600 transition-all duration-300 hover:-translate-y-0.5 hover:text-[#0f4c81]" data-testid={`nav-link-${label.toLowerCase()}`}>{label}</button>)}
+            {navItems.map(([label, href]) => href === "#profil"
+              ? <ProfileNavMenu key={href} onAbout={() => scrollTo(href)} />
+              : <button type="button" key={href} onClick={() => scrollTo(href)} className="inline-block text-[13px] font-bold text-slate-600 transition-all duration-300 hover:-translate-y-0.5 hover:text-[#0f4c81]" data-testid={`nav-link-${label.toLowerCase()}`}>{label}</button>)}
           </nav>
           <div className="flex items-center gap-1.5 sm:gap-2">
             <button type="button" onClick={openSpmbAnnouncement} className="flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 transition-all hover:-translate-y-0.5 hover:bg-amber-100 sm:gap-2 sm:px-4 sm:py-2" data-testid="header-spmb-link"><GraduationCap size={15} /> SPMB</button>
@@ -305,7 +310,11 @@ export default function Home() {
               everything, so a tapped section landed a whole menu's height too far. */}
           {mobileMenuOpen && <motion.nav initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className={`absolute inset-x-0 top-full overflow-hidden bg-white lg:hidden ${headerScrolled ? "mt-2 rounded-2xl border border-slate-200 shadow-xl" : "border-b border-slate-100 shadow-lg"}`} data-testid="mobile-navigation">
             <div className="px-5 py-4">
-              {navItems.map(([label, href]) => <button type="button" key={href} onClick={() => scrollTo(href)} className="block w-full border-b border-slate-100 py-3 text-left text-sm font-bold text-slate-700" data-testid={`mobile-nav-link-${label.toLowerCase()}`}>{label}</button>)}
+              {navItems.map(([label, href]) => <Fragment key={href}>
+                <button type="button" onClick={() => scrollTo(href)} className="block w-full border-b border-slate-100 py-3 text-left text-sm font-bold text-slate-700" data-testid={`mobile-nav-link-${label.toLowerCase()}`}>{label}</button>
+                {/* The profile pages sit indented under "Profil", which itself still scrolls to the section. */}
+                {href === "#profil" && <ul className="border-b border-slate-100 py-1" data-testid="mobile-nav-profile-pages">{profilePages.map((page) => <li key={page.path}><Link to={page.path} className="block py-2.5 pl-4 text-sm font-semibold text-slate-500" data-testid={`mobile-nav-profile-${page.path.slice(1)}`}>{page.label}</Link></li>)}</ul>}
+              </Fragment>)}
             </div>
           </motion.nav>}
         </AnimatePresence>
@@ -363,18 +372,23 @@ export default function Home() {
           <motion.div style={{ opacity: heroDim }} className="pointer-events-none absolute inset-0 z-20 bg-black" aria-hidden="true" />
         </section>
 
-        <div ref={heroCoverRef} className="relative z-10 bg-[#f8fafc]">
+        {/* overflow-x-clip: section 01's photo and text slide in from either side; clip (not hidden) so the wave above stays visible and no scroll container is made. */}
+        <div ref={heroCoverRef} className="relative z-10 overflow-x-clip bg-[#f8fafc]">
           <svg className="pointer-events-none absolute inset-x-0 bottom-[calc(100%-1px)] h-10 w-full sm:h-14" viewBox="0 0 1440 120" preserveAspectRatio="none" fill="none" aria-hidden="true">
             <path d="M0,64 C240,112 480,16 720,64 C960,112 1200,16 1440,64 L1440,120 L0,120 Z" fill="#f8fafc" />
           </svg>
           <section id="profil" className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16" data-testid="profile-section">
             <div className="grid items-center gap-12 lg:grid-cols-2">
-              <Reveal className="relative mx-auto w-full max-w-md" data-testid="profile-media">
+              <RopePull
+                className="mx-auto w-full max-w-md"
+                data-testid="profile-media"
+                after={profileContent.isPending ? <div className="absolute -bottom-8 -right-4 aspect-square sm:-right-6 w-[48%] overflow-hidden rounded-2xl border-4 border-white bg-white shadow-xl"><Skeleton className="h-full w-full rounded-none" /></div> : profileSecondaryImage && <div className="absolute -bottom-8 -right-4 aspect-square sm:-right-6 w-[48%] overflow-hidden rounded-2xl border-4 border-white shadow-xl bg-slate-100"><img src={profileSecondaryImage} srcSet={buildDriveSrcSet(profileSecondaryImage, [400, 700])} sizes="(min-width: 488px) 215px, 48vw" alt={profileSecondaryAlt} loading="lazy" decoding="async" className="h-full w-full object-cover" /></div>}
+              >
                 <span className="absolute -left-4 -top-4 z-10 flex h-16 w-16 items-center justify-center rounded-full bg-[#0f4c81] text-white shadow-lg shadow-blue-900/25"><GraduationCap size={26} /></span>
                 {profileContent.isPending ? <Skeleton className="aspect-[4/5] rounded-[2rem]" /> : <div className="aspect-[4/5] overflow-hidden rounded-[2rem] bg-slate-100">{profileMainImage && <img src={profileMainImage} srcSet={buildDriveSrcSet(profileMainImage, [400, 700])} sizes="(min-width: 488px) 448px, calc(100vw - 40px)" alt={profileMainAlt} loading="lazy" decoding="async" className="h-full w-full object-cover" />}</div>}
-                {profileContent.isPending ? <div className="absolute -bottom-8 -right-4 aspect-square sm:-right-6 w-[48%] overflow-hidden rounded-2xl border-4 border-white bg-white shadow-xl"><Skeleton className="h-full w-full rounded-none" /></div> : profileSecondaryImage && <div className="absolute -bottom-8 -right-4 aspect-square sm:-right-6 w-[48%] overflow-hidden rounded-2xl border-4 border-white shadow-xl bg-slate-100"><img src={profileSecondaryImage} srcSet={buildDriveSrcSet(profileSecondaryImage, [400, 700])} sizes="(min-width: 488px) 215px, 48vw" alt={profileSecondaryAlt} loading="lazy" decoding="async" className="h-full w-full object-cover" /></div>}
-              </Reveal>
-              <Reveal delay={120} data-testid="profile-intro">
+              </RopePull>
+              {/* Slides in from the right while the photo is hauled in from the left, like the gallery's detail panel. */}
+              <motion.div data-testid="profile-intro" initial={reduceMotion ? false : { opacity: 0, x: 80 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ type: "spring", stiffness: 200, damping: 24, delay: 0.35 }}>
                 <p className="section-kicker">01 · Tentang kami</p>
                 <h2 className="section-heading mt-3"><ClipReveal>Sekolah yang menyalakan <span className="text-emerald-600">potensi.</span></ClipReveal></h2>
                 <p className="mt-5 text-base leading-relaxed text-slate-600">SMK Teratai Putih Global 2 Bekasi, yang akrab disapa Terput 2, hadir sebagai ruang tumbuh bagi generasi muda yang unggul, terpercaya, dan profesional. Kami mempertemukan karakter baik dengan kompetensi yang relevan dengan kebutuhan industri.</p>
@@ -383,9 +397,9 @@ export default function Home() {
                     <li key={item} className="flex items-center gap-2 text-sm font-semibold text-slate-700"><Check size={16} className="shrink-0 text-emerald-600" /> {item}</li>
                   ))}
                 </ul>
-              </Reveal>
+              </motion.div>
             </div>
-            <Reveal delay={200} className="relative mt-14 rounded-[2rem] bg-white p-7 shadow-[0_20px_60px_-30px_rgba(15,76,129,.32)] ring-1 ring-slate-200/80 transition-transform duration-300 hover:-translate-y-1 sm:p-10" data-testid="foundation-quote-card"><Quote className="absolute right-8 top-8 text-amber-100" size={74} fill="currentColor" /><p className="relative max-w-2xl font-heading text-2xl font-bold leading-snug tracking-tight text-[#0a3358] sm:text-3xl">“Pendidikan adalah harga mati untuk menjadi pondasi bangsa dan negara dalam menghadapi perkembangan zaman.”</p><div className="relative mt-8 flex items-center gap-3 border-t border-slate-100 pt-5"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0f4c81] text-white"><Building2 size={18} /></span><span><strong className="block text-sm text-slate-800">Yayasan Teratai Putih Global</strong><small className="text-xs text-slate-500">Komitmen untuk generasi masa depan</small></span></div></Reveal>
+            <Reveal delay={200} className="relative mt-14 rounded-[2rem] bg-white p-7 shadow-[0_20px_60px_-30px_rgba(15,76,129,.32)] ring-1 ring-slate-200/80 transition-transform duration-300 hover:-translate-y-1 sm:p-10" data-testid="foundation-quote-card"><Quote className="absolute right-8 top-8 text-amber-100" size={74} fill="currentColor" /><p className="relative max-w-2xl font-heading text-2xl font-bold leading-snug tracking-tight text-[#0a3358] sm:text-3xl">“Pendidikan adalah harga mati untuk menjadi pondasi bangsa dan negara dalam menghadapi perkembangan zaman.”</p><div className="relative mt-8 flex items-center gap-3 border-t border-slate-100 pt-5"><img src="/logo-yayasan.png" alt="Logo Yayasan Teratai Putih Global" className="h-12 w-12 shrink-0 object-contain" data-testid="foundation-quote-logo" /><span><strong className="block text-sm text-slate-800">Yayasan Teratai Putih Global</strong><small className="text-xs text-slate-500">Komitmen untuk generasi masa depan</small></span></div></Reveal>
           </section>
 
           <section id="jurusan" className="bg-white px-5 py-12 lg:py-16" data-testid="majors-section">

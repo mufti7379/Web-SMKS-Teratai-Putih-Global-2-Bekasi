@@ -1,4 +1,4 @@
-export type ResourceType = "news" | "agenda" | "gallery" | "major" | "hero" | "facility" | "banner" | "profile" | "partner" | "faq";
+export type ResourceType = "news" | "agenda" | "gallery" | "major" | "hero" | "facility" | "banner" | "profile" | "partner" | "faq" | "principal" | "staff";
 export type RoleType = "super_admin" | "content_editor" | "ppdb_officer" | "agenda_manager";
 export type AgendaCategory = "akademik" | "ujian" | "kegiatan" | "industri" | "pengumuman";
 export type LeadSource = "website" | "whatsapp" | "instagram" | "walk_in" | "referral";
@@ -19,6 +19,8 @@ export interface CMSItem {
   skills: string[];
   careers: string[];
   category: AgendaCategory | null;
+  /** Position within its group on the GTK page (staff only). */
+  sort_order?: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -167,4 +169,6 @@ export const resourceLabels: Record<ResourceType, string> = {
   profile: "Foto Tentang Kami",
   partner: "Kerja Sama",
   faq: "FAQ Asisten",
+  principal: "Sambutan Kepala Sekolah",
+  staff: "GTK",
 };

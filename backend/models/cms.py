@@ -5,7 +5,10 @@ from uuid import uuid4
 from pydantic import BaseModel, Field
 
 
-ResourceType = Literal["news", "agenda", "gallery", "major", "hero", "facility", "banner", "profile", "partner", "faq"]
+ResourceType = Literal["news", "agenda", "gallery", "major", "hero", "facility", "banner", "profile", "partner", "faq", "principal", "staff"]
+# Room for a full principal's welcome, the longest text the CMS holds; the admin form keeps
+# other content to 2000 characters.
+DESCRIPTION_MAX = 5000
 RoleType = Literal["super_admin", "content_editor", "ppdb_officer", "agenda_manager"]
 AgendaCategory = Literal["akademik", "ujian", "kegiatan", "industri", "pengumuman"]
 LeadSource = Literal["website", "whatsapp", "instagram", "walk_in", "referral"]
@@ -14,7 +17,7 @@ LeadSource = Literal["website", "whatsapp", "instagram", "walk_in", "referral"]
 class CMSItemBase(BaseModel):
     resource: ResourceType
     title: str = Field(min_length=2, max_length=160)
-    description: str = Field(default="", max_length=2000)
+    description: str = Field(default="", max_length=DESCRIPTION_MAX)
     date: str | None = None
     end_date: str | None = None
     time: str | None = None
@@ -26,6 +29,8 @@ class CMSItemBase(BaseModel):
     skills: list[str] = Field(default_factory=list)
     careers: list[str] = Field(default_factory=list)
     category: AgendaCategory | None = None
+    # Position within its group on the GTK page (staff); unset ones follow, by name.
+    sort_order: int | None = None
 
 
 class CMSItemCreate(CMSItemBase):
@@ -34,7 +39,7 @@ class CMSItemCreate(CMSItemBase):
 
 class CMSItemUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=2, max_length=160)
-    description: str | None = Field(default=None, max_length=2000)
+    description: str | None = Field(default=None, max_length=DESCRIPTION_MAX)
     date: str | None = None
     end_date: str | None = None
     time: str | None = None
@@ -46,6 +51,7 @@ class CMSItemUpdate(BaseModel):
     skills: list[str] | None = None
     careers: list[str] | None = None
     category: AgendaCategory | None = None
+    sort_order: int | None = None
 
 
 class CMSItem(CMSItemBase):
