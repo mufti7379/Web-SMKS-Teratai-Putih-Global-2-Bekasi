@@ -22,19 +22,40 @@ export function sealDriveId(id: string) {
   return Buffer.concat([nonce, cipher.update(id, "utf8"), cipher.final(), cipher.getAuthTag()]).toString("base64url");
 }
 
-/** The Drive id inside a token this site made; null for anything else. */
-export function openToken(token: string) {
+/** What a token this site made holds; null for anything else. */
+function openSealed(token: string) {
   const key = keys();
   const sealed = Buffer.from(token, "base64url");
   if (!key || sealed.length <= 28) return null;
   try {
     const decipher = createDecipheriv("aes-256-gcm", key.enc, sealed.subarray(0, 12));
     decipher.setAuthTag(sealed.subarray(-16));
-    const id = Buffer.concat([decipher.update(sealed.subarray(12, -16)), decipher.final()]).toString("utf8");
-    return DRIVE_ID.test(id) ? id : null;
+    return Buffer.concat([decipher.update(sealed.subarray(12, -16)), decipher.final()]).toString("utf8");
   } catch {
     return null;
   }
+}
+
+/** The Drive id inside a picture, file or folder token this site made; null for anything else. */
+export function openToken(token: string) {
+  const id = openSealed(token);
+  return id && DRIVE_ID.test(id) ? id : null;
+}
+
+const DRIVE_LINK = /^(file|folder|open):([\w-]+)$/;
+
+/**
+ * Where a link token leads on Drive — one sealed from an item's text or "link" (mask_drive_links
+ * in backend/lib/media.py); null for anything else. Album folders' tokens hold a bare id, so they
+ * can't be opened here and stay hidden.
+ */
+export function openLink(token: string) {
+  const match = openSealed(token)?.match(DRIVE_LINK);
+  if (!match) return null;
+  const [, kind, id] = match;
+  if (kind === "file") return `https://drive.google.com/file/d/${id}/view`;
+  if (kind === "folder") return `https://drive.google.com/drive/folders/${id}`;
+  return `https://drive.google.com/open?id=${id}`;
 }
 
 /** A Drive folder from the public gallery: its token opened, or as is when content isn't sealed (no MEDIA_KEY on the backend). */

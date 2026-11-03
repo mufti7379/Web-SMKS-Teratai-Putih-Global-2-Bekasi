@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 
 from lib.dates import today_iso
 from lib.db import db  # sekaligus memuat backend/.env
+from lib.media import mask_drive_links
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -90,7 +91,8 @@ async def build_knowledge() -> str:
         if item.get("date"):
             line += f" ({item['date']}{' s/d ' + item['end_date'] if item.get('end_date') else ''})"
         if item.get("description"):
-            line += f": {item['description']}"
+            # Link Drive disamarkan seperti di konten publik, supaya tidak bocor lewat jawaban asisten
+            line += f": {mask_drive_links(item['description'])}"
         if item.get("skills"):
             line += f" | Keahlian: {', '.join(item['skills'])}"
         if item.get("careers"):

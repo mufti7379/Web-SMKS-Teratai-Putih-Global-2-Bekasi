@@ -1,9 +1,10 @@
 // /media/<token>?w=<pixels> (rewritten here by vercel.json): a picture kept in Google Drive,
 // fetched from Google's image CDN at that width and passed on under this site's own address,
 // so the browser never sees the Drive id. /media/preview/<token> forwards to Drive's video
-// player instead (a Drive video only plays there). Tokens are made only by the backend and
+// player instead (a Drive video only plays there), and /media/open/<token> to the Drive page of
+// a file or folder linked from an item's text or "link". Tokens are made only by the backend and
 // api/album.ts (see _lib/media.ts); anything else is a 404, so this can't fetch other files.
-import { openToken } from "./_lib/media";
+import { openLink, openToken } from "./_lib/media";
 
 const MAX_WIDTH = 2400;
 // Without ?w (e.g. "view full size" links), still not the original upload.
@@ -25,6 +26,10 @@ async function fetchPicture(id: string, width: number, webp: boolean) {
 
 export async function GET(request: Request) {
   const params = new URL(request.url).searchParams;
+  if (params.has("open")) {
+    const page = openLink(params.get("token") ?? "");
+    return page ? new Response(null, { status: 302, headers: { location: page, "cache-control": "public, s-maxage=86400" } }) : plain("Tidak ditemukan", 404, "public, s-maxage=86400");
+  }
   const id = openToken(params.get("token") ?? "");
   if (!id) return plain("Tidak ditemukan", 404, "public, s-maxage=86400");
   if (params.has("preview")) return new Response(null, { status: 302, headers: { location: `https://drive.google.com/file/d/${id}/preview`, "cache-control": "public, s-maxage=86400" } });

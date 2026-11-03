@@ -16,6 +16,7 @@
     { "source": "/gtk", "destination": "/api/page?route=profil&page=gtk" },
     { "source": "/data/album/:album", "destination": "/api/album?album=:album" },
     { "source": "/media/preview/:token", "destination": "/api/media?token=:token&preview=1" },
+    { "source": "/media/open/:token", "destination": "/api/media?token=:token&open=1" },
     { "source": "/media/:token", "destination": "/api/media?token=:token" },
     { "source": "/api/(.*)", "destination": "https://terataiputih2-backend.vercel.app/api/$1" },
     { "source": "/admin", "destination": "/index.html" },

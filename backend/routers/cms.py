@@ -14,7 +14,7 @@ from openpyxl.styles import Font, PatternFill
 from passlib.context import CryptContext
 
 from lib.db import db
-from lib.media import mask_drive_url
+from lib.media import mask_drive_links, mask_drive_url
 from models.cms import (
     AdminLogin,
     AdminAccount,
@@ -198,7 +198,7 @@ async def logout(response: Response, school_admin_session: str | None = Cookie(d
 async def public_content(resource: ResourceType):
     documents = await db.cms_items.find({"resource": resource, "is_published": True}, {"_id": 0}).sort("date", 1).to_list(200)
     # Visitors get sealed /media/… links instead of the Google Drive ones (see lib/media.py).
-    return [serialize_item({**document, "image_url": mask_drive_url(document.get("image_url"))}) for document in documents]
+    return [serialize_item({**document, "image_url": mask_drive_url(document.get("image_url")), "description": mask_drive_links(document.get("description", "")), "link": mask_drive_links(document.get("link"))}) for document in documents]
 
 
 @router.get("/admin/content/{resource}", response_model=list[CMSItem])
