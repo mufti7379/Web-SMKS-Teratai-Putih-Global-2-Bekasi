@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { FormEvent, MouseEvent } from "react";
 import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform, type MotionValue } from "motion/react";
@@ -14,7 +14,6 @@ import {
   GraduationCap,
   HeartHandshake,
   Mail,
-  Menu,
   MessageCircle,
   Palette,
   Play,
@@ -35,7 +34,7 @@ import type { ActivityItem } from "@/components/ActivityStack";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Reveal, ClipReveal, StaggerRise } from "@/components/motion/Reveal";
 import { RopePull } from "@/components/motion/RopePull";
-import { ProfileNavMenu } from "@/components/ProfileNav";
+import { SiteHeader } from "@/components/SiteHeader";
 import { Typewriter } from "@/components/motion/Typewriter";
 import { useLenisScroll } from "@/hooks/useLenisScroll";
 import { apiGet, apiPost } from "@/lib/api";
@@ -44,7 +43,6 @@ import { optimizeImageUrl, buildDriveSrcSet } from "@/lib/images";
 import { albumDriveFolders, albumOf, albumPhotosQuery, galleryMedia, galleryQuery, galleryStill, isInAlbum, isSinglePhoto, listAlbums } from "@/lib/gallery";
 import { newsPath, newsQuery, sortNewsNewestFirst } from "@/lib/news";
 import { takePreloadedHero } from "@/lib/preload";
-import { profilePages } from "@/lib/profile";
 import type { CMSItem, Lead } from "@/lib/cms";
 import { toast } from "sonner";
 
@@ -58,10 +56,6 @@ type Major = {
   image: string | null;
   icon: typeof Code2;
 };
-
-const navItems = [
-  ["Beranda", "#beranda"], ["Profil", "#profil"], ["Jurusan", "#jurusan"], ["Fasilitas", "#fasilitas"], ["Agenda", "#berita"], ["Berita", "#berita-terkini"], ["Galeri", "#galeri"], ["Kontak", "#kontak"],
-] as const;
 
 // The row of cards along the bottom of the hero photo; each one jumps to the section that says more.
 const heroHighlights = [
@@ -108,14 +102,6 @@ function HeroSlides({ images, parallaxY }: { images: string[]; parallaxY: Motion
 export default function Home() {
   const lenisRef = useLenisScroll();
   const reduceMotion = useReducedMotion();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [headerScrolled, setHeaderScrolled] = useState(false);
-  useEffect(() => {
-    const onScroll = () => setHeaderScrolled(window.scrollY > 10);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
   const [selectedMajorCode, setSelectedMajorCode] = useState("RPL");
   const [isPpdbOpen, setIsPpdbOpen] = useState(false);
   const [isVideoOpen, setIsVideoOpen] = useState(false);
@@ -252,7 +238,6 @@ export default function Home() {
       if (target && lenisRef.current) lenisRef.current.scrollTo(target, { offset: -76 });
       else target?.scrollIntoView({ behavior: "smooth" });
     }
-    setMobileMenuOpen(false);
   };
   // The header's SPMB button lands on the SPMB announcement, even when another one is showing.
   const openSpmbAnnouncement = () => {
@@ -261,13 +246,41 @@ export default function Home() {
     scrollTo("#spmb");
   };
 
-  // Coming back from a news article lands on "/#berita-terkini" — jump straight to that
-  // section instead of making the visitor scroll down from the hero again.
+  // Coming back from a news article lands on "/#berita-terkini", and the header on other pages
+  // links to "/#<section>" — jump straight to that section instead of making the visitor scroll
+  // down from the hero again.
   useEffect(() => {
     const target = window.location.hash ? document.querySelector<HTMLElement>(window.location.hash) : null;
-    if (target && lenisRef.current) lenisRef.current.scrollTo(target, { offset: -76, immediate: true });
-    else target?.scrollIntoView();
+    if (!target) return;
+    const jump = () => {
+      const lenis = lenisRef.current;
+      if (!lenis) { target.scrollIntoView(); return; }
+      lenis.resize(); // Lenis catches up with page height changes only after a delay.
+      lenis.scrollTo(target, { offset: -76, immediate: true });
+    };
+    jump();
+    // The sections above fill in after this first jump and push the target down the page (Kontak
+    // ended up most of a screen too high). Follow it as they do, until the visitor scrolls
+    // themselves or the page has had a few seconds to settle.
+    const follow = new ResizeObserver(jump);
+    follow.observe(document.body);
+    const stop = () => follow.disconnect();
+    const settled = window.setTimeout(stop, 4000);
+    const userEvents = ["wheel", "touchstart", "keydown", "pointerdown"] as const;
+    userEvents.forEach((type) => window.addEventListener(type, stop, { once: true, passive: true }));
+    return () => {
+      stop();
+      window.clearTimeout(settled);
+      userEvents.forEach((type) => window.removeEventListener(type, stop));
+    };
   }, [lenisRef]);
+  // The SPMB button on other pages lands on "/#spmb": show the SPMB announcement there too, once
+  // they've loaded. Keyed on the fetched data, so picking another tab afterwards sticks.
+  useEffect(() => {
+    if (window.location.hash !== "#spmb") return;
+    const spmb = bannerContent.data?.find((item) => announcementKind(item) === "spmb");
+    if (spmb) setAnnouncementId(spmb.id);
+  }, [bannerContent.data]);
 
   const navigate = useNavigate();
   // Re-point this history entry at the news section before the article pushes, so the
@@ -288,37 +301,7 @@ export default function Home() {
     <div className="min-h-screen bg-[#f8fafc] text-slate-900" data-testid="school-website-shell">
       <Toaster position="top-right" richColors />
 
-      <header className={`sticky z-40 mx-auto backdrop-blur-xl transition-all duration-300 ${headerScrolled ? "top-[10px] max-w-[min(80rem,calc(100%-2.5rem))] rounded-2xl border border-white/40 bg-slate-200/60 shadow-lg" : "top-0 max-w-full rounded-none border-b border-slate-200/80 bg-white/95 shadow-sm"}`} data-testid="site-header">
-        <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-5 lg:px-8">
-          <button type="button" className="flex items-center gap-3 text-left" onClick={() => scrollTo("#beranda")} data-testid="school-brand-button">
-            <img src="/logo-tp2.png" alt="Logo SMK Teratai Putih Global 2" className="h-11 w-11 rounded-2xl object-contain shadow-lg shadow-blue-900/15" />
-            <span className="hidden md:block lg:hidden xl:block"><span className="block whitespace-nowrap font-heading text-[15px] font-extrabold leading-tight text-[#0a3358]">SMK TERATAI PUTIH GLOBAL 2</span><span className="mt-0.5 block whitespace-nowrap text-[11px] font-bold text-amber-500">Kota Bekasi – Joyfull Learning</span></span>
-          </button>
-          <nav className="hidden items-center gap-6 lg:flex" aria-label="Navigasi utama" data-testid="desktop-navigation">
-            {navItems.map(([label, href]) => href === "#profil"
-              ? <ProfileNavMenu key={href} onAbout={() => scrollTo(href)} />
-              : <button type="button" key={href} onClick={() => scrollTo(href)} className="inline-block text-[13px] font-bold text-slate-600 transition-all duration-300 hover:-translate-y-0.5 hover:text-[#0f4c81]" data-testid={`nav-link-${label.toLowerCase()}`}>{label}</button>)}
-          </nav>
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <button type="button" onClick={openSpmbAnnouncement} className="flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 transition-all hover:-translate-y-0.5 hover:bg-amber-100 sm:gap-2 sm:px-4 sm:py-2" data-testid="header-spmb-link"><GraduationCap size={15} /> SPMB</button>
-            <a href="https://s.id/DGB-TERPUT" target="_blank" rel="noreferrer" className="group flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 transition-all hover:-translate-y-0.5 hover:bg-amber-100 sm:gap-2 sm:px-5 sm:py-2.5" data-testid="header-guestbook-link"><span className="hidden min-[400px]:inline">Buku Tamu Digital</span><span className="min-[400px]:hidden">Buku Tamu</span> <ArrowUpRight size={16} className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" /></a>
-            <button type="button" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="rounded-xl p-2 text-[#0a3358] lg:hidden" aria-label="Buka menu" data-testid="mobile-menu-toggle">{mobileMenuOpen ? <X /> : <Menu />}</button>
-          </div>
-        </div>
-        <AnimatePresence>
-          {/* Overlays the page instead of pushing it down: a taller in-flow header shifted
-              everything, so a tapped section landed a whole menu's height too far. */}
-          {mobileMenuOpen && <motion.nav initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className={`absolute inset-x-0 top-full overflow-hidden bg-white lg:hidden ${headerScrolled ? "mt-2 rounded-2xl border border-slate-200 shadow-xl" : "border-b border-slate-100 shadow-lg"}`} data-testid="mobile-navigation">
-            <div className="px-5 py-4">
-              {navItems.map(([label, href]) => <Fragment key={href}>
-                <button type="button" onClick={() => scrollTo(href)} className="block w-full border-b border-slate-100 py-3 text-left text-sm font-bold text-slate-700" data-testid={`mobile-nav-link-${label.toLowerCase()}`}>{label}</button>
-                {/* The profile pages sit indented under "Profil", which itself still scrolls to the section. */}
-                {href === "#profil" && <ul className="border-b border-slate-100 py-1" data-testid="mobile-nav-profile-pages">{profilePages.map((page) => <li key={page.path}><Link to={page.path} className="block py-2.5 pl-4 text-sm font-semibold text-slate-500" data-testid={`mobile-nav-profile-${page.path.slice(1)}`}>{page.label}</Link></li>)}</ul>}
-              </Fragment>)}
-            </div>
-          </motion.nav>}
-        </AnimatePresence>
-      </header>
+      <SiteHeader onSection={scrollTo} onSpmb={openSpmbAnnouncement} />
 
       <main>
         <section id="beranda" ref={heroRef} style={{ top: heroPin.top }} className="sticky isolate overflow-hidden bg-[#092c4c]" data-testid="hero-section">
@@ -405,23 +388,23 @@ export default function Home() {
           <section id="jurusan" className="bg-white px-5 py-12 lg:py-16" data-testid="majors-section">
             <div className="mx-auto max-w-7xl lg:px-3"><Reveal className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="section-kicker">02 · Program unggulan</p><h2 className="section-heading mt-3"><ClipReveal>Temukan ruang untuk <span className="text-emerald-600">bersinar.</span></ClipReveal></h2></div><p className="max-w-sm text-sm leading-relaxed text-slate-500">Kurikulum kami dirancang bersama dunia industri agar setiap pelajaran terasa dekat dengan masa depan.</p></Reveal>
               {majorContent.isPending ? <MajorsSkeleton /> : !selectedMajor ? <div className={`mt-12 ${emptyStateClass}`} data-testid="majors-empty">Program keahlian belum tersedia.</div> : <div className="mt-12 grid gap-8 lg:grid-cols-[260px_1fr]"><div className="flex gap-2 overflow-x-auto pb-2 lg:block lg:space-y-2" role="tablist" aria-label="Program keahlian" data-testid="major-tabs">{displayMajors.map((major) => <button type="button" role="tab" aria-selected={selectedMajor.code === major.code} key={major.code} onClick={() => setSelectedMajorCode(major.code)} className={`major-tab group ${selectedMajor.code === major.code ? "major-tab-active" : ""}`} data-testid={`major-tab-${major.code.toLowerCase()}`}><span className="font-mono text-[11px]">{major.code}</span><span className="hidden text-left lg:block">{major.name}</span><ChevronRight size={15} className="ml-auto hidden transition-transform duration-300 group-hover:translate-x-1 lg:block" /></button>)}</div>
-                <AnimatePresence mode="wait"><motion.div key={selectedMajor.code} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} transition={{ type: "spring", stiffness: 260, damping: 26 }} className="overflow-hidden rounded-[1.75rem] bg-[#092c4c]" data-testid="selected-major-panel"><div className="grid min-h-[395px] lg:grid-cols-[.9fr_1.1fr]"><div className="relative min-h-[250px] overflow-hidden lg:min-h-0">{selectedMajor.image && <img src={selectedMajor.image} srcSet={buildDriveSrcSet(selectedMajor.image, [400, 700])} sizes="(min-width: 1024px) 440px, calc(100vw - 40px)" alt={selectedMajor.name} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover opacity-75" />}<div className="absolute inset-0 bg-gradient-to-r from-[#092c4c]/30 to-[#092c4c]/80 lg:bg-gradient-to-r lg:from-transparent lg:to-[#092c4c]" /><div className="absolute left-6 top-6 rounded-full bg-white/15 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">{selectedMajor.badge}</div></div><div className="flex flex-col justify-center p-7 text-white sm:p-10"><div className="flex items-center gap-3 text-emerald-300"><MajorIcon size={22} /><span className="font-mono text-xs font-bold tracking-widest">PROGRAM {selectedMajor.code}</span></div><h3 className="mt-4 max-w-md font-heading text-2xl font-extrabold sm:text-3xl" data-testid="selected-major-title">{selectedMajor.name}</h3><p className="mt-3 max-w-md text-sm leading-relaxed text-slate-300">{selectedMajor.tagline}</p><div className="mt-7 grid gap-5 sm:grid-cols-2"><div><span className="text-[10px] font-bold uppercase tracking-widest text-amber-300">Kompetensi inti</span><ul className="mt-3 space-y-2">{selectedMajor.skills.map(skill => <li key={skill} className="flex items-center gap-2 text-xs text-slate-200"><Check size={14} className="text-emerald-400" /> {skill}</li>)}</ul></div><div><span className="text-[10px] font-bold uppercase tracking-widest text-amber-300">Pilihan karier</span><ul className="mt-3 space-y-2">{selectedMajor.careers.map(career => <li key={career} className="flex items-center gap-2 text-xs text-slate-200"><ArrowUpRight size={13} className="text-emerald-400" /> {career}</li>)}</ul></div></div></div></div></motion.div></AnimatePresence>
+                <AnimatePresence mode="wait"><motion.div key={selectedMajor.code} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} transition={{ type: "spring", stiffness: 260, damping: 26 }} className="overflow-hidden rounded-[1.75rem] bg-[#092c4c]" data-testid="selected-major-panel"><div className="grid min-h-[395px] lg:grid-cols-[.9fr_1.1fr]"><div className="relative min-h-[250px] overflow-hidden lg:min-h-0">{selectedMajor.image && <img src={selectedMajor.image} srcSet={buildDriveSrcSet(selectedMajor.image, [400, 700])} sizes="(min-width: 1024px) 440px, calc(100vw - 40px)" alt={selectedMajor.name} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover opacity-75" />}<div className="absolute inset-0 bg-gradient-to-r from-[#092c4c]/30 to-[#092c4c]/80 lg:bg-gradient-to-r lg:from-transparent lg:to-[#092c4c]" /><div className="absolute left-6 top-6 rounded-full bg-white/15 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">{selectedMajor.badge}</div></div><div className="flex flex-col justify-center p-7 text-white sm:p-10"><div className="flex items-center gap-3 text-emerald-300"><MajorIcon size={22} /><span className="font-mono text-xs font-bold tracking-widest">PROGRAM {selectedMajor.code}</span></div><h3 className="mt-4 max-w-md font-heading text-2xl font-extrabold sm:text-3xl" data-testid="selected-major-title">{selectedMajor.name}</h3><p className="cms-text mt-3 max-w-md text-sm leading-relaxed text-slate-300">{selectedMajor.tagline}</p><div className="mt-7 grid gap-5 sm:grid-cols-2"><div><span className="text-[10px] font-bold uppercase tracking-widest text-amber-300">Kompetensi inti</span><ul className="mt-3 space-y-2">{selectedMajor.skills.map(skill => <li key={skill} className="flex items-center gap-2 text-xs text-slate-200"><Check size={14} className="text-emerald-400" /> {skill}</li>)}</ul></div><div><span className="text-[10px] font-bold uppercase tracking-widest text-amber-300">Pilihan karier</span><ul className="mt-3 space-y-2">{selectedMajor.careers.map(career => <li key={career} className="flex items-center gap-2 text-xs text-slate-200"><ArrowUpRight size={13} className="text-emerald-400" /> {career}</li>)}</ul></div></div></div></div></motion.div></AnimatePresence>
               </div>}
             </div>
           </section>
 
           <section id="fasilitas" className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16" data-testid="facilities-section"><Reveal className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="section-kicker">03 · Fasilitas belajar</p><h2 className="section-heading mt-3"><ClipReveal>Belajar lebih <span className="text-emerald-600">nyata.</span></ClipReveal></h2></div><p className="max-w-sm text-sm leading-relaxed text-slate-500">Ruang belajar yang dirancang untuk praktik, kolaborasi, dan keberanian mencoba hal baru.</p></Reveal><div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="facilities-grid">{facilityContent.isPending && <FacilitySkeletons />}{displayFacilities.map(({ image, title, desc }, index) => <motion.button type="button" initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }} whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 200, damping: 24, delay: (index % 3) * 0.08 }} key={title} onClick={() => image && setFacilityLightbox({ image, title, desc })} className={`group relative overflow-hidden rounded-2xl bg-white text-left ring-1 ring-slate-200/80 shadow-sm ${image ? "cursor-zoom-in" : "cursor-default"} ${index === 0 ? "lg:col-span-2" : ""}`} data-testid={`facility-card-${index + 1}`}><div className={`relative overflow-hidden bg-gradient-to-br from-[#0f4c81] to-[#092c4c] ${index === 0 ? "h-64" : "h-52"}`}>{image && <img src={image} srcSet={buildDriveSrcSet(image, [400, 700])} sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, calc(100vw - 40px)" alt={title} loading="lazy" decoding="async" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />}<div className="absolute inset-0 bg-gradient-to-t from-[#092c4c]/80 to-transparent" /><div className="absolute bottom-4 left-5 right-5"><h3 className="font-heading text-lg font-bold text-white">{title}</h3><p className="mt-1 max-w-lg text-xs leading-relaxed text-slate-200">{desc}</p></div></div></motion.button>)}{!facilityContent.isPending && displayFacilities.length === 0 && <div className={emptyStateClass} data-testid="facilities-empty">Informasi fasilitas belum tersedia.</div>}</div></section>
 
-          <section id="berita" className="bg-[#eaf3f4] px-5 py-12 lg:py-16" data-testid="agenda-section"><div className="mx-auto max-w-7xl lg:px-3"><Reveal className="mb-10 flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="section-kicker">04 · Agenda terkini</p><h2 className="section-heading mt-3"><ClipReveal>Rencanakan setiap <span className="text-emerald-600">momen.</span></ClipReveal></h2></div><div className="flex flex-col items-start gap-3 sm:items-end"><p className="max-w-sm text-sm leading-relaxed text-slate-600">Lihat agenda bulanan, detail kegiatan, dan simpan pengingat langsung ke kalender Anda.</p></div></Reveal>{agendaContent.isPending ? <AcademicCalendarSkeleton /> : <AcademicCalendar events={agendaContent.data ?? []} />}</div></section>
+          <section id="berita" className="bg-white px-5 py-12 lg:py-16" data-testid="agenda-section"><div className="mx-auto max-w-7xl lg:px-3"><Reveal className="mb-10 flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="section-kicker">04 · Agenda terkini</p><h2 className="section-heading mt-3"><ClipReveal>Rencanakan setiap <span className="text-emerald-600">momen.</span></ClipReveal></h2></div><div className="flex flex-col items-start gap-3 sm:items-end"><p className="max-w-sm text-sm leading-relaxed text-slate-500">Lihat agenda bulanan, detail kegiatan, dan simpan pengingat langsung ke kalender Anda.</p></div></Reveal>{agendaContent.isPending ? <AcademicCalendarSkeleton /> : <AcademicCalendar events={agendaContent.data ?? []} />}</div></section>
 
           <section id="berita-terkini" className="bg-slate-50 px-5 py-12 lg:px-8 lg:py-16" data-testid="news-section"><div className="mx-auto max-w-7xl"><Reveal className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="section-kicker">05 · Berita sekolah</p><h2 className="section-heading mt-3"><ClipReveal>Kabar terbaru dari <span className="text-emerald-600">kami.</span></ClipReveal></h2></div><p className="max-w-sm text-sm leading-relaxed text-slate-500">Ikuti pengumuman, prestasi, dan kegiatan terkini sekolah.</p></Reveal><div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" data-testid="news-grid">{newsContent.isPending && <NewsCardSkeletons />}{displayNews.map((item, index) => <StaggerRise key={item.id}><NewsCard item={item} to={newsPath(item, allNews)} onClick={rememberNewsSection} data-testid={`news-item-${index + 1}`} /></StaggerRise>)}{!newsContent.isPending && displayNews.length === 0 && <div className={emptyStateClass} data-testid="news-empty">Belum ada berita.</div>}</div>{allNews.length > 0 && <div className="mt-10 flex flex-col items-center gap-3"><Link to="/berita" onClick={rememberNewsSection} className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#0f4c81] px-7 text-sm font-bold text-white shadow-lg shadow-blue-900/15 transition-colors hover:bg-[#0a3358]" data-testid="news-see-all-link">Lihat semua berita <ArrowRight size={16} /></Link>{allNews.length > homeNewsLimit && <span className="text-xs text-slate-500" data-testid="news-more-count">+{allNews.length - homeNewsLimit} berita lainnya</span>}</div>}</div></section>
 
-          <section id="galeri" className="relative isolate overflow-x-clip px-5 py-16 lg:px-8 lg:py-24" data-testid="gallery-section">{/* overflow-x-clip: the activity stack and its detail slide in from ±80px; until they scroll into view that offset widened the page on phones, so it opened shifted sideways. clip (not hidden) keeps this from becoming a scroll container. */}{/* Light-amber backdrop (the header SPMB button's colour), edge to edge, with sweeping top-right / bottom-left curves. */}<div className="absolute inset-0 -z-10 rounded-[0_72px_0_48px] bg-amber-50 lg:rounded-[0_38%_0_14%/0_42%_0_24%]" aria-hidden="true" /><div className="mx-auto max-w-7xl"><Reveal className="flex items-end justify-between"><div><p className="section-kicker">06 · Galeri aktivitas</p><h2 className="section-heading mt-3"><ClipReveal>Momen yang <span className="text-emerald-600">bermakna.</span></ClipReveal></h2></div></Reveal><div className="mt-10" data-testid="gallery-grid">{galleryContent.isPending ? <ActivityStackSkeleton /> : stackItems.length === 0 ? <div className={emptyStateClass} data-testid="gallery-empty">Belum ada foto galeri.</div> : <ActivityStack items={stackItems} onPlay={(item) => item.video && setGalleryVideo({ ...item.video, title: item.title })} onZoom={(item) => item.fullImage && setFacilityLightbox({ image: item.fullImage, title: item.title, desc: item.description })} />}</div></div></section>
+          <section id="galeri" className="overflow-x-clip bg-white px-5 py-12 lg:px-8 lg:py-16" data-testid="gallery-section">{/* overflow-x-clip: the activity stack and its detail slide in from ±80px; until they scroll into view that offset widened the page on phones, so it opened shifted sideways. clip (not hidden) keeps this from becoming a scroll container. */}<div className="mx-auto max-w-7xl"><Reveal className="flex items-end justify-between"><div><p className="section-kicker">06 · Galeri aktivitas</p><h2 className="section-heading mt-3"><ClipReveal>Momen yang <span className="text-emerald-600">bermakna.</span></ClipReveal></h2></div></Reveal><div className="mt-10" data-testid="gallery-grid">{galleryContent.isPending ? <ActivityStackSkeleton /> : stackItems.length === 0 ? <div className={emptyStateClass} data-testid="gallery-empty">Belum ada foto galeri.</div> : <ActivityStack items={stackItems} onPlay={(item) => item.video && setGalleryVideo({ ...item.video, title: item.title })} onZoom={(item) => item.fullImage && setFacilityLightbox({ image: item.fullImage, title: item.title, desc: item.description })} />}</div></div></section>
 
-          {showPartners && <section id="kerja-sama" className="relative isolate overflow-hidden bg-slate-50 px-5 py-12 lg:px-8 lg:py-16" data-testid="partners-section">{/* Soft brand-colour blobs behind the grid: the glass cards need something to blur, or they read as plain white. */}<div className="pointer-events-none absolute inset-0 -z-10" aria-hidden="true"><div className="absolute -left-20 top-1/3 h-72 w-72 rounded-full bg-emerald-300/40 blur-3xl" /><div className="absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-amber-200/50 blur-3xl" /><div className="absolute -right-16 bottom-0 h-80 w-80 rounded-full bg-sky-300/40 blur-3xl" /></div><div className="mx-auto max-w-7xl"><Reveal className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="section-kicker">07 · Kerja sama</p><h2 className="section-heading mt-3"><ClipReveal>Mitra industri <span className="text-emerald-600">kami.</span></ClipReveal></h2></div><p className="max-w-sm text-sm leading-relaxed text-slate-500">Bersama dunia usaha dan dunia industri, kami menyiapkan siswa lewat praktik kerja, rekrutmen, dan kurikulum yang relevan.</p></Reveal><div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" data-testid="partners-grid">{partnerContent.isPending && <PartnerSkeletons />}{displayPartners.map((item, index) => {
+          {showPartners && <section id="kerja-sama" className="bg-slate-50 px-5 py-12 lg:px-8 lg:py-16" data-testid="partners-section"><div className="mx-auto max-w-7xl"><Reveal className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="section-kicker">07 · Kerja sama</p><h2 className="section-heading mt-3"><ClipReveal>Mitra industri <span className="text-emerald-600">kami.</span></ClipReveal></h2></div><p className="max-w-sm text-sm leading-relaxed text-slate-500">Bersama dunia usaha dan dunia industri, kami menyiapkan siswa lewat praktik kerja, rekrutmen, dan kurikulum yang relevan.</p></Reveal><div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" data-testid="partners-grid">{partnerContent.isPending && <PartnerSkeletons />}{displayPartners.map((item, index) => {
                 const entrance = { initial: { opacity: 0, y: 24 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, amount: 0.3 }, transition: { type: "spring" as const, stiffness: 210, damping: 24, delay: (index % 5) * 0.06 } };
                 const inner = <><img src={optimizeImageUrl(item.image_url, 400) ?? ""} alt={item.title} loading="lazy" className="h-14 w-full object-contain transition-transform duration-500 group-hover:scale-105 sm:h-16" /><span className="mt-3 line-clamp-1 text-center text-[11px] font-bold text-slate-500 group-hover:text-[#0a3358]">{item.title}</span></>;
-                const cardClass = "group flex flex-col items-center justify-center rounded-2xl border border-white/70 bg-gradient-to-br from-white/70 to-white/30 p-5 shadow-[0_8px_30px_-12px_rgba(15,23,42,.25)] backdrop-blur-xl transition-shadow hover:shadow-[0_14px_40px_-14px_rgba(15,23,42,.35)]";
+                const cardClass = "group flex flex-col items-center justify-center rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80 transition-shadow hover:shadow-md";
                 return item.link
                   ? <motion.a {...entrance} whileHover={{ y: -4 }} href={item.link} target="_blank" rel="noreferrer" key={item.id} className={cardClass} data-testid={`partner-item-${index + 1}`}>{inner}</motion.a>
                   : <motion.div {...entrance} whileHover={{ y: -4 }} key={item.id} className={cardClass} data-testid={`partner-item-${index + 1}`}>{inner}</motion.div>;
@@ -438,7 +421,7 @@ export default function Home() {
       <AnimatePresence>
         {isPpdbOpen && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-[#061e34]/75 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Formulir SPMB" data-testid="ppdb-modal"><motion.div initial={{ opacity: 0, y: 28, scale: .96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 18, scale: .96 }} transition={{ type: "spring", stiffness: 240, damping: 26 }} className="relative w-full max-w-lg rounded-[1.75rem] bg-white p-6 shadow-2xl sm:p-8"><button type="button" onClick={() => setIsPpdbOpen(false)} className="group absolute right-4 top-4 rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Tutup formulir SPMB" data-testid="ppdb-modal-close-button"><X size={18} className="transition-transform duration-300 group-hover:rotate-90" /></button><p className="section-kicker">SPMB 2027 / 2028</p><h2 className="mt-2 font-heading text-2xl font-extrabold text-[#0a3358]">Mulai perjalananmu.</h2><p className="mt-2 text-sm leading-relaxed text-slate-500">Isi data singkat berikut. Tim SPMB kami akan menghubungi Anda melalui WhatsApp.</p><form onSubmit={submitPpdb} className="mt-6 space-y-4"><label className="block"><span className="form-label">Nama calon siswa</span><input required name="student" className="form-input" placeholder="Tulis nama lengkap" data-testid="ppdb-student-name-input" /></label><label className="block"><span className="form-label">Pilihan program keahlian</span><select name="major" className="form-input" defaultValue="RPL" data-testid="ppdb-major-select"><option value="RPL">RPL — Rekayasa Perangkat Lunak</option><option value="DKV">DKV — Desain Komunikasi Visual</option><option value="BD">BD — Bisnis Digital &amp; Pemasaran</option><option value="MP">MP — Manajemen Perkantoran</option><option value="AKL">AKL — Akuntansi Keuangan Lembaga</option></select></label><label className="block"><span className="form-label">Nomor WhatsApp orang tua / siswa</span><input required name="whatsapp" className="form-input" placeholder="08xx-xxxx-xxxx" data-testid="ppdb-whatsapp-input" /></label><button type="submit" className="group mt-2 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-amber-500 text-sm font-extrabold text-[#092c4c] transition-all hover:bg-amber-400" data-testid="ppdb-submit-button">Kirim minat pendaftaran <ArrowRight size={17} className="transition-transform duration-300 group-hover:translate-x-1" /></button></form></motion.div></motion.div>}
         {isVideoOpen && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-[#061e34]/85 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Video profil sekolah" data-testid="profile-video-modal"><div className="relative w-full max-w-4xl overflow-hidden rounded-2xl bg-black shadow-2xl"><button type="button" onClick={() => setIsVideoOpen(false)} className="absolute right-3 top-3 z-10 rounded-full bg-black/50 p-2 text-white hover:bg-black/80" aria-label="Tutup video profil" data-testid="profile-video-close-button"><X size={18} /></button><div className="aspect-video"><iframe className="h-full w-full" src="https://www.youtube.com/embed/DtyvJvqRdpY?rel=0" title="Profil SMK Teratai Putih Global 2 Bekasi" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen data-testid="profile-video-iframe" /></div></div></motion.div>}
-        {facilityLightbox && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-[#061e34]/85 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label={facilityLightbox.title} data-testid="facility-lightbox"><div className="relative w-full max-w-3xl overflow-hidden rounded-2xl bg-[#092c4c] shadow-2xl"><button type="button" onClick={() => setFacilityLightbox(null)} className="absolute right-3 top-3 z-10 rounded-full bg-black/50 p-2 text-white hover:bg-black/80" aria-label="Tutup gambar" data-testid="facility-lightbox-close-button"><X size={18} /></button><img src={facilityLightbox.image} alt={facilityLightbox.title} className="max-h-[70vh] w-full object-contain bg-black" data-testid="facility-lightbox-image" /><div className="p-6"><h3 className="font-heading text-xl font-extrabold text-white">{facilityLightbox.title}</h3><p className="mt-1 text-sm leading-relaxed text-slate-300">{facilityLightbox.desc}</p></div></div></motion.div>}
+        {facilityLightbox && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-[#061e34]/85 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label={facilityLightbox.title} data-testid="facility-lightbox"><div className="relative w-full max-w-3xl overflow-hidden rounded-2xl bg-[#092c4c] shadow-2xl"><button type="button" onClick={() => setFacilityLightbox(null)} className="absolute right-3 top-3 z-10 rounded-full bg-black/50 p-2 text-white hover:bg-black/80" aria-label="Tutup gambar" data-testid="facility-lightbox-close-button"><X size={18} /></button><img src={facilityLightbox.image} alt={facilityLightbox.title} className="max-h-[70vh] w-full object-contain bg-black" data-testid="facility-lightbox-image" /><div className="p-6"><h3 className="font-heading text-xl font-extrabold text-white">{facilityLightbox.title}</h3><p className="cms-text mt-1 text-sm leading-relaxed text-slate-300">{facilityLightbox.desc}</p></div></div></motion.div>}
         {galleryVideo && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-[#061e34]/85 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label={galleryVideo.title} data-testid="gallery-video-modal"><div className="relative w-full max-w-4xl overflow-hidden rounded-2xl bg-black shadow-2xl"><button type="button" onClick={() => setGalleryVideo(null)} className="absolute right-3 top-3 z-10 rounded-full bg-black/50 p-2 text-white hover:bg-black/80" aria-label="Tutup video" data-testid="gallery-video-close-button"><X size={18} /></button><div className="aspect-video">{galleryVideo.type === "youtube" ? <iframe className="h-full w-full" src={`https://www.youtube.com/embed/${galleryVideo.src}?rel=0&autoplay=1`} title={galleryVideo.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen data-testid="gallery-video-iframe" /> : galleryVideo.type === "drive" ? <iframe className="h-full w-full" src={galleryVideo.src} title={galleryVideo.title} allow="autoplay" allowFullScreen data-testid="gallery-video-iframe" /> : <video className="h-full w-full" src={galleryVideo.src} controls autoPlay data-testid="gallery-video-player" />}</div></div></motion.div>}
       </AnimatePresence>
     </div>

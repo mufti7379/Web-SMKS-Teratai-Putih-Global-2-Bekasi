@@ -4,7 +4,7 @@ import { SubpageLayout } from "@/components/SubpageLayout";
 // Any URL no other route claims. Vercel serves it from dist/404.html with a 404 status.
 export default function NotFound() {
   return (
-    <SubpageLayout backTo="/" backLabel="Beranda" data-testid="not-found-page">
+    <SubpageLayout data-testid="not-found-page">
       <div className="rounded-[1.75rem] border border-dashed border-slate-300 bg-white p-10 text-center">
         <p className="section-kicker">404</p>
         <h1 className="mt-3 font-heading text-2xl font-extrabold text-[#0a3358]">Halaman tidak ditemukan.</h1>

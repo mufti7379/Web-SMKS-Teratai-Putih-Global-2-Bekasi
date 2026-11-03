@@ -66,7 +66,7 @@ export function Announcements({ items, number, activeId, onSelect }: Announcemen
       <h2 className="mt-5 font-heading text-2xl font-extrabold leading-tight sm:text-3xl" data-testid="announcement-title">{active.title}</h2>
     </>
   );
-  const description = (className: string) => active.description && <p className={cn("whitespace-pre-line text-sm leading-relaxed text-slate-300", className)} data-testid="announcement-description">{active.description}</p>;
+  const description = (className: string) => active.description && <p className={cn("cms-text whitespace-pre-line text-sm leading-relaxed text-slate-300", className)} data-testid="announcement-description">{active.description}</p>;
   const buttons = (isSpmb || buttonLink) && (
     <div className="mt-6 flex flex-wrap gap-3">
       {isSpmb && (

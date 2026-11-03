@@ -1,18 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowRight, ChevronDown } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { profilePages } from "@/lib/profile";
 
 const aboutHint = "Mengenal SMK Teratai Putih Global 2";
 const itemClass = "block w-full rounded-xl px-4 py-3 text-left transition-colors hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none";
 
 /**
- * "Profil" in the home page's desktop header: hovering, clicking or tabbing in opens a list of
- * the page's own "Tentang kami" section plus the profile pages. Leaving it, Escape or a click
- * elsewhere closes it again.
+ * "Profil" in the site header (from lg up): hovering, clicking or tabbing in opens a list of the
+ * home page's "Tentang kami" section plus the profile pages, the one being viewed shaded. Leaving
+ * it, Escape or a click elsewhere closes it again. Underlined while on a profile page.
  */
-export function ProfileNavMenu({ onAbout }: { onAbout: () => void }) {
+export function ProfileNavMenu({ active = false, onAbout }: { active?: boolean; onAbout: () => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -36,7 +36,7 @@ export function ProfileNavMenu({ onAbout }: { onAbout: () => void }) {
       onMouseLeave={() => setOpen(false)}
       onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false); }}
     >
-      <button type="button" aria-expanded={open} aria-haspopup="true" onClick={() => setOpen((value) => !value)} className={`inline-flex items-center gap-1 text-[13px] font-bold transition-all duration-300 hover:-translate-y-0.5 hover:text-[#0f4c81] ${open ? "text-[#0f4c81]" : "text-slate-600"}`} data-testid="nav-link-profil">
+      <button type="button" aria-expanded={open} aria-haspopup="true" onClick={() => setOpen((value) => !value)} className={`inline-flex items-center gap-1 text-[13px] font-bold transition-all duration-300 hover:-translate-y-0.5 hover:text-[#0f4c81] ${active ? "nav-current" : open ? "text-[#0f4c81]" : "text-slate-600"}`} data-testid="nav-link-profil">
         Profil <ChevronDown size={14} className={`transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
       </button>
       <AnimatePresence>
@@ -44,9 +44,35 @@ export function ProfileNavMenu({ onAbout }: { onAbout: () => void }) {
         {open && <div className="absolute left-1/2 top-full z-50 w-72 -translate-x-1/2 pt-3">
           <motion.ul initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} transition={{ duration: 0.18 }} className="rounded-2xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-900/10" data-testid="nav-profile-menu">
             <li><button type="button" onClick={() => { setOpen(false); onAbout(); }} className={itemClass} data-testid="nav-profile-about"><span className="block text-sm font-extrabold text-[#0a3358]">Tentang Kami</span><span className="mt-0.5 block text-xs text-slate-500">{aboutHint}</span></button></li>
-            {profilePages.map((page) => <li key={page.path}><Link to={page.path} onClick={() => setOpen(false)} className={itemClass} data-testid={`nav-profile-${page.path.slice(1)}`}><span className="block text-sm font-extrabold text-[#0a3358]">{page.label}</span><span className="mt-0.5 block text-xs text-slate-500">{page.hint}</span></Link></li>)}
+            {profilePages.map((page) => <li key={page.path}><NavLink to={page.path} onClick={() => setOpen(false)} className={({ isActive }) => `${itemClass} ${isActive ? "bg-slate-50" : ""}`} data-testid={`nav-profile-${page.path.slice(1)}`}><span className="block text-sm font-extrabold text-[#0a3358]">{page.label}</span><span className="mt-0.5 block text-xs text-slate-500">{page.hint}</span></NavLink></li>)}
           </motion.ul>
         </div>}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/**
+ * "Profil" in the site header's hamburger menu: tapping it folds the same list as the desktop menu
+ * out underneath. Each time the hamburger menu opens it starts closed — or open, with the page
+ * highlighted, while on a profile page.
+ */
+export function ProfileNavMobile({ active = false, onAbout }: { active?: boolean; onAbout: () => void }) {
+  const [open, setOpen] = useState(active);
+  const subItemClass = "block w-full py-2.5 pl-4 text-left text-sm font-semibold";
+
+  return (
+    <div className="border-b border-slate-100">
+      <button type="button" aria-expanded={open} onClick={() => setOpen((value) => !value)} className={`flex w-full items-center justify-between py-3 text-left text-sm font-bold ${open || active ? "text-[#0f4c81]" : "text-slate-700"}`} data-testid="mobile-nav-link-profil">
+        Profil <ChevronDown size={16} className={`transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
+      </button>
+      <AnimatePresence initial={false}>
+        {open && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+          <ul className="pb-2" data-testid="mobile-nav-profile-pages">
+            <li><button type="button" onClick={onAbout} className={`${subItemClass} text-slate-500`} data-testid="mobile-nav-profile-about">Tentang Kami</button></li>
+            {profilePages.map((page) => <li key={page.path}><NavLink to={page.path} className={({ isActive }) => `${subItemClass} ${isActive ? "text-[#0f4c81]" : "text-slate-500"}`} data-testid={`mobile-nav-profile-${page.path.slice(1)}`}>{page.label}</NavLink></li>)}
+          </ul>
+        </motion.div>}
       </AnimatePresence>
     </div>
   );

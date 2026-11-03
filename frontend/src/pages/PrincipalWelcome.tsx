@@ -32,7 +32,7 @@ export default function PrincipalWelcome() {
   }, []);
 
   return (
-    <SubpageLayout backTo="/" backLabel="Beranda" data-testid="principal-page">
+    <SubpageLayout data-testid="principal-page">
       <p className="section-kicker">Profil · Sambutan</p>
       <h1 className="section-heading mt-3">Sambutan Kepala <span className="text-emerald-600">Sekolah.</span></h1>
 
@@ -57,7 +57,7 @@ export default function PrincipalWelcome() {
 
           <Reveal delay={120} data-testid="principal-message">
             {/* Blank lines split paragraphs; single line breaks (a greeting, a closing) stay as typed. */}
-            <div className="space-y-5 text-base leading-relaxed text-slate-600">
+            <div className="cms-text space-y-5 text-base leading-relaxed text-slate-600">
               {principal.description.trim().split(/\n\s*\n/).map((paragraph, index) => <p key={index} className="whitespace-pre-line">{paragraph.trim()}</p>)}
             </div>
             <div className="mt-8 border-t border-slate-200 pt-6">

@@ -2,7 +2,7 @@ import type { MouseEventHandler } from "react";
 import { ArrowRight, Newspaper } from "lucide-react";
 import { Link } from "react-router-dom";
 import { optimizeImageUrl } from "@/lib/images";
-import { formatNewsDate } from "@/lib/news";
+import { bodyText, formatNewsDate } from "@/lib/news";
 import type { CMSItem } from "@/lib/cms";
 
 type NewsCardProps = {
@@ -34,10 +34,12 @@ export function NewsCard({ item, to, headingAs: Heading = "h3", onClick, "data-t
           : <span className="flex h-full items-center justify-center text-white/25"><Newspaper size={44} /></span>}
         {item.badge && <span className="absolute left-3 top-3 rounded-full bg-[#061e34]/75 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-white backdrop-blur-sm" data-testid="news-card-category">{item.badge}</span>}
       </div>
-      <div className="flex flex-1 flex-col px-2 pb-1 pt-4">
+      {/* wrap-anywhere: a long unbroken word (a pasted URL) otherwise sets the card's minimum
+          width, stretching it — and the page — past a phone's screen. */}
+      <div className="flex flex-1 flex-col px-2 pb-1 pt-4 wrap-anywhere">
         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{formatNewsDate(item.date)}</span>
         <Heading className="mt-1.5 line-clamp-2 font-heading text-lg font-extrabold leading-snug text-slate-900">{item.title}</Heading>
-        <p className="mt-2.5 line-clamp-3 text-sm leading-relaxed text-slate-500">{item.description}</p>
+        <p className="mt-2.5 line-clamp-3 text-sm leading-relaxed text-slate-500">{bodyText(item.description)}</p>
         {/* A span, not a button: the whole card is already the link. */}
         <span className="mt-auto pt-5"><span className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#0a2540] text-sm font-bold text-white transition-colors group-hover:bg-[#0f4c81]">Lihat Berita <ArrowRight size={16} /></span></span>
       </div>

@@ -57,7 +57,7 @@ export default function StaffDirectory() {
   }, []);
 
   return (
-    <SubpageLayout backTo="/" backLabel="Beranda" wide data-testid="staff-page">
+    <SubpageLayout wide data-testid="staff-page">
       <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
         <div>
           <p className="section-kicker">Profil · GTK</p>

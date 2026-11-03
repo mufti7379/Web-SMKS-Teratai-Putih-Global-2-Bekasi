@@ -16,3 +16,4 @@ export function formatNewsDate(date: string | null) {
 
 // Shared with the Vercel functions that build the sitemap and article pages (see that file).
 export { findNewsByPath, newsPath, newsSlug } from "../../../api/_lib/newsPath";
+export { bodyBlocks, bodyText, markdownTable } from "../../../api/_lib/articleBody";

@@ -1,6 +1,8 @@
 // Shared by the SEO functions: site facts, the news fetch, and the <head> tags they inject
 // into the app's index.html so crawlers and link previews (WhatsApp, Facebook) see each
 // page's own title, description, image and structured data without running JavaScript.
+import { bodyBlocks, bodyText } from "./articleBody";
+import type { BodyBlock } from "./articleBody";
 import type { AlbumRef } from "./gallery";
 import type { NewsRef } from "./newsPath";
 
@@ -78,9 +80,9 @@ export function newsPublishedAt(item: PublicNews) {
 /** Same order as the app's news pages: by news date, newest first. */
 export const sortNewsNewestFirst = <T extends PublicNews>(news: T[]) => [...news].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
 
-/** First sentence-ish chunk of a body text, for meta descriptions (~160 chars). */
+/** First sentence-ish chunk of a body text (its tables left out), for meta descriptions (~160 chars). */
 export function excerpt(text: string, max = 160) {
-  const flat = text.replace(/\s+/g, " ").trim();
+  const flat = bodyText(text).replace(/\s+/g, " ").trim();
   if (flat.length <= max) return flat;
   const cut = flat.slice(0, max - 1);
   return `${cut.slice(0, cut.lastIndexOf(" ") > 80 ? cut.lastIndexOf(" ") : cut.length)}…`;
@@ -138,6 +140,13 @@ export function injectFallback(shell: string, html: string) {
 /** Body text as HTML paragraphs: blank lines split paragraphs, single line breaks stay. */
 export const paragraphsHtml = (text: string) =>
   text.trim().split(/\n\s*\n/).map((block) => `<p>${escapeHtml(block.trim()).replace(/\n/g, "<br />")}</p>`).join("");
+
+const tableHtml = ({ header, rows }: Extract<BodyBlock, { kind: "table" }>) =>
+  `<table><thead><tr>${header.map((cell) => `<th>${escapeHtml(cell)}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+
+/** An article body as HTML: its text as paragraphsHtml makes it, its Markdown tables as tables. */
+export const articleBodyHtml = (text: string) =>
+  bodyBlocks(text).map((block) => (block.kind === "text" ? paragraphsHtml(block.text) : tableHtml(block))).join("");
 
 export function htmlResponse(body: string, status: number, cacheControl: string) {
   return new Response(body, { status, headers: { "content-type": "text/html; charset=utf-8", "cache-control": cacheControl } });

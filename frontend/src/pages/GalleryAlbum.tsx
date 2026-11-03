@@ -61,7 +61,7 @@ export default function GalleryAlbum() {
   });
 
   return (
-    <SubpageLayout backTo="/#galeri" backLabel="Beranda" wide data-testid="gallery-album-page">
+    <SubpageLayout wide data-testid="gallery-album-page">
       <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
         <div>
           <p className="section-kicker">Galeri sekolah</p>

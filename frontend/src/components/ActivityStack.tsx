@@ -139,7 +139,7 @@ export function ActivityStack({ items, onPlay, onZoom }: ActivityStackProps) {
           <motion.div key={current.key} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: reduceMotion ? 0 : 0.22 }}>
             <p className="mt-6 text-[10px] font-extrabold uppercase tracking-[.2em] text-emerald-600">{kindLabel(current)}</p>
             <h3 className="mt-2 font-heading text-2xl font-extrabold leading-tight text-[#0a3358] sm:text-3xl" data-testid="activity-detail-title">{current.title}</h3>
-            {current.description && <p className="mt-4 text-sm leading-relaxed text-slate-600" data-testid="activity-detail-description">{current.description}</p>}
+            {current.description && <p className="cms-text mt-4 text-sm leading-relaxed text-slate-600" data-testid="activity-detail-description">{current.description}</p>}
             <div className="mt-7 flex flex-wrap gap-3">
               {current.album
                 ? <Link to={current.album.href} className="inline-flex h-11 items-center gap-2 rounded-full bg-[#0f4c81] px-5 text-xs font-extrabold text-white transition-colors hover:bg-[#0a3358]" data-testid="activity-detail-album">Buka album <ArrowUpRight size={15} /></Link>

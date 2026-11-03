@@ -138,6 +138,8 @@
 @layer components {
   .section-kicker { @apply text-xs font-extrabold uppercase tracking-[0.2em] text-emerald-600; }
   .section-heading { @apply max-w-xl font-heading text-3xl font-extrabold leading-tight tracking-tight text-[#0a3358] sm:text-4xl; }
+  /* The site header's item for the page being viewed: blue, underlined by an amber bar. */
+  .nav-current { @apply relative text-[#0f4c81] after:absolute after:inset-x-0 after:-bottom-2 after:h-0.5 after:rounded-full after:bg-amber-400; }
   .avatar-dot { @apply flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#092c4c] text-[10px] font-extrabold text-white; }
   .major-tab { @apply flex min-w-[78px] items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs font-bold text-slate-600 transition-all hover:border-[#0f4c81]/30 hover:text-[#0f4c81] lg:w-full lg:rounded-xl lg:px-5 lg:py-4; }
   .major-tab-active { @apply border-[#0f4c81] bg-[#0f4c81] text-white shadow-lg shadow-blue-900/15 hover:bg-[#0f4c81] hover:text-white; }
@@ -147,6 +149,12 @@
   .contact-line small { @apply block text-[10px] font-bold uppercase tracking-wider text-slate-400; }
   .contact-line strong { @apply mt-1 block text-sm text-white; }
   .contact-icon { @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-xl; }
+  /* Paragraphs typed into the CMS (a welcome, an article, a detail panel): justified from tablet
+     width up. Phones keep them left-aligned: their columns are too narrow, and without Indonesian
+     hyphenation (Chrome has none) justify opened wide gaps between words. Hyphenated (<html lang="id">)
+     where the browser can. Lines ended by a typed line break stay ragged, as justify leaves them.
+     Not for clamped excerpts or short captions. */
+  .cms-text { @apply md:text-justify md:hyphens-auto; }
   .form-label { @apply mb-1.5 block text-xs font-bold text-slate-700; }
   .form-input { @apply w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10; }
   .calendar-nav-button { @apply flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition-colors hover:border-[#0f4c81] hover:bg-[#0f4c81] hover:text-white; }

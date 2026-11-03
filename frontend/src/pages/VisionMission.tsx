@@ -14,7 +14,7 @@ export default function VisionMission() {
   }, []);
 
   return (
-    <SubpageLayout backTo="/" backLabel="Beranda" data-testid="vision-mission-page">
+    <SubpageLayout data-testid="vision-mission-page">
       <p className="section-kicker">Profil · Yayasan Teratai Putih Global</p>
       <h1 className="section-heading mt-3">Visi &amp; <span className="text-emerald-600">Misi.</span></h1>
       <p className="mt-5 max-w-2xl text-base leading-relaxed text-slate-600">SMK Teratai Putih Global 2 Bekasi bernaung di bawah Yayasan Teratai Putih Global. Visi dan misi yayasan inilah yang menjadi arah seluruh kegiatan belajar di sekolah.</p>

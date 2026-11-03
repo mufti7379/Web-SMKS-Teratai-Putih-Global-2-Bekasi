@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { ArrowLeft, ArrowUpRight, Link2, MessageCircle, Newspaper } from "lucide-react";
 import { Link, Navigate, useLocation, useParams } from "react-router-dom";
 import { toast } from "sonner";
+import { ArticleBody } from "@/components/ArticleBody";
 import { NewsCard } from "@/components/NewsCard";
 import { SubpageLayout } from "@/components/SubpageLayout";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -66,7 +67,7 @@ export default function NewsDetail() {
   if (canonicalPath && canonicalPath !== pathname) return <Navigate to={canonicalPath} replace />;
 
   return (
-    <SubpageLayout backTo="/berita" backLabel="Semua berita" banner={banner} data-testid="news-detail-page">
+    <SubpageLayout banner={banner} data-testid="news-detail-page">
       <Toaster position="top-right" richColors />
 
       {newsContent.isPending ? (
@@ -83,12 +84,13 @@ export default function NewsDetail() {
           <Link to="/berita" className="group mt-6 inline-flex items-center gap-2 text-xs font-extrabold text-[#0f4c81] hover:text-emerald-600"><ArrowLeft size={14} className="transition-transform duration-300 group-hover:-translate-x-1" /> Lihat semua berita</Link>
         </div>
       ) : (
-        <motion.article key={news.id} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 200, damping: 26 }} data-testid="news-detail-article">
+        // wrap-break-word: long links pasted into an article wrap instead of widening the page on phones.
+        <motion.article key={news.id} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 200, damping: 26 }} className="wrap-break-word" data-testid="news-detail-article">
           <div className="flex flex-wrap items-center gap-2 text-[#0f4c81]"><Newspaper size={16} /><time dateTime={news.date ?? undefined} className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400" data-testid="news-detail-date">{formatNewsDate(news.date)}</time>{news.badge && <span className="ml-1 rounded-full bg-[#0f4c81]/10 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-[#0f4c81]" data-testid="news-detail-category">{news.badge}</span>}</div>
           <h1 className="mt-3 font-heading text-3xl font-extrabold leading-tight tracking-tight text-[#0a3358] sm:text-4xl" data-testid="news-detail-title">{news.title}</h1>
           {/* Visible byline matching the structured data's author — Google News asks for clear bylines. */}
           <p className="mt-3 text-xs font-bold text-slate-500" data-testid="news-detail-byline">Oleh SMK Teratai Putih Global 2 Bekasi</p>
-          <p className="mt-6 whitespace-pre-line text-base leading-relaxed text-slate-600" data-testid="news-detail-description">{news.description}</p>
+          <ArticleBody text={news.description} className="mt-6 text-base leading-relaxed text-slate-600" data-testid="news-detail-description" />
           <div className="mt-10 flex flex-wrap items-center gap-3 border-t border-slate-200 pt-6">
             {/* WhatsApp groups (parents, alumni) are where school news actually travels — one tap, title and link prefilled. */}
             <a href={`https://wa.me/?text=${encodeURIComponent(`${news.title}\n${window.location.origin}${canonicalPath}`)}`} target="_blank" rel="noreferrer" className="group inline-flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-2.5 text-xs font-extrabold text-white transition-all hover:-translate-y-0.5 hover:bg-emerald-700" data-testid="news-detail-whatsapp-button"><MessageCircle size={15} /> Bagikan ke WhatsApp</a>

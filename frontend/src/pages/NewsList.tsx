@@ -38,7 +38,7 @@ export default function NewsList() {
   }, [page]);
 
   return (
-    <SubpageLayout backTo="/#berita-terkini" backLabel="Beranda" wide data-testid="news-list-page">
+    <SubpageLayout wide data-testid="news-list-page">
       <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
         <div>
           <p className="section-kicker">Berita sekolah</p>

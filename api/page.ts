@@ -14,7 +14,7 @@ import { albumDriveFolders, galleryMedia, galleryStill, isInAlbum, isSinglePhoto
 import { optimizeImageUrl } from "./_lib/images";
 import { findNewsByPath, newsPath } from "./_lib/newsPath";
 import { currentPrincipal, foundationMissions, foundationVision, groupStaff } from "./_lib/profile";
-import { LOGO_URL, SITE_NAME, SITE_URL, absoluteImageUrl, escapeHtml, excerpt, fetchAppShell, fetchPublishedGallery, fetchPublishedNews, fetchPublishedPrincipals, fetchPublishedStaff, htmlResponse, injectFallback, injectHead, newsPublishedAt, paragraphsHtml, renderHead, sortNewsNewestFirst } from "./_lib/seo";
+import { LOGO_URL, SITE_NAME, SITE_URL, absoluteImageUrl, articleBodyHtml, escapeHtml, excerpt, fetchAppShell, fetchPublishedGallery, fetchPublishedNews, fetchPublishedPrincipals, fetchPublishedStaff, htmlResponse, injectFallback, injectHead, newsPublishedAt, paragraphsHtml, renderHead, sortNewsNewestFirst } from "./_lib/seo";
 import type { PublicNews } from "./_lib/seo";
 
 // Vercel's CDN keeps each page for 5 minutes (new or edited news shows up within that), and
@@ -78,7 +78,7 @@ function articleFallback(item: PublicNews, allNews: PublicNews[]) {
     date || item.badge ? `<p>${[date && `<time datetime="${escapeHtml(item.date ?? "")}">${date}</time>`, item.badge && escapeHtml(item.badge)].filter(Boolean).join(" · ")}</p>` : "",
     `<p>Oleh ${escapeHtml(SITE_NAME)}</p>`,
     image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(item.title)}" />` : "",
-    paragraphsHtml(item.description),
+    articleBodyHtml(item.description),
     item.link ? `<p><a href="${escapeHtml(item.link)}" rel="noreferrer">Sumber lengkap</a></p>` : "",
     `</article>`,
     others.length ? `<h2>Berita lainnya</h2>${newsLinksHtml(others, allNews)}` : "",
