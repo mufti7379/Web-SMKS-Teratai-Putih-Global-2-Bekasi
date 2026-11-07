@@ -1,4 +1,4 @@
-export type ResourceType = "news" | "agenda" | "gallery" | "major" | "hero" | "facility" | "banner" | "profile" | "partner" | "faq" | "principal" | "staff" | "download";
+export type ResourceType = "news" | "agenda" | "gallery" | "major" | "hero" | "facility" | "banner" | "profile" | "partner" | "faq" | "principal" | "staff" | "download" | "hero_text";
 export type RoleType = "super_admin" | "content_editor" | "ppdb_officer" | "agenda_manager";
 export type AgendaCategory = "akademik" | "ujian" | "kegiatan" | "industri" | "pengumuman";
 export type LeadSource = "website" | "whatsapp" | "instagram" | "walk_in" | "referral";
@@ -7,6 +7,9 @@ export interface CMSItem {
   id: string;
   resource: ResourceType;
   title: string;
+  /** The title in English and Japanese, where the site shows it in the visitor's language itself (hero_text). */
+  title_en?: string | null;
+  title_ja?: string | null;
   description: string;
   date: string | null;
   end_date: string | null;
@@ -19,7 +22,7 @@ export interface CMSItem {
   skills: string[];
   careers: string[];
   category: AgendaCategory | null;
-  /** Position within its group on the GTK page (staff only). */
+  /** Position within its group on the GTK page (staff), or among the hero's typed lines (hero_text). */
   sort_order?: number | null;
   created_at: string;
   updated_at: string;
@@ -164,6 +167,7 @@ export const resourceLabels: Record<ResourceType, string> = {
   gallery: "Galeri",
   major: "Jurusan",
   hero: "Gambar Hero",
+  hero_text: "Teks Hero",
   facility: "Fasilitas Belajar",
   banner: "Pengumuman",
   profile: "Foto Tentang Kami",

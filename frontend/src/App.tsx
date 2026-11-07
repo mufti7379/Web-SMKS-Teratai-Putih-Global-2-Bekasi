@@ -34,7 +34,8 @@ export default function App() {
       <Route path="/sambutan-kepala-sekolah" element={<Suspense fallback={routeFallback}><PrincipalWelcome /></Suspense>} />
       <Route path="/gtk" element={<Suspense fallback={routeFallback}><StaffDirectory /></Suspense>} />
       <Route path="/unduhan" element={<Suspense fallback={routeFallback}><Downloads /></Suspense>} />
-      <Route path="/admin" element={<Suspense fallback={routeFallback}><Admin /></Suspense>} />
+      {/* Staff work in Indonesian: Google's translator, still running after a translated page, leaves the CMS alone. */}
+      <Route path="/admin" element={<div translate="no"><Suspense fallback={routeFallback}><Admin /></Suspense></div>} />
       <Route path="/hero-preview" element={<Suspense fallback={routeFallback}><HeroPreview /></Suspense>} />
       <Route path="*" element={<Suspense fallback={routeFallback}><NotFound /></Suspense>} />
     </Routes>

@@ -42,7 +42,7 @@ export function SiteFooter() {
       <div className="mx-auto max-w-7xl lg:px-3">
         <div className="grid gap-10 border-b border-white/10 pb-12 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr]">
           <div>
-            <div className="flex items-center gap-3"><img src="/logo-tp2.png" alt="Logo SMK Teratai Putih Global 2" className="h-10 w-10 rounded-xl object-contain" /><span><strong className="block text-sm text-white">SMK Teratai Putih Global 2</strong><small className="text-[10px]">Unggul · Terpercaya · Profesional</small></span></div>
+            <div className="flex items-center gap-3"><img src="/logo-tp2.png" alt="Logo SMK Teratai Putih Global 2" className="h-10 w-10 rounded-xl object-contain" /><span><strong translate="no" className="block text-sm text-white">SMK Teratai Putih Global 2</strong><small className="text-[10px]">Unggul · Terpercaya · Profesional</small></span></div>
             <div className="mt-4 flex flex-wrap gap-2" data-testid="footer-school-identity"><span className="rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold text-slate-200">Akreditasi A</span><span className="rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold text-slate-200">NPSN 20254039</span></div>
             <p className="mt-4 max-w-xs text-xs leading-relaxed text-slate-400">Ruang tumbuh bagi generasi muda yang unggul, terpercaya, dan profesional dengan lima program keahlian siap kerja.</p>
             <p className="mt-4 text-xs leading-relaxed text-slate-400">Jl. Rajawali V, RT.005/RW.023, Kayuringin Jaya<br />Kec. Bekasi Selatan, Kota Bekasi, Jawa Barat 17144</p>

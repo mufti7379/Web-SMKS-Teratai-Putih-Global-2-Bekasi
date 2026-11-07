@@ -167,3 +167,26 @@
 @keyframes typing-caret-blink {
   50% { opacity: 0; }
 }
+
+/* Google's website translator (lib/translate.ts): the header's language menu stands in for its own
+   controls, so none of its widget shows — its bar over the page (which also pushes <body> down),
+   the spinner in the top-left corner while it translates, its "original text" tooltip and its
+   highlight of the sentence under the mouse. Google renamed its classes once (goog-* →
+   VIpgJd-*), so both spellings are here. */
+#google_translate_element,
+body > .skiptranslate,
+iframe.skiptranslate,
+#goog-gt-tt,
+.VIpgJd-yAWNEb-L7lbkb,
+.VIpgJd-ZVi9od-aZ2wEe-wOHMyf { display: none !important; }
+body { top: 0 !important; }
+.goog-text-highlight,
+.VIpgJd-yAWNEb-VIpgJd-fmcmS-sn54Q { background: none !important; box-shadow: none !important; }
+
+/* Translated, the menu's words run longer: the header shows the logo without the school's name
+   beside it, and below xl its items sit a little closer, which keeps the menu clear of the logo
+   and the buttons on one line. */
+.translated-ltr .header-brand-text { display: none; }
+@media (width < 80rem) {
+  .translated-ltr .header-nav { column-gap: 0.625rem; }
+}

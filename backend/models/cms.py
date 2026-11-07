@@ -5,7 +5,7 @@ from uuid import uuid4
 from pydantic import BaseModel, Field
 
 
-ResourceType = Literal["news", "agenda", "gallery", "major", "hero", "facility", "banner", "profile", "partner", "faq", "principal", "staff", "download"]
+ResourceType = Literal["news", "agenda", "gallery", "major", "hero", "facility", "banner", "profile", "partner", "faq", "principal", "staff", "download", "hero_text"]
 # Room for a full principal's welcome, the longest text the CMS holds; the admin form keeps
 # other content to 2000 characters.
 DESCRIPTION_MAX = 5000
@@ -17,6 +17,10 @@ LeadSource = Literal["website", "whatsapp", "instagram", "walk_in", "referral"]
 class CMSItemBase(BaseModel):
     resource: ResourceType
     title: str = Field(min_length=2, max_length=160)
+    # The title in English and Japanese, for text the site shows in the visitor's language
+    # itself instead of leaving it to Google's translator (the hero's typed lines).
+    title_en: str | None = Field(default=None, max_length=160)
+    title_ja: str | None = Field(default=None, max_length=160)
     description: str = Field(default="", max_length=DESCRIPTION_MAX)
     date: str | None = None
     end_date: str | None = None
@@ -29,7 +33,8 @@ class CMSItemBase(BaseModel):
     skills: list[str] = Field(default_factory=list)
     careers: list[str] = Field(default_factory=list)
     category: AgendaCategory | None = None
-    # Position within its group on the GTK page (staff); unset ones follow, by name.
+    # Position within its group on the GTK page (staff), or among the hero's typed lines
+    # (hero_text); unset ones follow.
     sort_order: int | None = None
 
 
@@ -39,6 +44,8 @@ class CMSItemCreate(CMSItemBase):
 
 class CMSItemUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=2, max_length=160)
+    title_en: str | None = Field(default=None, max_length=160)
+    title_ja: str | None = Field(default=None, max_length=160)
     description: str | None = Field(default=None, max_length=DESCRIPTION_MAX)
     date: str | None = None
     end_date: str | None = None

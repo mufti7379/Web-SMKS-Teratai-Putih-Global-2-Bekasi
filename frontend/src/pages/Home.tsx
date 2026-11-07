@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, MouseEvent } from "react";
 import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform, type MotionValue } from "motion/react";
@@ -41,8 +41,10 @@ import { apiGet, apiPost } from "@/lib/api";
 import { announcementKind, sortAnnouncements } from "@/lib/announcements";
 import { optimizeImageUrl, buildDriveSrcSet } from "@/lib/images";
 import { albumDriveFolders, albumOf, albumPhotosQuery, galleryMedia, galleryQuery, galleryStill, isInAlbum, isSinglePhoto, listAlbums } from "@/lib/gallery";
+import { heroLines } from "@/lib/heroText";
 import { newsPath, newsQuery, sortNewsNewestFirst } from "@/lib/news";
 import { takePreloadedHero } from "@/lib/preload";
+import { usePageLanguage } from "@/lib/translate";
 import type { CMSItem, Lead } from "@/lib/cms";
 import { toast } from "sonner";
 
@@ -76,8 +78,6 @@ let newsReturnEntry: string | null = null;
 
 const majorIcons: Record<string, typeof Code2> = { RPL: Code2, DKV: Palette, BD: TrendingUp, MP: BriefcaseBusiness, AKL: Calculator };
 const homeNewsLimit = 6;
-// Hero heading, typed in turn on a loop. Module-level so its identity never changes.
-const heroPhrases = ["SMK Teratai Putih Global 2", "Sekolah berbasis Islami dan Teknologi"] as const;
 
 /**
  * The hero's rotating background photos and their dots. Kept out of Home so a slide change
@@ -130,6 +130,11 @@ export default function Home() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isPpdbOpen, isVideoOpen, galleryVideo, facilityLightbox]);
   const heroContent = useQuery({ queryKey: ["public-content", "hero"], queryFn: async () => (await takePreloadedHero()) ?? apiGet<CMSItem[]>("/content/hero"), retry: false });
+  // The hero heading's typed lines, from the CMS in the page's language. useMemo keeps the
+  // array's identity while nothing changes, as the Typewriter needs.
+  const heroTextContent = useQuery({ queryKey: ["public-content", "hero_text"], queryFn: () => apiGet<CMSItem[]>("/content/hero_text"), retry: false });
+  const pageLanguage = usePageLanguage();
+  const heroPhrases = useMemo(() => heroLines(heroTextContent.data, pageLanguage), [heroTextContent.data, pageLanguage]);
   const profileContent = useQuery({ queryKey: ["public-content", "profile"], queryFn: () => apiGet<CMSItem[]>("/content/profile"), retry: false });
   const facilityContent = useQuery({ queryKey: ["public-content", "facility"], queryFn: () => apiGet<CMSItem[]>("/content/facility"), retry: false });
   const majorContent = useQuery({ queryKey: ["public-content", "major"], queryFn: () => apiGet<CMSItem[]>("/content/major"), retry: false });
@@ -322,7 +327,7 @@ export default function Home() {
               <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 190, damping: 26 }} className="relative z-10 mx-auto max-w-5xl text-center" data-testid="hero-copy">
                 {/* Sizes picked so both rotating phrases take the same number of lines at every width
                     (2 on phones via the 300px cap, 1 from sm up) — no empty line while the short one shows. */}
-                <h1 className="mx-auto max-w-[300px] font-heading text-[30px] font-normal leading-[1.08] tracking-tight text-white sm:max-w-none sm:text-[34px] md:text-[40px] lg:text-5xl xl:text-6xl" data-testid="hero-heading"><Typewriter phrases={heroPhrases} /></h1>
+                <h1 translate="no" className="mx-auto max-w-[300px] font-heading text-[30px] font-normal leading-[1.08] tracking-tight text-white sm:max-w-none sm:text-[34px] md:text-[40px] lg:text-5xl xl:text-6xl" data-testid="hero-heading"><Typewriter key={heroPhrases.join("\n")} phrases={heroPhrases} /></h1>
                 <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-slate-300 sm:text-lg" data-testid="hero-description">Kurikulum berbasis industri, lingkungan belajar yang suportif, dan lima program keahlian untuk membekali setiap siswa menghadapi masa depan.</p>
                 <div className="mt-9 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
                   <button type="button" onClick={() => setIsVideoOpen(true)} className="group inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/20 px-6 text-sm font-bold text-white transition-all hover:-translate-y-1 hover:border-white/50 hover:bg-white/10" data-testid="hero-profile-video-button"><span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:scale-110"><Play size={12} fill="currentColor" /></span> Lihat profil sekolah</button>
@@ -418,7 +423,7 @@ export default function Home() {
 
           {showBanner && <section id="spmb" className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16" data-testid="spmb-banner-section">{announcements.length === 0 ? <BannerSkeleton /> : <Announcements items={announcements} number={spmbNumber} activeId={announcementId} onSelect={setAnnouncementId} />}</section>}
 
-          <section id="kontak" className="bg-[#092c4c] px-5 py-12 text-white lg:py-16" data-testid="contact-section"><div className="mx-auto max-w-7xl lg:px-3"><div className="grid gap-12 lg:grid-cols-[.8fr_1.2fr]"><Reveal><p className="section-kicker text-emerald-300">{String(contactNumber).padStart(2, "0")} · Hubungi kami</p><h2 className="mt-3 max-w-lg font-heading text-3xl font-extrabold leading-tight sm:text-4xl"><ClipReveal>Langkah pertama menuju masa depan dimulai <span className="text-amber-300">di sini.</span></ClipReveal></h2><p className="mt-5 max-w-md text-sm leading-relaxed text-slate-300">Tim kami siap membantu calon siswa dan orang tua mendapatkan informasi terbaik tentang program, fasilitas, dan SPMB.</p><div className="mt-8 space-y-4"><a href="https://wa.me/628211058321" target="_blank" rel="noreferrer" className="contact-line group" data-testid="contact-whatsapp-primary"><span className="contact-icon bg-emerald-500/15 text-emerald-300"><MessageCircle size={18} /></span><span><small>WhatsApp SPMB</small><strong>+62 821-1058-321</strong></span><ArrowUpRight size={17} className="ml-auto transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-0.5" /></a><a href="mailto:terataiputihglobal2@gmail.com" className="contact-line group" data-testid="contact-email-link"><span className="contact-icon bg-amber-500/15 text-amber-300"><Mail size={18} /></span><span><small>Email resmi</small><strong>terataiputihglobal2@gmail.com</strong></span><ArrowUpRight size={17} className="ml-auto transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-0.5" /></a></div></Reveal><Reveal delay={140} className="overflow-hidden rounded-[1.75rem] border border-white/10" data-testid="contact-map"><iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.219862270376!2d106.97722267472493!3d-6.236668893760604!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e698d21f23894cd%3A0x54ea838beac73d1d!2sSMK%20Teratai%20Putih%20Global%202%20Bekasi!5e0!3m2!1sid!2sid!4v1715569844943!5m2!1sid!2sid" width="100%" height="100%" className="min-h-[320px] lg:min-h-full" style={{ border: 0 }} loading="lazy" referrerPolicy="no-referrer-when-downgrade" title="Lokasi SMK Teratai Putih Global 2 Bekasi" data-testid="contact-map-iframe" /></Reveal></div></div></section>
+          <section id="kontak" className="bg-[#092c4c] px-5 py-12 text-white lg:py-16" data-testid="contact-section"><div className="mx-auto max-w-7xl lg:px-3"><div className="grid gap-12 lg:grid-cols-[.8fr_1.2fr]"><Reveal><p className="section-kicker text-emerald-300">{String(contactNumber).padStart(2, "0")} · Hubungi kami</p><h2 className="mt-3 max-w-lg font-heading text-3xl font-extrabold leading-tight sm:text-4xl"><ClipReveal>Langkah pertama menuju masa depan dimulai <span className="text-amber-300">di sini.</span></ClipReveal></h2><p className="mt-5 max-w-md text-sm leading-relaxed text-slate-300">Tim kami siap membantu calon siswa dan orang tua mendapatkan informasi terbaik tentang program, fasilitas, dan SPMB.</p><div className="mt-8 space-y-4"><a href="https://wa.me/628211058321" target="_blank" rel="noreferrer" className="contact-line group" data-testid="contact-whatsapp-primary"><span className="contact-icon bg-emerald-500/15 text-emerald-300"><MessageCircle size={18} /></span><span><small>WhatsApp SPMB</small><strong>+62 821-1058-321</strong></span><ArrowUpRight size={17} className="ml-auto transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-0.5" /></a><a href="mailto:terataiputihglobal2@gmail.com" className="contact-line group" data-testid="contact-email-link"><span className="contact-icon bg-amber-500/15 text-amber-300"><Mail size={18} /></span><span><small>Email resmi</small><strong translate="no">terataiputihglobal2@gmail.com</strong></span><ArrowUpRight size={17} className="ml-auto transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-0.5" /></a></div></Reveal><Reveal delay={140} className="overflow-hidden rounded-[1.75rem] border border-white/10" data-testid="contact-map"><iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.219862270376!2d106.97722267472493!3d-6.236668893760604!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e698d21f23894cd%3A0x54ea838beac73d1d!2sSMK%20Teratai%20Putih%20Global%202%20Bekasi!5e0!3m2!1sid!2sid!4v1715569844943!5m2!1sid!2sid" width="100%" height="100%" className="min-h-[320px] lg:min-h-full" style={{ border: 0 }} loading="lazy" referrerPolicy="no-referrer-when-downgrade" title="Lokasi SMK Teratai Putih Global 2 Bekasi" data-testid="contact-map-iframe" /></Reveal></div></div></section>
         </div>
       </main>
 

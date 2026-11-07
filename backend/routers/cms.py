@@ -50,8 +50,8 @@ router = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SESSION_COOKIE = "school_admin_session"
 CONTENT_ROLES = {
-    "super_admin": {"news", "agenda", "gallery", "major", "hero", "facility", "banner", "profile", "partner", "faq", "principal", "staff", "download"},
-    "content_editor": {"news", "gallery", "major", "hero", "facility", "banner", "profile", "partner", "faq", "principal", "staff", "download"},
+    "super_admin": {"news", "agenda", "gallery", "major", "hero", "hero_text", "facility", "banner", "profile", "partner", "faq", "principal", "staff", "download"},
+    "content_editor": {"news", "gallery", "major", "hero", "hero_text", "facility", "banner", "profile", "partner", "faq", "principal", "staff", "download"},
     "agenda_manager": {"agenda"},
     "ppdb_officer": set(),
 }

@@ -2,9 +2,11 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { GraduationCap, Menu, X } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { LanguageMenu, LanguageMenuMobile } from "@/components/LanguageSwitcher";
 import { ProfileNavMenu, ProfileNavMobile } from "@/components/ProfileNav";
 import { ServicesNavMenu, ServicesNavMobile } from "@/components/ServicesNav";
 import { profilePages } from "@/lib/profile";
+import { resumeLanguage } from "@/lib/translate";
 
 // The home page's sections, in page order.
 const navItems = [
@@ -62,6 +64,9 @@ export function SiteHeader({ onSection, onSpmb }: SiteHeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const ref = useRef<HTMLElement>(null);
 
+  // Every public page has this header, so it's where a visitor's English or Japanese carries on.
+  useEffect(() => { resumeLanguage(); }, []);
+
   useEffect(() => {
     const onScroll = () => {
       setScrolled(window.scrollY > 10);
@@ -93,9 +98,9 @@ export function SiteHeader({ onSection, onSpmb }: SiteHeaderProps) {
 
   const brand = <>
     <img src="/logo-tp2.png" alt="Logo SMK Teratai Putih Global 2" className="h-11 w-11 rounded-2xl object-contain shadow-lg shadow-blue-900/15" />
-    <span className="hidden md:block lg:hidden xl:block"><span className="block whitespace-nowrap font-heading text-[15px] font-extrabold leading-tight text-[#0a3358]">SMK TERATAI PUTIH GLOBAL 2</span><span className="mt-0.5 block whitespace-nowrap text-[11px] font-bold text-amber-500">Kota Bekasi – Joyfull Learning</span></span>
+    <span translate="no" className="header-brand-text hidden md:block lg:hidden xl:block"><span className="block whitespace-nowrap font-heading text-[15px] font-extrabold leading-tight text-[#0a3358]">SMK TERATAI PUTIH GLOBAL 2</span><span className="mt-0.5 block whitespace-nowrap text-[11px] font-bold text-amber-500">Kota Bekasi – Joyfull Learning</span></span>
   </>;
-  const spmbClass = "flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 transition-all hover:-translate-y-0.5 hover:bg-amber-100 sm:gap-2 sm:px-4 sm:py-2";
+  const spmbClass = "flex items-center gap-1.5 whitespace-nowrap rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 transition-all hover:-translate-y-0.5 hover:bg-amber-100 sm:gap-2 sm:px-4 sm:py-2";
 
   return (
     // w-full: in a flex column (the other pages' layout) mx-auto alone would shrink the header to its content.
@@ -104,16 +109,17 @@ export function SiteHeader({ onSection, onSpmb }: SiteHeaderProps) {
         {onSection
           ? <button type="button" className="flex items-center gap-3 text-left" onClick={() => go("#beranda")} data-testid="school-brand-button">{brand}</button>
           : <Link to="/" className="flex items-center gap-3" data-testid="school-brand-button">{brand}</Link>}
-        <nav className="hidden items-center gap-4 lg:flex xl:gap-5" aria-label="Navigasi utama" data-testid="desktop-navigation">
+        <nav className="header-nav hidden items-center gap-4 lg:flex xl:gap-5" aria-label="Navigasi utama" data-testid="desktop-navigation">
           {navItems.map(([label, href]) => href === "#profil"
             ? <Fragment key={href}><ProfileNavMenu active={href === current} onAbout={() => go(href)} /><ServicesNavMenu /></Fragment>
-            : item(label, href, `inline-block text-[13px] font-bold transition-all duration-300 hover:-translate-y-0.5 hover:text-[#0f4c81] ${href === current ? "nav-current" : "text-slate-600"}`, `nav-link-${label.toLowerCase()}`))}
+            : item(label, href, `inline-block whitespace-nowrap text-[13px] font-bold transition-all duration-300 hover:-translate-y-0.5 hover:text-[#0f4c81] ${href === current ? "nav-current" : "text-slate-600"}`, `nav-link-${label.toLowerCase()}`))}
         </nav>
         <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="mr-1 hidden lg:block"><LanguageMenu /></div>
           {onSpmb
             ? <button type="button" onClick={() => { setMenuOpen(false); onSpmb(); }} className={spmbClass} data-testid="header-spmb-link"><GraduationCap size={15} /> SPMB</button>
             : <Link to="/#spmb" className={spmbClass} data-testid="header-spmb-link"><GraduationCap size={15} /> SPMB</Link>}
-          <a href="https://s.id/DGB-TERPUT" target="_blank" rel="noreferrer" className="flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 transition-all hover:-translate-y-0.5 hover:bg-amber-100 sm:px-5 sm:py-2.5" data-testid="header-guestbook-link"><span className="hidden min-[400px]:inline">Buku Tamu Digital</span><span className="min-[400px]:hidden">Buku Tamu</span></a>
+          <a href="https://s.id/DGB-TERPUT" target="_blank" rel="noreferrer" className="flex items-center whitespace-nowrap rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 transition-all hover:-translate-y-0.5 hover:bg-amber-100 sm:px-5 sm:py-2.5" data-testid="header-guestbook-link"><span className="hidden min-[400px]:inline">Buku Tamu Digital</span><span className="min-[400px]:hidden">Buku Tamu</span></a>
           <button type="button" onClick={() => setMenuOpen(!menuOpen)} className="rounded-xl p-2 text-[#0a3358] lg:hidden" aria-label={menuOpen ? "Tutup menu" : "Buka menu"} aria-expanded={menuOpen} data-testid="mobile-menu-toggle">{menuOpen ? <X /> : <Menu />}</button>
         </div>
       </div>
@@ -126,6 +132,7 @@ export function SiteHeader({ onSection, onSpmb }: SiteHeaderProps) {
             {navItems.map(([label, href]) => href === "#profil"
               ? <Fragment key={href}><ProfileNavMobile active={href === current} onAbout={() => go(href)} /><ServicesNavMobile onPick={() => setMenuOpen(false)} /></Fragment>
               : item(label, href, `block w-full border-b border-slate-100 py-3 text-left text-sm font-bold ${href === current ? "text-[#0f4c81]" : "text-slate-700"}`, `mobile-nav-link-${label.toLowerCase()}`))}
+            <LanguageMenuMobile onPick={() => setMenuOpen(false)} />
           </div>
         </motion.nav>}
       </AnimatePresence>
