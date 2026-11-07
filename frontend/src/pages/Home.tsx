@@ -22,7 +22,7 @@ import {
   TrendingUp,
   X,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { AcademicCalendar, AcademicCalendarSkeleton } from "@/components/AcademicCalendar";
 import { NewsCard } from "@/components/NewsCard";
@@ -67,6 +67,12 @@ const heroHighlights = [
 
 // Shown when a section's CMS content has loaded but is empty (or failed to load).
 const emptyStateClass = "col-span-full rounded-2xl border border-dashed border-slate-300 p-10 text-center text-sm text-slate-400";
+
+// The history entry a news link on this page was followed from: going back to it lands on the
+// news section, not the hero. Remembered here because pointing that entry at "/#berita-terkini"
+// just before the link's own navigation made Cloudflare's analytics beacon count the visit to
+// the news page as one more view of the home page.
+let newsReturnEntry: string | null = null;
 
 const majorIcons: Record<string, typeof Code2> = { RPL: Code2, DKV: Palette, BD: TrendingUp, MP: BriefcaseBusiness, AKL: Calculator };
 const homeNewsLimit = 6;
@@ -246,11 +252,13 @@ export default function Home() {
     scrollTo("#spmb");
   };
 
-  // Coming back from a news article lands on "/#berita-terkini", and the header on other pages
-  // links to "/#<section>" — jump straight to that section instead of making the visitor scroll
-  // down from the hero again.
+  const { key: historyEntry } = useLocation();
+  // Coming back from a news page lands on its section, and the header on other pages links to
+  // "/#<section>" — jump straight to that section instead of making the visitor scroll down from
+  // the hero again.
   useEffect(() => {
-    const target = window.location.hash ? document.querySelector<HTMLElement>(window.location.hash) : null;
+    const section = historyEntry === newsReturnEntry ? "#berita-terkini" : window.location.hash;
+    const target = section ? document.querySelector<HTMLElement>(section) : null;
     if (!target) return;
     const jump = () => {
       const lenis = lenisRef.current;
@@ -273,7 +281,7 @@ export default function Home() {
       window.clearTimeout(settled);
       userEvents.forEach((type) => window.removeEventListener(type, stop));
     };
-  }, [lenisRef]);
+  }, [lenisRef, historyEntry]);
   // The SPMB button on other pages lands on "/#spmb": show the SPMB announcement there too, once
   // they've loaded. Keyed on the fetched data, so picking another tab afterwards sticks.
   useEffect(() => {
@@ -282,13 +290,11 @@ export default function Home() {
     if (spmb) setAnnouncementId(spmb.id);
   }, [bannerContent.data]);
 
-  const navigate = useNavigate();
-  // Re-point this history entry at the news section before the article pushes, so the
-  // browser's back button also returns to the news grid. Modified clicks open a new tab
+  // So the browser's back button also returns to the news grid. Modified clicks open a new tab
   // and leave this page alone.
   const rememberNewsSection = (event: MouseEvent<HTMLAnchorElement>) => {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    navigate("/#berita-terkini", { replace: true });
+    newsReturnEntry = historyEntry;
   };
 
   const submitPpdb = (event: FormEvent<HTMLFormElement>) => {

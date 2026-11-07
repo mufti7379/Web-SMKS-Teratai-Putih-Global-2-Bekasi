@@ -18,6 +18,8 @@ export type PublicPrincipal = { id: string; title: string; description: string; 
 
 export type PublicStaff = { id: string; title: string; code: string | null; badge: string | null; image_url: string | null; sort_order?: number | null };
 
+export type PublicDownload = { id: string; title: string; link: string | null };
+
 /**
  * Where the functions fetch this site's own content and app shell from. The public domain sits
  * behind Cloudflare, and fetching it from inside a function fails there (every page and album
@@ -50,6 +52,7 @@ export const fetchPublishedNews = (origin: string) => fetchPublicContent<PublicN
 export const fetchPublishedGallery = (origin: string) => fetchPublicContent<PublicGalleryItem>(origin, "gallery");
 export const fetchPublishedPrincipals = (origin: string) => fetchPublicContent<PublicPrincipal>(origin, "principal");
 export const fetchPublishedStaff = (origin: string) => fetchPublicContent<PublicStaff>(origin, "staff");
+export const fetchPublishedDownloads = (origin: string) => fetchPublicContent<PublicDownload>(origin, "download");
 
 /** The built app shell (dist/index.html), fetched from this deployment's static files. */
 export async function fetchAppShell(origin: string): Promise<string | null> {

@@ -2,6 +2,8 @@ import type { ComponentType } from "react";
 import { Link } from "react-router-dom";
 import { FooterCredit } from "@/components/FooterCredit";
 import { FooterSkyline } from "@/components/FooterSkyline";
+import { SchoolLink } from "@/components/SchoolLink";
+import { schoolLinks } from "@/lib/schoolLinks";
 
 // lucide dropped its brand icons, so the social ones are drawn here in lucide's stroke
 // style (24px grid, 2px round strokes) to match the rest of the site's icons.
@@ -33,18 +35,6 @@ const footerSocials: { label: string; href: string; icon: ComponentType<IconProp
   { label: "YouTube", href: "https://www.youtube.com/@smkterput2oke559", icon: YouTubeIcon, testId: "footer-youtube-link" },
 ];
 
-const footerShortcuts = [
-  ["Ujian", "https://ujiango.smk-terataiputih2.sch.id"],
-  ["Absensi", "https://absensi.smk-terataiputih2.sch.id"],
-  ["Raport", "https://rapor.smk-terataiputih2.sch.id"],
-  ["Aplikasi BankSampah", "https://akun.resikforschools.tech/"],
-  ["BKK", "https://bkk.smk-terataiputih2.sch.id"],
-  ["Pembayaran Uang Sekolah", "https://sekolah.pro/mobile/LoginPage"],
-  ["Validasi SHTKA", "https://shtka.kemendikdasmen.go.id/verifikasi-shtka"],
-  ["NISN", "https://nisn.data.kemendikdasmen.go.id/?utm_source=portal-satu-data"],
-  ["KIP-K", "https://kip-kuliah.kemdiktisaintek.go.id/"],
-] as const;
-
 /** Full site footer — school info, shortcut links, contacts and credit — shared by every public page. */
 export function SiteFooter() {
   return (
@@ -60,7 +50,7 @@ export function SiteFooter() {
           </div>
           <div data-testid="footer-shortcuts">
             <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Tautan</p>
-            <ul className="mt-4 space-y-2.5">{footerShortcuts.map(([label, href]) => <li key={label}><a href={href} target="_blank" rel="noreferrer" className="inline-block text-xs font-bold text-slate-300 transition-all duration-300 hover:translate-x-1 hover:text-white" data-testid={`footer-shortcut-${label.toLowerCase().replaceAll(" ", "-")}`}>{label}</a></li>)}</ul>
+            <ul className="mt-4 space-y-2.5">{schoolLinks.map(({ label, href }) => <li key={label}><SchoolLink href={href} className="inline-block text-xs font-bold text-slate-300 transition-all duration-300 hover:translate-x-1 hover:text-white" data-testid={`footer-shortcut-${label.toLowerCase().replaceAll(" ", "-")}`}>{label}</SchoolLink></li>)}</ul>
           </div>
           <div>
             <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Ikuti Kami</p>

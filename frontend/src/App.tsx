@@ -14,6 +14,7 @@ const GalleryAlbum = lazy(() => import("@/pages/GalleryAlbum"));
 const VisionMission = lazy(() => import("@/pages/VisionMission"));
 const PrincipalWelcome = lazy(() => import("@/pages/PrincipalWelcome"));
 const StaffDirectory = lazy(() => import("@/pages/StaffDirectory"));
+const Downloads = lazy(() => import("@/pages/Downloads"));
 const hideAssistantOn = ["/admin", "/hero-preview"];
 const routeFallback = <div className="flex min-h-screen items-center justify-center text-sm font-bold text-slate-500">Memuat…</div>;
 
@@ -32,6 +33,7 @@ export default function App() {
       <Route path="/visi-misi" element={<Suspense fallback={routeFallback}><VisionMission /></Suspense>} />
       <Route path="/sambutan-kepala-sekolah" element={<Suspense fallback={routeFallback}><PrincipalWelcome /></Suspense>} />
       <Route path="/gtk" element={<Suspense fallback={routeFallback}><StaffDirectory /></Suspense>} />
+      <Route path="/unduhan" element={<Suspense fallback={routeFallback}><Downloads /></Suspense>} />
       <Route path="/admin" element={<Suspense fallback={routeFallback}><Admin /></Suspense>} />
       <Route path="/hero-preview" element={<Suspense fallback={routeFallback}><HeroPreview /></Suspense>} />
       <Route path="*" element={<Suspense fallback={routeFallback}><NotFound /></Suspense>} />

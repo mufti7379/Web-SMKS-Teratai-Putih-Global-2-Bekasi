@@ -6,6 +6,7 @@
 //   legacy  — /berita/<id>, the old id links, permanently redirected to the readable URL
 //   album   — /galeri/<slug>, a gallery album such as /galeri/perpisahan-2025
 //   profil  — the "Profil" menu's pages, by `page`: visi-misi, sambutan-kepala-sekolah, gtk
+//   unduhan — /unduhan, the files listed under "Layanan"
 // The React app still renders everything in the browser; this only changes what crawlers
 // and link previews read before JavaScript runs — the <head>, plus a <noscript> copy of the
 // page's text for crawlers that never run JavaScript.
@@ -14,7 +15,7 @@ import { albumDriveFolders, galleryMedia, galleryStill, isInAlbum, isSinglePhoto
 import { optimizeImageUrl } from "./_lib/images";
 import { findNewsByPath, newsPath } from "./_lib/newsPath";
 import { currentPrincipal, foundationMissions, foundationVision, groupStaff } from "./_lib/profile";
-import { LOGO_URL, SITE_NAME, SITE_URL, absoluteImageUrl, articleBodyHtml, escapeHtml, excerpt, fetchAppShell, fetchPublishedGallery, fetchPublishedNews, fetchPublishedPrincipals, fetchPublishedStaff, htmlResponse, injectFallback, injectHead, newsPublishedAt, paragraphsHtml, renderHead, sortNewsNewestFirst } from "./_lib/seo";
+import { LOGO_URL, SITE_NAME, SITE_URL, absoluteImageUrl, articleBodyHtml, escapeHtml, excerpt, fetchAppShell, fetchPublishedDownloads, fetchPublishedGallery, fetchPublishedNews, fetchPublishedPrincipals, fetchPublishedStaff, htmlResponse, injectFallback, injectHead, newsPublishedAt, paragraphsHtml, renderHead, sortNewsNewestFirst } from "./_lib/seo";
 import type { PublicNews } from "./_lib/seo";
 
 // Vercel's CDN keeps each page for 5 minutes (new or edited news shows up within that), and
@@ -140,6 +141,14 @@ async function profilePage(origin: string, shell: string, page: string) {
   return pageResponse(shell, renderHead({ title: `Halaman tidak ditemukan — ${SITE_NAME}`, description: "Halaman yang Anda cari tidak ada.", path: "/", noindex: true }), "", 404, CACHE);
 }
 
+async function downloadsPage(origin: string, shell: string) {
+  const files = await fetchPublishedDownloads(origin);
+  const description = `Berkas dan dokumen ${SITE_NAME} yang bisa diunduh oleh siswa, orang tua, dan masyarakat.`;
+  const head = renderHead({ title: `Unduhan — ${SITE_NAME}`, description, path: "/unduhan" });
+  const fallback = `<h1>Unduhan</h1><p>${escapeHtml(description)}</p>${files?.length ? `<ul>${files.map((file) => `<li><a href="${escapeHtml(file.link ?? "")}" rel="noreferrer">${escapeHtml(file.title)}</a></li>`).join("")}</ul>` : ""}`;
+  return pageResponse(shell, head, fallback, 200, files ? CACHE : CACHE_SHORT);
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const params = url.searchParams;
@@ -148,6 +157,7 @@ export async function GET(request: Request) {
 
   if (params.get("route") === "album") return albumPage(url.origin, shell, params.get("album") ?? "");
   if (params.get("route") === "profil") return profilePage(url.origin, shell, params.get("page") ?? "");
+  if (params.get("route") === "unduhan") return downloadsPage(url.origin, shell);
 
   const fetched = await fetchPublishedNews(url.origin);
   const news = fetched && sortNewsNewestFirst(fetched);

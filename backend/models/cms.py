@@ -5,7 +5,7 @@ from uuid import uuid4
 from pydantic import BaseModel, Field
 
 
-ResourceType = Literal["news", "agenda", "gallery", "major", "hero", "facility", "banner", "profile", "partner", "faq", "principal", "staff"]
+ResourceType = Literal["news", "agenda", "gallery", "major", "hero", "facility", "banner", "profile", "partner", "faq", "principal", "staff", "download"]
 # Room for a full principal's welcome, the longest text the CMS holds; the admin form keeps
 # other content to 2000 characters.
 DESCRIPTION_MAX = 5000

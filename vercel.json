@@ -14,6 +14,7 @@
     { "source": "/visi-misi", "destination": "/api/page?route=profil&page=visi-misi" },
     { "source": "/sambutan-kepala-sekolah", "destination": "/api/page?route=profil&page=sambutan-kepala-sekolah" },
     { "source": "/gtk", "destination": "/api/page?route=profil&page=gtk" },
+    { "source": "/unduhan", "destination": "/api/page?route=unduhan" },
     { "source": "/data/album/:album", "destination": "/api/album?album=:album" },
     { "source": "/media/preview/:token", "destination": "/api/media?token=:token&preview=1" },
     { "source": "/media/open/:token", "destination": "/api/media?token=:token&open=1" },

@@ -1,5 +1,5 @@
-// /sitemap.xml (rewritten here by vercel.json): the home page, the profile pages, the news index, every
-// published article and every gallery album, so Google finds new pages without waiting to
+// /sitemap.xml (rewritten here by vercel.json): the home page, the profile and downloads pages, the news
+// index, every published article and every gallery album, so Google finds new pages without waiting to
 // stumble on a link. Articles also list their photo, so it can show up in Google Images.
 import { listAlbums } from "./_lib/gallery";
 import { optimizeImageUrl } from "./_lib/images";
@@ -20,6 +20,7 @@ export async function GET(request: Request) {
   const entries: Entry[] = [
     { path: "/", lastmod: null },
     ...profilePages.map((page) => ({ path: page.path, lastmod: null })),
+    { path: "/unduhan", lastmod: null },
     // The news index changes exactly when an article does.
     { path: "/berita", lastmod: articles.map((entry) => entry.lastmod ?? "").sort().pop() || null },
     ...articles,
