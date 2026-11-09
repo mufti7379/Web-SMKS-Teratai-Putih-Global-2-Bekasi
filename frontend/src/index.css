@@ -127,8 +127,9 @@
   html {
     @apply font-sans;
     scroll-behavior: smooth;
-    /* A section scrolled to natively (before Lenis starts, see useLenisScroll) or a focused field
-       stops below the 76px sticky header, as Lenis's own scrollTo offset does. */
+    /* Every scroll to a section, a focused field or an anchor stops below the 76px sticky header:
+       the browser's own (before Lenis starts, see useLenisScroll) and Lenis's scrollTo, which
+       reads this padding too — so no offset is passed on top of it (Home.tsx). */
     scroll-padding-top: 76px;
     /* Clip horizontal overflow here, not on an inner wrapper div — overflow-x on a plain
        div forces its overflow-y to compute as "auto" (CSS Overflow spec), turning it into

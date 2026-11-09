@@ -242,6 +242,9 @@ export default function Home() {
   const heroParallaxY = useTransform(heroCoverProgress, [0, 1], ["0%", "18%"]);
   const heroDim = useTransform(heroCoverProgress, [0, 1], [0, 0.7]);
 
+  // No offset of our own when scrolling to a section: html's scroll-padding-top already keeps it
+  // clear of the 76px header, and Lenis counts that padding too — an extra -76 here put sections
+  // a whole header lower. Natively (before Lenis has started) the same padding applies.
   const scrollTo = (href: string) => {
     // The pinned hero's on-screen box isn't its place in the page — "#beranda" is simply the top.
     if (href === "#beranda") {
@@ -249,7 +252,7 @@ export default function Home() {
       else window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       const target = document.querySelector<HTMLElement>(href);
-      if (target && lenisRef.current) lenisRef.current.scrollTo(target, { offset: -76 });
+      if (target && lenisRef.current) lenisRef.current.scrollTo(target);
       else target?.scrollIntoView({ behavior: "smooth" });
     }
   };
@@ -273,7 +276,7 @@ export default function Home() {
       // instant: html's scroll-behavior would otherwise glide there, on every re-jump below.
       if (!lenis) { target.scrollIntoView({ behavior: "instant" }); return; }
       lenis.resize(); // Lenis catches up with page height changes only after a delay.
-      lenis.scrollTo(target, { offset: -76, immediate: true });
+      lenis.scrollTo(target, { immediate: true });
     };
     jump();
     // The sections above fill in after this first jump and push the target down the page (Kontak
