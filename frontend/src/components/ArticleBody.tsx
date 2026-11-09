@@ -1,18 +1,21 @@
+import { TypedLines } from "@/components/TypedText";
 import { bodyBlocks } from "@/lib/news";
+import { typedParagraphs } from "@/lib/typedText";
 import { cn } from "@/lib/utils";
 
 type ArticleBodyProps = { text: string; className?: string; "data-testid"?: string };
 
 /**
- * A news article's body: its paragraphs as typed (line breaks kept), and any Markdown tables in
- * it as real tables. A table wider than the screen scrolls sideways inside its own frame;
- * headers never wrap, so a many-column table scrolls instead of squeezing into slivers.
+ * A news article's body: its paragraphs as typed, each its own <p> with its line breaks kept (so
+ * they hold when Google translates the page), and any Markdown tables in it as real tables. A
+ * table wider than the screen scrolls sideways inside its own frame; headers never wrap, so a
+ * many-column table scrolls instead of squeezing into slivers.
  */
 export function ArticleBody({ text, className, "data-testid": testId }: ArticleBodyProps) {
   return (
     <div className={cn("space-y-6", className)} data-testid={testId}>
-      {bodyBlocks(text).map((block, index) => block.kind === "text"
-        ? <p key={index} className="cms-text whitespace-pre-line">{block.text}</p>
+      {bodyBlocks(text).flatMap((block, index) => block.kind === "text"
+        ? typedParagraphs(block.text).map((paragraph, line) => <p key={`${index}-${line}`} className="cms-text"><TypedLines text={paragraph} /></p>)
         : (
           <div key={index} className="overflow-x-auto rounded-2xl bg-white ring-1 ring-slate-200" data-testid="article-table">
             <table className="min-w-full text-left text-sm tabular-nums">

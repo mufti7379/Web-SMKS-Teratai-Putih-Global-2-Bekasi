@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { Fragment, useRef } from "react";
 import { motion, useInView, useReducedMotion, type Easing } from "motion/react";
 
 const SKY = "#1d9dc3";
@@ -14,18 +14,25 @@ const detail = { stroke: LINE, strokeWidth: 2, strokeLinecap: "round" } as const
 const CYCLE = 10;
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
-/** Flat city skyline under the footer's social links. Once scrolled into view it keeps building itself up and folding away again, while the clouds drift, the wheel turns and the antenna lights blink. */
+/**
+ * Flat city skyline under the footer's social links. While it's on screen it keeps building itself
+ * up and folding away again, while the clouds drift, the wheel turns and the antenna lights blink.
+ * Off screen it all stops: the loops used to run from the moment the page opened, redrawing the
+ * SVG every frame — most of a phone's main thread while the page sat idle.
+ */
 export function FooterSkyline() {
   const reduceMotion = useReducedMotion();
   const ref = useRef<SVGSVGElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.4 });
+  const inView = useInView(ref, { amount: 0.1 });
+  const playing = inView && !reduceMotion;
   const loop = (animate: Record<string, number[] | number>, duration: number, ease: "linear" | "easeInOut" = "easeInOut") =>
-    reduceMotion ? {} : { animate, transition: { duration, repeat: Infinity, ease } };
+    playing ? { animate, transition: { duration, repeat: Infinity, ease } } : {};
   // Moves `key` from hidden to shown between the two `show` seconds of the loop and back between the two `hide` seconds.
+  // Off screen it waits at hidden, so each time the skyline comes into view it builds itself up from the start.
   const cycle = (key: "y" | "opacity" | "pathLength", hidden: number, shown: number, show: [number, number], hide: [number, number], showEase: Easing = EASE_OUT) =>
     reduceMotion ? {} : {
       initial: { [key]: hidden },
-      animate: inView ? { [key]: [hidden, hidden, shown, shown, hidden, hidden] } : undefined,
+      animate: playing ? { [key]: [hidden, hidden, shown, shown, hidden, hidden] } : undefined,
       transition: { duration: CYCLE, repeat: Infinity, times: [0, ...show, ...hide, CYCLE].map((second) => second / CYCLE), ease: ["linear", showEase, "linear", "easeIn", "linear"] as Easing[] },
     };
   const buildings = [
@@ -65,6 +72,8 @@ export function FooterSkyline() {
 
   return (
     <svg ref={ref} viewBox="40 66 720 358" className="mt-6 w-full max-w-xs" aria-hidden="true" data-testid="footer-skyline">
+      {/* Keyed on playing: a running repeat doesn't stop when its animate prop goes away, a remount does. */}
+      <Fragment key={String(playing)}>
       <defs>
         <clipPath id="footer-skyline-ground"><rect x="0" y="0" width="800" height="417" /></clipPath>
         {/* A stroke as wide as the fan's radius, drawn along a half-radius arc, sweeps the half circle open like a folding fan. */}
@@ -88,6 +97,7 @@ export function FooterSkyline() {
         })}
       </g>
       <path d="M50 419h700" stroke="#4b6584" strokeWidth="5" strokeLinecap="round" />
+      </Fragment>
     </svg>
   );
 }

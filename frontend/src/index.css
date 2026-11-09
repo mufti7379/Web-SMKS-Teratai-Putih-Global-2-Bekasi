@@ -127,6 +127,9 @@
   html {
     @apply font-sans;
     scroll-behavior: smooth;
+    /* A section scrolled to natively (before Lenis starts, see useLenisScroll) or a focused field
+       stops below the 76px sticky header, as Lenis's own scrollTo offset does. */
+    scroll-padding-top: 76px;
     /* Clip horizontal overflow here, not on an inner wrapper div — overflow-x on a plain
        div forces its overflow-y to compute as "auto" (CSS Overflow spec), turning it into
        a scroll container that breaks position:sticky for descendants. On html/body the UA
@@ -183,10 +186,12 @@ body { top: 0 !important; }
 .goog-text-highlight,
 .VIpgJd-yAWNEb-VIpgJd-fmcmS-sn54Q { background: none !important; box-shadow: none !important; }
 
-/* Translated, the menu's words run longer: the header shows the logo without the school's name
-   beside it, and below xl its items sit a little closer, which keeps the menu clear of the logo
-   and the buttons on one line. */
-.translated-ltr .header-brand-text { display: none; }
+/* Translated, the menu's words run longer: below 1536px the header shows the logo without the
+   school's name beside it, and below xl its items sit a little closer, which keeps the menu clear
+   of the logo and the buttons on one line. */
+@media (width < 96rem) {
+  .translated-ltr .header-brand-text { display: none; }
+}
 @media (width < 80rem) {
   .translated-ltr .header-nav { column-gap: 0.625rem; }
 }

@@ -1,5 +1,6 @@
 import type { CMSItem } from "@/lib/cms";
 import type { SiteLanguage } from "@/lib/translate";
+import { compareIso } from "@/lib/utils";
 
 type HeroLine = { id: string; en?: string | null; ja?: string | null };
 
@@ -11,7 +12,7 @@ const defaultLines: HeroLine[] = [
 
 // Numbered lines first, in their order; unnumbered ones follow in the order they were added.
 // Infinity - Infinity is NaN, which is falsy, so two unnumbered lines fall through to their dates.
-const inOrder = (a: CMSItem, b: CMSItem) => (a.sort_order ?? Infinity) - (b.sort_order ?? Infinity) || a.created_at.localeCompare(b.created_at);
+const inOrder = (a: CMSItem, b: CMSItem) => (a.sort_order ?? Infinity) - (b.sort_order ?? Infinity) || compareIso(a.created_at, b.created_at);
 
 /**
  * The lines the home page's hero types out, in the page's language. Translated in the CMS rather

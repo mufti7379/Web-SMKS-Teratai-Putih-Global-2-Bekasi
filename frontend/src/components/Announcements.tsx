@@ -2,9 +2,10 @@ import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ArrowUpRight, Sparkles } from "lucide-react";
 import { Reveal } from "@/components/motion/Reveal";
+import { TypedLines } from "@/components/TypedText";
 import { announcementKind, flipbookUrl } from "@/lib/announcements";
 import { whatsappUrl } from "@/lib/contact";
-import { optimizeImageUrl } from "@/lib/images";
+import { buildDriveSrcSet, optimizeImageUrl } from "@/lib/images";
 import type { CMSItem } from "@/lib/cms";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +31,7 @@ function FlipbookFrame({ src, cover, title }: { src: string; cover: string | nul
     <div className="relative h-[60vh] min-h-[340px] border-t border-white/10 bg-[#061e34] sm:h-[75vh] lg:max-h-[760px]" data-testid="announcement-flipbook">
       {!loaded && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6">
-          {cover && <img src={cover} alt="" aria-hidden="true" className="max-h-[70%] max-w-full rounded-lg object-contain opacity-50" />}
+          {cover && <img src={cover} loading="lazy" decoding="async" alt="" aria-hidden="true" className="max-h-[70%] max-w-full rounded-lg object-contain opacity-50" />}
           <span className="text-xs font-bold text-slate-300">Memuat flipbook…</span>
         </div>
       )}
@@ -54,6 +55,8 @@ export function Announcements({ items, number, activeId, onSelect }: Announcemen
   const tabbed = items.length > 1;
   const isSpmb = announcementKind(active) === "spmb";
   const image = optimizeImageUrl(active.image_url, 1200);
+  // Half the card from lg up, its whole width below: a phone takes the 640 or 960 one.
+  const srcSet = buildDriveSrcSet(active.image_url, [640, 960, 1200]);
   const flipbook = flipbookUrl(active.link);
   const buttonLink = flipbook ? null : active.link;
   const linkIsExternal = Boolean(buttonLink && /^https?:\/\//i.test(buttonLink));
@@ -66,7 +69,7 @@ export function Announcements({ items, number, activeId, onSelect }: Announcemen
       <h2 className="mt-5 font-heading text-2xl font-extrabold leading-tight sm:text-3xl" data-testid="announcement-title">{active.title}</h2>
     </>
   );
-  const description = (className: string) => active.description && <p className={cn("cms-text whitespace-pre-line text-sm leading-relaxed text-slate-300", className)} data-testid="announcement-description">{active.description}</p>;
+  const description = (className: string) => active.description && <p className={cn("cms-text text-sm leading-relaxed text-slate-300", className)} data-testid="announcement-description"><TypedLines text={active.description} /></p>;
   const buttons = (isSpmb || buttonLink) && (
     <div className="mt-6 flex flex-wrap gap-3">
       {isSpmb && (
@@ -125,8 +128,9 @@ export function Announcements({ items, number, activeId, onSelect }: Announcemen
             <>
               {image && imageHref ? (
                 <a href={imageHref} target={buttonLink && !linkIsExternal ? undefined : "_blank"} rel="noreferrer" aria-label={buttonLink ? `Buka pengumuman ${active.title}` : `Lihat gambar ${active.title} ukuran penuh`} className="relative flex items-center justify-center overflow-hidden bg-[#061e34] lg:min-h-[460px]" data-testid="announcement-image-link">
-                  <img src={image} alt="" aria-hidden="true" className="absolute inset-0 hidden h-full w-full scale-110 object-cover opacity-40 blur-2xl lg:block" />
-                  <img src={image} alt={active.title} className="relative h-auto max-h-[75vh] w-full object-contain lg:absolute lg:inset-0 lg:h-full lg:max-h-none lg:p-6" data-testid="announcement-image" />
+                  {/* Lazy: the card is well down the home page. The blurred copy only shows from lg up, so phones never fetch it. */}
+                  <img src={image} srcSet={srcSet} sizes="(min-width: 1024px) 50vw, 100vw" loading="lazy" decoding="async" alt="" aria-hidden="true" className="absolute inset-0 hidden h-full w-full scale-110 object-cover opacity-40 blur-2xl lg:block" />
+                  <img src={image} srcSet={srcSet} sizes="(min-width: 1024px) 50vw, 100vw" loading="lazy" decoding="async" alt={active.title} className="relative h-auto max-h-[75vh] w-full object-contain lg:absolute lg:inset-0 lg:h-full lg:max-h-none lg:p-6" data-testid="announcement-image" />
                 </a>
               ) : <div className="min-h-[220px] bg-gradient-to-br from-[#0f4c81] to-[#092c4c]" />}
               <div className="flex flex-col justify-center p-7 sm:p-10">

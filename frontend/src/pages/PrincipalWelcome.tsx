@@ -4,9 +4,11 @@ import { Quote, UserRound } from "lucide-react";
 import { Reveal } from "@/components/motion/Reveal";
 import { ProfileMoreLinks } from "@/components/ProfileNav";
 import { SubpageLayout } from "@/components/SubpageLayout";
+import { TypedLines } from "@/components/TypedText";
 import { Skeleton } from "@/components/ui/skeleton";
 import { buildDriveSrcSet, optimizeImageUrl } from "@/lib/images";
 import { currentPrincipal, principalQuery } from "@/lib/profile";
+import { typedParagraphs } from "@/lib/typedText";
 
 /** Loading placeholder in the page's shape: a portrait on the left, lines of text beside it. */
 function PrincipalSkeleton() {
@@ -58,7 +60,7 @@ export default function PrincipalWelcome() {
           <Reveal delay={120} data-testid="principal-message">
             {/* Blank lines split paragraphs; single line breaks (a greeting, a closing) stay as typed. */}
             <div className="cms-text space-y-5 text-base leading-relaxed text-slate-600">
-              {principal.description.trim().split(/\n\s*\n/).map((paragraph, index) => <p key={index} className="whitespace-pre-line">{paragraph.trim()}</p>)}
+              {typedParagraphs(principal.description).map((paragraph, index) => <p key={index}><TypedLines text={paragraph} /></p>)}
             </div>
             <div className="mt-8 border-t border-slate-200 pt-6">
               <p className="font-heading text-base font-extrabold text-[#0a3358]">{principal.title}</p>

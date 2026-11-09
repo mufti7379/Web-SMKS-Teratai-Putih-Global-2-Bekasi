@@ -1,4 +1,5 @@
-import { motion, useReducedMotion } from "motion/react";
+import { useRef } from "react";
+import { motion, useInView, useReducedMotion } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -9,14 +10,17 @@ import { cn } from "@/lib/utils";
  */
 export function FooterCredit({ className }: { className?: string }) {
   const reduceMotion = useReducedMotion();
+  // The heart beats only while on screen; keyed below, since a running repeat outlives its animate prop.
+  const credit = useRef<HTMLParagraphElement>(null);
+  const beating = useInView(credit) && !reduceMotion;
   return (
     <div className={cn("flex flex-col items-start gap-3 text-xs tracking-wide text-slate-400 md:flex-row md:flex-wrap md:items-center md:justify-center md:gap-x-6", className)} data-testid="footer-credit">
       <p>© 2026 <span className="font-semibold text-slate-300">SMK Teratai Putih Global 2 Bekasi</span></p>
-      <p className="flex flex-wrap items-center gap-x-2 gap-y-1.5 md:justify-center">
+      <p ref={credit} className="flex flex-wrap items-center gap-x-2 gap-y-1.5 md:justify-center">
         <span>Developed by</span>
         <a href="https://etosdev.com" target="_blank" rel="noreferrer" className="group inline-flex items-center gap-1 rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold tracking-normal text-slate-200 transition-colors duration-300 hover:bg-white/20 hover:text-white" data-testid="footer-developer-link">etosdev <ArrowUpRight size={12} className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" /></a>
         <span>with</span>
-        <motion.span role="img" aria-label="love" className="inline-block text-sm text-red-500" animate={reduceMotion ? undefined : { scale: [1, 1.25, 1, 1.15, 1] }} transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}>❤</motion.span>
+        <motion.span key={String(beating)} role="img" aria-label="love" className="inline-block text-sm text-red-500" animate={beating ? { scale: [1, 1.25, 1, 1.15, 1] } : undefined} transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}>❤</motion.span>
       </p>
     </div>
   );

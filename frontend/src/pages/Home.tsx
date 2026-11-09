@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, MouseEvent } from "react";
 import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform, type MotionValue } from "motion/react";
@@ -215,7 +215,7 @@ export default function Home() {
   const heroRef = useRef<HTMLElement>(null);
   const heroCoverRef = useRef<HTMLDivElement>(null);
   const [heroPin, setHeroPin] = useState({ top: 0, coverStart: 0 });
-  useLayoutEffect(() => {
+  useEffect(() => {
     const hero = heroRef.current;
     if (!hero) return;
     // clientHeight rather than innerHeight: it holds still while a phone's URL bar slides in and
@@ -226,7 +226,10 @@ export default function Home() {
       const top = coverStart - hero.offsetHeight;
       setHeroPin((pin) => (pin.top === top && pin.coverStart === coverStart ? pin : { top, coverStart }));
     };
-    measure();
+    // No measuring right away: reading the hero's height straight after React's commit made the
+    // browser lay out the whole half-built page inside that same task — over a second of a
+    // phone's main thread at load. The observer reports the first size itself, once the browser
+    // has laid the page out anyway; the pin only matters once the page scrolls.
     const observer = new ResizeObserver(measure);
     observer.observe(hero);
     window.addEventListener("resize", measure);
@@ -267,7 +270,8 @@ export default function Home() {
     if (!target) return;
     const jump = () => {
       const lenis = lenisRef.current;
-      if (!lenis) { target.scrollIntoView(); return; }
+      // instant: html's scroll-behavior would otherwise glide there, on every re-jump below.
+      if (!lenis) { target.scrollIntoView({ behavior: "instant" }); return; }
       lenis.resize(); // Lenis catches up with page height changes only after a delay.
       lenis.scrollTo(target, { offset: -76, immediate: true });
     };
@@ -393,7 +397,7 @@ export default function Home() {
                 </ul>
               </motion.div>
             </div>
-            <Reveal delay={200} className="relative mt-14 rounded-[2rem] bg-white p-7 shadow-[0_20px_60px_-30px_rgba(15,76,129,.32)] ring-1 ring-slate-200/80 transition-transform duration-300 hover:-translate-y-1 sm:p-10" data-testid="foundation-quote-card"><Quote className="absolute right-8 top-8 text-amber-100" size={74} fill="currentColor" /><p className="relative max-w-2xl font-heading text-2xl font-bold leading-snug tracking-tight text-[#0a3358] sm:text-3xl">“Pendidikan adalah harga mati untuk menjadi pondasi bangsa dan negara dalam menghadapi perkembangan zaman.”</p><div className="relative mt-8 flex items-center gap-3 border-t border-slate-100 pt-5"><img src="/logo-yayasan.png" alt="Logo Yayasan Teratai Putih Global" className="h-12 w-12 shrink-0 object-contain" data-testid="foundation-quote-logo" /><span><strong className="block text-sm text-slate-800">Yayasan Teratai Putih Global</strong><small className="text-xs text-slate-500">Komitmen untuk generasi masa depan</small></span></div></Reveal>
+            <Reveal delay={200} className="relative mt-14 rounded-[2rem] bg-white p-7 shadow-[0_20px_60px_-30px_rgba(15,76,129,.32)] ring-1 ring-slate-200/80 transition-transform duration-300 hover:-translate-y-1 sm:p-10" data-testid="foundation-quote-card"><Quote className="absolute right-8 top-8 text-amber-100" size={74} fill="currentColor" /><p className="relative max-w-2xl font-heading text-2xl font-bold leading-snug tracking-tight text-[#0a3358] sm:text-3xl">“Pendidikan adalah harga mati untuk menjadi pondasi bangsa dan negara dalam menghadapi perkembangan zaman.”</p><div className="relative mt-8 flex items-center gap-3 border-t border-slate-100 pt-5"><img src="/logo-yayasan.webp" width={118} height={144} loading="lazy" decoding="async" alt="Logo Yayasan Teratai Putih Global" className="h-12 w-12 shrink-0 object-contain" data-testid="foundation-quote-logo" /><span><strong className="block text-sm text-slate-800">Yayasan Teratai Putih Global</strong><small className="text-xs text-slate-500">Komitmen untuk generasi masa depan</small></span></div></Reveal>
           </section>
 
           <section id="jurusan" className="bg-white px-5 py-12 lg:py-16" data-testid="majors-section">

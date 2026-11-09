@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { motion, useInView, useReducedMotion, useScroll, useTransform, type HTMLMotionProps } from "motion/react";
 import { cn } from "@/lib/utils";
@@ -79,14 +79,16 @@ export function StaggerRise({ children, className, step = 72 }: StaggerRiseProps
   const y = useTransform(scrollYProgress, (progress) => (1 - progress) * column * step);
 
   // Which grid column the item landed in (0 = leftmost), re-measured whenever the grid reflows.
-  useLayoutEffect(() => {
+  // Only from the observer, which also reports the first size: measuring right in the commit made
+  // the browser lay out the page once per card, inside React's task (most of a second on a phone
+  // at load). Cards start lower only as they scroll in, so a frame without the step isn't seen.
+  useEffect(() => {
     const item = ref.current;
     const grid = item?.parentElement;
     if (!item || !grid) return;
     const measure = () => {
       if (item.offsetWidth) setColumn(Math.round((item.getBoundingClientRect().left - grid.getBoundingClientRect().left) / item.offsetWidth));
     };
-    measure();
     const observer = new ResizeObserver(measure);
     observer.observe(item);
     return () => observer.disconnect();

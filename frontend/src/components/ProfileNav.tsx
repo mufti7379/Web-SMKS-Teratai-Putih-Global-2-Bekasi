@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
 import { NavMenu, NavMenuMobile, navMenuItemClass, navMenuMobileItemClass } from "@/components/NavMenu";
+import { useNavText } from "@/lib/navText";
 import { profilePages } from "@/lib/profile";
 
 const aboutHint = "Mengenal SMK Teratai Putih Global 2";
@@ -10,11 +11,12 @@ const aboutHint = "Mengenal SMK Teratai Putih Global 2";
  * profile pages, the one being viewed shaded. Underlined while on a profile page.
  */
 export function ProfileNavMenu({ active = false, onAbout }: { active?: boolean; onAbout: () => void }) {
+  const t = useNavText();
   return (
-    <NavMenu label="Profil" active={active} testId="nav-link-profil" menuTestId="nav-profile-menu">
+    <NavMenu label={t("Profil")} active={active} testId="nav-link-profil" menuTestId="nav-profile-menu">
       {(close) => <>
-        <li><button type="button" onClick={() => { close(); onAbout(); }} className={navMenuItemClass} data-testid="nav-profile-about"><span className="block text-sm font-extrabold text-[#0a3358]">Tentang Kami</span><span className="mt-0.5 block text-xs text-slate-500">{aboutHint}</span></button></li>
-        {profilePages.map((page) => <li key={page.path}><NavLink to={page.path} onClick={close} className={({ isActive }) => `${navMenuItemClass} ${isActive ? "bg-slate-50" : ""}`} data-testid={`nav-profile-${page.path.slice(1)}`}><span className="block text-sm font-extrabold text-[#0a3358]">{page.label}</span><span className="mt-0.5 block text-xs text-slate-500">{page.hint}</span></NavLink></li>)}
+        <li><button type="button" onClick={() => { close(); onAbout(); }} className={navMenuItemClass} data-testid="nav-profile-about"><span className="block text-sm font-extrabold text-[#0a3358]">{t("Tentang Kami")}</span><span className="mt-0.5 block text-xs text-slate-500">{t(aboutHint)}</span></button></li>
+        {profilePages.map((page) => <li key={page.path}><NavLink to={page.path} onClick={close} className={({ isActive }) => `${navMenuItemClass} ${isActive ? "bg-slate-50" : ""}`} data-testid={`nav-profile-${page.path.slice(1)}`}><span className="block text-sm font-extrabold text-[#0a3358]">{t(page.label)}</span><span className="mt-0.5 block text-xs text-slate-500">{t(page.hint)}</span></NavLink></li>)}
       </>}
     </NavMenu>
   );
@@ -22,10 +24,11 @@ export function ProfileNavMenu({ active = false, onAbout }: { active?: boolean; 
 
 /** "Profil" in the site header's hamburger menu, with the page highlighted while on a profile page. */
 export function ProfileNavMobile({ active = false, onAbout }: { active?: boolean; onAbout: () => void }) {
+  const t = useNavText();
   return (
-    <NavMenuMobile label="Profil" active={active} testId="mobile-nav-link-profil" listTestId="mobile-nav-profile-pages">
-      <li><button type="button" onClick={onAbout} className={`${navMenuMobileItemClass} text-slate-500`} data-testid="mobile-nav-profile-about">Tentang Kami</button></li>
-      {profilePages.map((page) => <li key={page.path}><NavLink to={page.path} className={({ isActive }) => `${navMenuMobileItemClass} ${isActive ? "text-[#0f4c81]" : "text-slate-500"}`} data-testid={`mobile-nav-profile-${page.path.slice(1)}`}>{page.label}</NavLink></li>)}
+    <NavMenuMobile label={t("Profil")} active={active} testId="mobile-nav-link-profil" listTestId="mobile-nav-profile-pages">
+      <li><button type="button" onClick={onAbout} className={`${navMenuMobileItemClass} text-slate-500`} data-testid="mobile-nav-profile-about">{t("Tentang Kami")}</button></li>
+      {profilePages.map((page) => <li key={page.path}><NavLink to={page.path} className={({ isActive }) => `${navMenuMobileItemClass} ${isActive ? "text-[#0f4c81]" : "text-slate-500"}`} data-testid={`mobile-nav-profile-${page.path.slice(1)}`}>{t(page.label)}</NavLink></li>)}
     </NavMenuMobile>
   );
 }

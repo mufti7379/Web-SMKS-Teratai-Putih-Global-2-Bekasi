@@ -6,7 +6,9 @@
     <!-- Fires the hero-content fetch the instant HTML parsing starts, in parallel with the
          JS bundle download — React would otherwise only call this once the bundle finishes
          downloading, parsing, and mounting, which was the single biggest chunk of the hero
-         image's LCP delay. src/lib/preload.ts picks this up instead of re-fetching. -->
+         image's LCP delay. src/lib/preload.ts picks this up instead of re-fetching.
+         (Preloading the hero photo itself from here was tried: on a slow phone network it held up
+         the JS and CSS and made first paint and LCP later, so the photo waits for React.) -->
     <script>
       window.__PRELOAD__ = {
         hero: fetch('/api/content/hero').then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })

@@ -1,4 +1,5 @@
 import type { CMSItem } from "@/lib/cms";
+import { compareIso } from "@/lib/utils";
 
 // Announcements are the CMS "banner" items, all shown in the home page's Pengumuman section.
 // An SPMB announcement also gets the registration buttons (WhatsApp + angket). The admin picks
@@ -21,4 +22,4 @@ export function flipbookUrl(link: string | null) {
 }
 
 /** Newest first, so a freshly added announcement is the one visitors see. */
-export const sortAnnouncements = (items: CMSItem[] | undefined) => [...(items ?? [])].sort((a, b) => b.created_at.localeCompare(a.created_at));
+export const sortAnnouncements = (items: CMSItem[] | undefined) => [...(items ?? [])].sort((a, b) => compareIso(b.created_at, a.created_at));

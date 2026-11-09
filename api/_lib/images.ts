@@ -8,6 +8,10 @@ const SEALED = /^\/media\/(?:drive\/)?([\w-]+)(?:\?.*)?$/;
 /** Whether a picture can be asked for at a given width. */
 export const isResizableImage = (url: string) => url.includes(DRIVE_HOST) || SEALED.test(url.trim());
 
+// Raised whenever api/media.ts starts sending pictures differently, so the CDN's and browsers'
+// copies of the old ones (kept for weeks) aren't reused. 2: photos kept as PNG go out as JPEG.
+const MEDIA_VERSION = 2;
+
 /**
  * CMS photos are kept in Google Drive and served at full upload resolution (often 1-2MB,
  * sometimes uncompressed PNG) — that's what was tanking mobile LCP. Google's own image CDN
@@ -19,7 +23,7 @@ export function optimizeImageUrl(url: string | null | undefined, width: number):
   if (!url) return url ?? null;
   const trimmed = url.trim();
   const sealed = trimmed.match(SEALED);
-  if (sealed) return `/media/${sealed[1]}?w=${width}`;
+  if (sealed) return `/media/${sealed[1]}?w=${width}&v=${MEDIA_VERSION}`;
   if (!trimmed.includes(DRIVE_HOST)) return trimmed;
   const base = trimmed.replace(/=w\d+[^/]*$/, "");
   return `${base}=w${width}`;

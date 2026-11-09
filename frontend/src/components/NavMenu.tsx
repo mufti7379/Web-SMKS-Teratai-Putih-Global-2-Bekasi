@@ -29,9 +29,10 @@ export function NavMenu({ label, ariaLabel, active = false, testId, menuTestId, 
   }, [open]);
 
   return (
+    // flex: as an inline box in a plain block the button sat on a text baseline, a little below the header's other items.
     <div
       ref={ref}
-      className="relative"
+      className="relative flex"
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
       onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false); }}

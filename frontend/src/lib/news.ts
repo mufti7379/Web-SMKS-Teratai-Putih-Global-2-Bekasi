@@ -1,13 +1,14 @@
 import { queryOptions } from "@tanstack/react-query";
 import { apiGet } from "@/lib/api";
 import type { CMSItem } from "@/lib/cms";
+import { compareIso } from "@/lib/utils";
 
 // One query for every page that shows news — moving between the home page, the news
 // index and an article reuses a single cached fetch instead of refetching each time.
 export const newsQuery = queryOptions({ queryKey: ["public-content", "news"], queryFn: () => apiGet<CMSItem[]>("/content/news"), retry: false });
 
 export function sortNewsNewestFirst(items: CMSItem[] | undefined) {
-  return [...(items ?? [])].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
+  return [...(items ?? [])].sort((a, b) => compareIso(b.date ?? "", a.date ?? ""));
 }
 
 export function formatNewsDate(date: string | null) {

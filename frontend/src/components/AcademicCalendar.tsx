@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, Clock3 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { AgendaCategory, CMSItem } from "@/lib/cms";
+import { compareIso } from "@/lib/utils";
 
 const categoryStyle: Record<AgendaCategory, { label: string; day: string; dot: string; badge: string }> = {
   akademik: { label: "Akademik", day: "bg-blue-600 text-white hover:bg-blue-700", dot: "bg-blue-500", badge: "bg-blue-400/15 text-blue-200" },
@@ -62,7 +63,7 @@ export function AcademicCalendar({ events }: AcademicCalendarProps) {
   const displayEvents = events.filter((item) => item.date);
   const today = new Date();
   const todayKey = dateKey(today);
-  const sortedEvents = [...displayEvents].sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""));
+  const sortedEvents = [...displayEvents].sort((a, b) => compareIso(a.date ?? "", b.date ?? ""));
   const nearestEvent = sortedEvents.find((item) => (item.end_date ?? item.date ?? "") >= todayKey) ?? sortedEvents[sortedEvents.length - 1];
   const [manualMonth, setManualMonth] = useState<Date | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(nearestEvent?.date ?? null);
