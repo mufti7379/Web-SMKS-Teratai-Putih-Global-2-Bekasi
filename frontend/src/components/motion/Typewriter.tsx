@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useReducedMotion } from "motion/react";
 
 type TypewriterProps = {
@@ -13,25 +13,24 @@ type TypewriterProps = {
   holdTime?: number;
   /** Pause on the empty line before the next phrase starts. */
   gapTime?: number;
-  /** Milliseconds before the very first character appears. */
-  startDelay?: number;
 };
 
 type Phase = "typing" | "holding" | "deleting";
 
 /**
- * Rotating typewriter text with a caret that blinks only while it's idle. Every phrase sits
- * invisibly in the same grid cell, so the element is always the size of the longest one and
- * nothing around it shifts as the text changes. Screen readers and search engines get all the
- * phrases once, as plain text, instead of the moving copy. With reduced motion only the first
- * phrase is shown, still.
+ * Rotating typewriter text with a caret that blinks only while it's idle. The first phrase is
+ * there in full from the start — the page's heading is readable at once, and the page counts
+ * as shown (Speed Index) instead of still filling in — then the loop deletes it and types the
+ * next. Every phrase sits invisibly in the same grid cell, so the element is always the size of
+ * the longest one and nothing around it shifts as the text changes. Screen readers and search
+ * engines get all the phrases once, as plain text, instead of the moving copy. With reduced
+ * motion only the first phrase is shown, still.
  */
-export function Typewriter({ phrases, typeSpeed = 70, deleteSpeed = 35, holdTime = 2000, gapTime = 450, startDelay = 350 }: TypewriterProps) {
+export function Typewriter({ phrases, typeSpeed = 70, deleteSpeed = 35, holdTime = 2000, gapTime = 450 }: TypewriterProps) {
   const reduceMotion = useReducedMotion();
   const [index, setIndex] = useState(0);
-  const [length, setLength] = useState(0);
-  const [phase, setPhase] = useState<Phase>("typing");
-  const started = useRef(false);
+  const [length, setLength] = useState(phrases[0]?.length ?? 0);
+  const [phase, setPhase] = useState<Phase>("holding");
 
   useEffect(() => {
     if (reduceMotion) return;
@@ -40,11 +39,8 @@ export function Typewriter({ phrases, typeSpeed = 70, deleteSpeed = 35, holdTime
     let step: () => void;
     if (phase === "typing") {
       if (length < phrase.length) {
-        delay = started.current ? typeSpeed : startDelay;
-        step = () => {
-          started.current = true;
-          setLength(length + 1);
-        };
+        delay = typeSpeed;
+        step = () => setLength(length + 1);
       } else {
         delay = 0;
         step = () => setPhase("holding");
@@ -66,7 +62,7 @@ export function Typewriter({ phrases, typeSpeed = 70, deleteSpeed = 35, holdTime
     }
     const timer = window.setTimeout(step, delay);
     return () => window.clearTimeout(timer);
-  }, [reduceMotion, phrases, index, length, phase, typeSpeed, deleteSpeed, holdTime, gapTime, startDelay]);
+  }, [reduceMotion, phrases, index, length, phase, typeSpeed, deleteSpeed, holdTime, gapTime]);
 
   const idle = phase === "holding" || (phase === "deleting" && length === 0);
 

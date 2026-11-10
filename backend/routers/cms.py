@@ -195,7 +195,13 @@ async def logout(response: Response, school_admin_session: str | None = Cookie(d
 
 
 @router.get("/content/{resource}", response_model=list[CMSItem])
-async def public_content(resource: ResourceType):
+async def public_content(resource: ResourceType, response: Response):
+    # Kept a minute on Vercel's CDN (and served stale while it refreshes, for up to 10): straight
+    # from the function and database each time this took 0.6-1.8s, and the home page waits on it
+    # for its hero photo. A CMS edit shows on the site within about a minute; the admin panel
+    # reads /admin/content, which isn't cached. Vercel-only header: browsers and Cloudflare
+    # still revalidate every time.
+    response.headers["Vercel-CDN-Cache-Control"] = "max-age=60, stale-while-revalidate=600"
     documents = await db.cms_items.find({"resource": resource, "is_published": True}, {"_id": 0}).sort("date", 1).to_list(200)
     # Visitors get sealed /media/… links instead of the Google Drive ones (see lib/media.py).
     return [serialize_item({**document, "image_url": mask_drive_url(document.get("image_url")), "description": mask_drive_links(document.get("description", "")), "link": mask_drive_links(document.get("link"))}) for document in documents]
