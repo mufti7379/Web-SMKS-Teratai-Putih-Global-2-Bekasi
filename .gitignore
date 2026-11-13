@@ -100,5 +100,6 @@ TEMPLATE.md
 /test_reports/
 design_guidelines.json
 skills.md
-vercel.json
+# Root only: backend/vercel.json (the weekly-report cron) must stay in git, the backend deploys from it.
+/vercel.json
 

@@ -106,11 +106,22 @@ export function SiteHeader({ onSection, onSpmb }: SiteHeaderProps) {
   </>;
   const spmbClass = "flex items-center gap-1.5 whitespace-nowrap rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 transition-all hover:-translate-y-0.5 hover:bg-amber-100 sm:gap-2 sm:px-4 sm:py-2";
 
+  // On the home page the hero photo runs up under the header (the -mb pulls it there; the hero
+  // pads its content down to match), and at the very top the header lies see-through over it in
+  // white (.header-over-hero in index.css). Once the page scrolls, or with the hamburger menu
+  // open, it's the usual bar again.
+  const overHero = onHome && !scrolled && !menuOpen;
+  const look = scrolled
+    ? "top-[10px] max-w-[min(88rem,calc(100%-2.5rem))] rounded-2xl border border-white/40 bg-slate-200/60 shadow-lg backdrop-blur-xl"
+    : overHero
+      ? "header-over-hero top-0 max-w-full rounded-none border-b border-transparent bg-transparent"
+      : "top-0 max-w-full rounded-none border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur-xl";
+
   return (
     // w-full: in a flex column (the other pages' layout) mx-auto alone would shrink the header to its content.
     // 88rem, a little wider than the page's content, gives the logo, menu and buttons room apart; the
     // floating bar goes as wide, so nothing jumps sideways when the page starts to scroll.
-    <header ref={ref} className={`sticky z-40 mx-auto w-full backdrop-blur-xl transition-all duration-300 ${scrolled ? "top-[10px] max-w-[min(88rem,calc(100%-2.5rem))] rounded-2xl border border-white/40 bg-slate-200/60 shadow-lg" : "top-0 max-w-full rounded-none border-b border-slate-200/80 bg-white/95 shadow-sm"}`} data-testid="site-header">
+    <header ref={ref} className={`sticky z-40 mx-auto w-full transition-all duration-300 ${onHome ? "-mb-[77px]" : ""} ${look}`} data-testid="site-header" data-over-hero={overHero || undefined}>
       <div className={`mx-auto flex h-[76px] max-w-[88rem] items-center justify-between px-5 transition-[padding] duration-300 ${scrolled ? "lg:px-6" : "lg:px-8"}`}>
         {onSection
           ? <button type="button" className="flex items-center gap-3 text-left" onClick={() => go("#beranda")} data-testid="school-brand-button">{brand}</button>
@@ -122,12 +133,12 @@ export function SiteHeader({ onSection, onSpmb }: SiteHeaderProps) {
             : item(label, href, `inline-block whitespace-nowrap text-[13px] font-bold transition-all duration-300 hover:-translate-y-0.5 hover:text-[#0f4c81] ${href === current ? "nav-current" : "text-slate-600"}`, `nav-link-${label.toLowerCase()}`))}
         </nav>
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <div translate="no" className="mr-1 hidden lg:block"><LanguageMenu /></div>
+          <div translate="no" className="header-language mr-1 hidden lg:block"><LanguageMenu /></div>
           {onSpmb
             ? <button type="button" onClick={() => { setMenuOpen(false); onSpmb(); }} className={spmbClass} data-testid="header-spmb-link"><GraduationCap size={15} /> SPMB</button>
             : <Link to="/#spmb" className={spmbClass} data-testid="header-spmb-link"><GraduationCap size={15} /> SPMB</Link>}
           <a href="https://s.id/DGB-TERPUT" target="_blank" rel="noreferrer" className="flex items-center whitespace-nowrap rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 transition-all hover:-translate-y-0.5 hover:bg-amber-100 sm:px-5 sm:py-2.5" data-testid="header-guestbook-link"><span className="hidden min-[400px]:inline lg:hidden xl:inline">Buku Tamu Digital</span><span className="min-[400px]:hidden lg:inline xl:hidden">Buku Tamu</span></a>
-          <button type="button" onClick={() => setMenuOpen(!menuOpen)} className="rounded-xl p-2 text-[#0a3358] lg:hidden" aria-label={menuOpen ? "Tutup menu" : "Buka menu"} aria-expanded={menuOpen} data-testid="mobile-menu-toggle">{menuOpen ? <X /> : <Menu />}</button>
+          <button type="button" onClick={() => setMenuOpen(!menuOpen)} className="header-menu-toggle rounded-xl p-2 text-[#0a3358] transition-colors duration-300 lg:hidden" aria-label={menuOpen ? "Tutup menu" : "Buka menu"} aria-expanded={menuOpen} data-testid="mobile-menu-toggle">{menuOpen ? <X /> : <Menu />}</button>
         </div>
       </div>
       <AnimatePresence>

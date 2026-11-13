@@ -1,4 +1,5 @@
 import { Edit3, ExternalLink, Eye, EyeOff, FolderOpen, Images, Play, Trash2 } from "lucide-react";
+import { PagedList } from "@/components/admin/AdminPagination";
 import { albumOf, albumSlug, galleryMedia, galleryStill } from "@/lib/gallery";
 import type { CMSItem } from "@/lib/cms";
 
@@ -78,10 +79,9 @@ export function GalleryAdminPanel({ items, onEdit, onDelete }: GalleryAdminPanel
             </div>
             {group.href && <a href={group.href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0f4c81] hover:text-emerald-600">Lihat di website <ExternalLink size={13} /></a>}
           </div>
-          <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {group.entries.map((item) => <EntryCard key={item.id} item={item} onEdit={() => onEdit(item)} onDelete={() => onDelete(item)} />)}
-            {group.entries.length === 0 && <p className="col-span-full rounded-2xl border border-dashed border-slate-300 p-6 text-center text-xs text-slate-400">{group.key === "album" ? "Belum ada album. Klik “Album dari Google Drive” untuk menambahkan." : "Belum ada isi."}</p>}
-          </div>
+          {group.entries.length === 0
+            ? <p className="mt-4 rounded-2xl border border-dashed border-slate-300 p-6 text-center text-xs text-slate-400">{group.key === "album" ? "Belum ada album. Klik “Album dari Google Drive” untuk menambahkan." : "Belum ada isi."}</p>
+            : <PagedList items={group.entries} className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3" testId={`admin-gallery-${group.key}`} noun="item" render={(item) => <EntryCard key={item.id} item={item} onEdit={() => onEdit(item)} onDelete={() => onDelete(item)} />} />}
         </section>
       ))}
     </div>

@@ -196,3 +196,19 @@ body { top: 0 !important; }
 @media (width < 80rem) {
   .translated-ltr .header-nav { column-gap: 0.625rem; }
 }
+
+/* The home page's header while it lies see-through over the hero photo (SiteHeader: overHero):
+   its own items in white. Only the bar's — the dropdowns hanging from it (direct children only
+   here) keep their white panel and dark text. Outside the layers, so it wins over the items'
+   utility colours, hover included; the current item keeps its amber underline. */
+.header-over-hero .header-brand-text > span:first-child,
+.header-over-hero .header-nav > a,
+.header-over-hero .header-nav > button,
+.header-over-hero .header-nav > div > button,
+.header-over-hero .header-language > div > button,
+.header-over-hero .header-menu-toggle { color: rgb(255 255 255 / 0.88); }
+.header-over-hero .header-nav > :is(a, button):hover,
+.header-over-hero .header-nav > div > button:hover,
+.header-over-hero .header-language > div > button:hover,
+.header-over-hero .header-nav .nav-current { color: #fff; }
+.header-over-hero .header-brand-text > span:last-child { color: var(--color-amber-300); }

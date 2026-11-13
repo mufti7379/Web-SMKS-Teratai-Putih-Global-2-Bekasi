@@ -100,7 +100,7 @@ function HeroSlides({ images, parallaxY }: { images: string[]; parallaxY: Motion
           {image && <motion.img key={image} src={image} srcSet={buildDriveSrcSet(image, [640, 960, 1400])} sizes="100vw" alt="Siswa SMK belajar bersama" fetchPriority="high" decoding="async" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }} className="h-full w-full object-cover" />}
         </AnimatePresence>
       </motion.div>
-      {images.length > 1 && <div className="absolute right-5 top-5 z-10 flex gap-1.5 sm:right-8 sm:top-24" data-testid="hero-carousel-dots">{images.map((url, i) => <span key={url} className={`h-1.5 rounded-full transition-all ${i === index ? "w-5 bg-amber-300" : "w-1.5 bg-white/40"}`} />)}</div>}
+      {images.length > 1 && <div className="absolute right-5 top-24 z-10 flex gap-1.5 sm:right-8" data-testid="hero-carousel-dots">{images.map((url, i) => <span key={url} className={`h-1.5 rounded-full transition-all ${i === index ? "w-5 bg-amber-300" : "w-1.5 bg-white/40"}`} />)}</div>}
     </>
   );
 }
@@ -328,8 +328,10 @@ export default function Home() {
             {heroContent.isPending && <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-[#0f4c81]/60 to-[#092c4c]" data-testid="hero-loading" />}
             <div className="absolute inset-0 bg-gradient-to-b from-[#092c4c]/80 via-[#092c4c]/45 to-[#092c4c]/85" />
           </div>
-          {/* From lg up the hero fills the screen below the header, so the cards along its bottom are always in view. */}
-          <div className="relative mx-auto flex min-h-[690px] max-w-7xl flex-col gap-10 px-5 pb-16 pt-16 sm:pb-20 lg:min-h-[max(620px,calc(100svh_-_76px))] lg:px-8 lg:pt-20">
+          {/* The photo runs up under the see-through header (SiteHeader pulls the hero up by its
+              height), so the content starts 76px further down. From lg up the hero fills the
+              screen, so the cards along its bottom are always in view. */}
+          <div className="relative mx-auto flex min-h-[766px] max-w-7xl flex-col gap-10 px-5 pb-16 pt-[140px] sm:pb-20 lg:min-h-[max(696px,100svh)] lg:px-8 lg:pt-[156px]">
             <div className="flex flex-1 items-center justify-center">
               <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 190, damping: 26 }} className="relative z-10 mx-auto max-w-5xl text-center" data-testid="hero-copy">
                 {/* Sizes picked so both rotating phrases take the same number of lines at every width
